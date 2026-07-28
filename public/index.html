@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#5b3bff" />
 <title>Flyelep | 跨境电商 AI 内容设计平台 · 1分钟生成高转化主图详情页</title>
 <meta name="description" content="Flyelep(飞象) 是跨境电商专属 AI 内容设计平台,基于自研 SUN-X 3.0 行业大模型,1 分钟生成 Amazon / Temu / Shopee / TikTok Shop / AliExpress / OZON 高转化主图、详情页、海报,支持英语 / 日语 / 德语 / 法语 / 西班牙语,主体保真度 98% 以上,10W+ 跨境卖家在用。" />
-<meta name="keywords" content="Flyelep,flyelep.cn,跨境电商AI,SUN-X,亚马逊主图,Shopee详情页,Temu,OZON,AI设计,飞象" />
+<meta name="keywords" content="Flyelep,flyelep.cn,跨境电商AI,SUN-X,亚马逊主图,Shopee详情页,Temu,OZON,AI设计,飞象,WorkBuddy,腾讯WorkBuddy" />
 <meta property="og:title" content="Flyelep | 跨境电商 AI 内容设计平台" />
 <meta property="og:description" content="1分钟生成高转化电商主图、详情页、海报。SUN-X 3.0 模型驱动,10W+ 跨境卖家在用。" />
 <meta property="og:type" content="website" />
@@ -15,83 +15,61 @@
 <link rel="icon" href="https://flyelep.cn/linkLogo.png" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preconnect" href="https://videos.pexels.com" crossorigin />
-<link rel="preload" as="video" href="/bg.mp4" type="video/mp4" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#ffffff;--bg-2:#fafafe;--bg-3:#f4f4ff;
+    --bg:#ffffff;--bg-2:#fafafe;
     --surface:#ffffff;
     --border:rgba(15,15,40,.08);--border-2:rgba(15,15,40,.12);
     --text:#0a0a25;--text-2:#4a4a6a;--text-3:#8a8aa8;
     --primary:#5b3bff;--primary-2:#7c5cff;--primary-3:#a07cff;
     --accent:#ff6b35;--accent-2:#ffa07a;--pink:#ff5b9b;
+    --wb:#1e88e5;--wb-2:#00bcd4;     /* WorkBuddy 蓝青色 */
     --success:#22c55e;
     --gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);
+    --gradient-wb:linear-gradient(135deg,#1e88e5 0%,#00bcd4 100%);
   }
-  html{scroll-behavior:smooth;background:#0a0a25}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#0a0a25;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"cv11","ss01"}
+  html{scroll-behavior:smooth;background:#fafafe}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#fafafe;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"cv11","ss01"}
   ::selection{background:var(--primary);color:#fff}
   img,svg{max-width:100%;display:block}
   a{color:inherit;text-decoration:none}
-  /* ============ 动态视频背景层 ============ */
-  .bg-video{
-    position:fixed;inset:0;z-index:-10;width:100%;height:100%;
-    object-fit:cover;object-position:center;
-    pointer-events:none;
-    /* 默认隐藏,有视频时显示 */
-    opacity:0;transition:opacity 1.5s ease;
-  }
-  .bg-video.ready{opacity:1}
-  .bg-video-overlay{
-    position:fixed;inset:0;z-index:-9;pointer-events:none;
-    background:
-      linear-gradient(180deg,rgba(91,59,255,.35) 0%,rgba(91,59,255,.15) 30%,rgba(255,91,155,.15) 70%,rgba(255,107,53,.25) 100%),
-      radial-gradient(ellipse 80% 50% at 50% 0%,rgba(10,10,40,.45) 0%,rgba(10,10,40,.15) 60%,transparent 100%),
-      radial-gradient(ellipse 60% 50% at 50% 100%,rgba(10,10,40,.4) 0%,rgba(10,10,40,.1) 50%,transparent 100%);
-    mix-blend-mode:multiply;
-  }
-  .bg-stage{
-    position:fixed;inset:0;z-index:-8;pointer-events:none;overflow:hidden;
-    background:
-      radial-gradient(ellipse 60% 40% at 30% 20%,rgba(91,59,255,.20),transparent 60%),
-      radial-gradient(ellipse 60% 40% at 70% 60%,rgba(255,91,155,.18),transparent 60%),
-      radial-gradient(ellipse 50% 40% at 50% 100%,rgba(255,107,53,.15),transparent 60%);
-    animation:bg-shift 20s ease-in-out infinite;
-  }
-  @keyframes bg-shift{0%,100%{filter:hue-rotate(0deg) saturate(1)}50%{filter:hue-rotate(8deg) saturate(1.1)}}
-  .grid-bg{position:fixed;inset:0;z-index:-7;pointer-events:none;background-image:linear-gradient(to right,rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.05) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-drift 30s linear infinite}
-  @keyframes grid-drift{to{background-position:80px 80px}}
-  .light-ribbon{position:fixed;top:0;left:0;right:0;height:60vh;z-index:-6;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
-  .ribbon{position:absolute;width:200%;height:100%;filter:blur(100px);opacity:.4}
-  .ribbon.a{background:linear-gradient(90deg,transparent 0%,rgba(160,124,255,.4) 25%,rgba(255,91,155,.4) 50%,rgba(160,124,255,.4) 75%,transparent 100%);animation:flow1 25s linear infinite}
-  .ribbon.b{background:linear-gradient(90deg,transparent 0%,rgba(255,91,155,.3) 25%,rgba(255,107,53,.3) 50%,rgba(91,59,255,.3) 75%,transparent 100%);top:30%;animation:flow2 32s linear infinite}
-  @keyframes flow1{0%{transform:translateX(-50%)}100%{transform:translateX(0%)}}
-  @keyframes flow2{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
-  .noise{position:fixed;inset:0;z-index:-5;pointer-events:none;opacity:.04;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:overlay}
-  .orbs{position:fixed;inset:0;z-index:-4;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
-  .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5}
-  .orb.a{width:480px;height:480px;background:radial-gradient(circle,#a07cff,transparent 70%);top:-100px;left:10%;animation:drift1 28s ease-in-out infinite}
-  .orb.b{width:420px;height:420px;background:radial-gradient(circle,#ff5b9b,transparent 70%);top:30%;right:-100px;animation:drift2 32s ease-in-out infinite}
-  .orb.c{width:380px;height:380px;background:radial-gradient(circle,#ff6b35,transparent 70%);bottom:-100px;left:35%;animation:drift3 36s ease-in-out infinite;opacity:.4}
-  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(100px,80px) scale(1.15)}66%{transform:translate(-50px,140px) scale(.92)}}
-  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-120px,60px) scale(1.2)}66%{transform:translate(80px,-70px) scale(.88)}}
-  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(90px,-100px) scale(1.18)}}
-  /* 移动端隐藏视频,用更强的渐变代替 */
-  @media (max-width:720px){
-    .bg-video{display:none}
-    .bg-stage{background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(91,59,255,.25),transparent 60%),radial-gradient(ellipse 60% 50% at 90% 30%,rgba(255,91,155,.20),transparent 60%),radial-gradient(ellipse 60% 50% at 10% 60%,rgba(91,59,255,.15),transparent 60%),linear-gradient(180deg,#fafafe 0%,#f0f0fa 100%)}
-  }
-  /* 减弱动效偏好 */
-  @media (prefers-reduced-motion:reduce){
-    .bg-video{display:none}
-    .ribbon,.orb,.bg-stage{animation:none}
-  }
+
+  /* ============================================
+     动态背景层 —— 纯 SVG + CSS 流动渐变
+     ============================================ */
+  .bg-stage{position:fixed;inset:0;z-index:-10;pointer-events:none;overflow:hidden;background:#fafafe}
+  .bg-gradient-mesh{position:absolute;inset:-20%;width:140%;height:140%}
+  .bg-grad{position:absolute;border-radius:50%;filter:blur(120px);mix-blend-mode:multiply;will-change:transform}
+  .bg-grad.a{width:60vw;height:60vw;background:radial-gradient(circle,rgba(91,59,255,.25),transparent 60%);top:-20%;left:-10%;animation:blob1 25s ease-in-out infinite}
+  .bg-grad.b{width:55vw;height:55vw;background:radial-gradient(circle,rgba(255,91,155,.20),transparent 60%);top:30%;right:-15%;animation:blob2 30s ease-in-out infinite}
+  .bg-grad.c{width:50vw;height:50vw;background:radial-gradient(circle,rgba(30,136,229,.18),transparent 60%);bottom:-20%;left:20%;animation:blob3 35s ease-in-out infinite}
+  .bg-grad.d{width:45vw;height:45vw;background:radial-gradient(circle,rgba(0,188,212,.15),transparent 60%);top:50%;right:10%;animation:blob4 28s ease-in-out infinite}
+  .bg-grad.e{width:40vw;height:40vw;background:radial-gradient(circle,rgba(255,107,53,.15),transparent 60%);bottom:10%;left:50%;transform:translateX(-50%);animation:blob5 32s ease-in-out infinite}
+  @keyframes blob1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(15vw,10vh) scale(1.15)}66%{transform:translate(-10vw,15vh) scale(.9)}}
+  @keyframes blob2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-15vw,8vh) scale(1.2)}66%{transform:translate(8vw,-10vh) scale(.85)}}
+  @keyframes blob3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(10vw,-12vh) scale(1.18)}}
+  @keyframes blob4{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-12vw,-8vh) scale(1.1)}80%{transform:translate(8vw,10vh) scale(.95)}}
+  @keyframes blob5{0%,100%{transform:translate(-50%,0) scale(1)}50%{transform:translate(-30%,-10vh) scale(1.2)}}
+  /* SVG 流光波浪 */
+  .bg-svg-layer{position:absolute;inset:0;width:100%;height:100%;opacity:.5;mix-blend-mode:multiply}
+  .bg-svg-layer svg{width:100%;height:100%;display:block}
+  /* 光束扫描 */
+  .bg-beam{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,rgba(91,59,255,.06) 30deg,transparent 60deg,rgba(255,91,155,.06) 90deg,transparent 120deg,rgba(30,136,229,.06) 180deg,transparent 240deg,rgba(0,188,212,.06) 300deg,transparent 360deg);animation:beam-spin 30s linear infinite;opacity:.6}
+  @keyframes beam-spin{to{transform:rotate(360deg)}}
+  /* 噪点纹理 */
+  .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:multiply}
+  /* 移动网格 */
+  .bg-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(91,59,255,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(91,59,255,.04) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-move 40s linear infinite;opacity:.7}
+  @keyframes grid-move{to{background-position:64px 64px}}
+  /* 减弱动效 */
+  @media (prefers-reduced-motion:reduce){.bg-grad,.bg-beam,.bg-grid{animation:none}}
   .scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gradient);z-index:1000;transition:width .15s;box-shadow:0 0 12px rgba(91,59,255,.4)}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
-  /* === 顶部导航(深色玻璃) === */
-  .top-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);background:rgba(255,255,255,.65);border-bottom:1px solid rgba(255,255,255,.3)}
+
+  /* === 顶部导航 === */
+  .top-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);background:rgba(255,255,255,.7);border-bottom:1px solid var(--border)}
   .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
   .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:var(--text)}
   .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
@@ -101,41 +79,47 @@
   .nav-cta{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
   .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
   @media (max-width:720px){.nav-links{display:none}}
-  /* === Hero(深色模式,适合视频背景) === */
-  .hero{padding:90px 0 70px;text-align:center;position:relative}
-  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(91,59,255,.2);font-size:13px;font-weight:500;color:var(--primary);margin-bottom:28px;box-shadow:0 4px 16px rgba(91,59,255,.1)}
+
+  /* === Hero === */
+  .hero{padding:100px 0 80px;text-align:center;position:relative}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(91,59,255,.2);font-size:13px;font-weight:500;color:var(--primary);margin-bottom:28px;box-shadow:0 4px 16px rgba(91,59,255,.08)}
   .hero-eyebrow .pulse{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:dot 2s ease-in-out infinite}
   @keyframes dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
-  .hero h1{font-size:clamp(36px,6.5vw,76px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 auto 22px;max-width:1000px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.3)}
-  .hero h1 .grad{background:linear-gradient(135deg,#fff 0%,#a07cff 50%,#ff5b9b 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:flow 6s ease infinite}
+  .hero h1{font-size:clamp(36px,6.5vw,76px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 auto 22px;max-width:1000px;color:var(--text)}
+  .hero h1 .grad{background:var(--gradient);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:flow 6s ease infinite}
   @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-  .hero p.sub{font-size:clamp(15px,1.7vw,18px);color:rgba(255,255,255,.92);max-width:680px;margin:0 auto 18px;line-height:1.6;text-shadow:0 2px 12px rgba(0,0,0,.3)}
-  .hero p.sub strong{color:#fff;font-weight:700}
-  .user-stat{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;padding:8px 18px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(34,197,94,.2);border-radius:99px;margin-bottom:32px;font-size:13px;color:var(--text-2);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+  .hero p.sub{font-size:clamp(15px,1.7vw,18px);color:var(--text-2);max-width:680px;margin:0 auto 18px;line-height:1.6}
+  .hero p.sub strong{color:var(--text);font-weight:600}
+  .user-stat{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;padding:8px 18px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(34,197,94,.2);border-radius:99px;margin-bottom:32px;font-size:13px;color:var(--text-2);box-shadow:0 4px 16px rgba(0,0,0,.05)}
   .user-stat strong{color:var(--success);font-weight:700}
   .user-stat .sep{color:var(--text-3);opacity:.5}
   .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 28px;border-radius:14px;font-weight:600;font-size:15px;transition:all .25s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative;overflow:hidden;border:none;letter-spacing:-.1px}
-  .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 8px 30px rgba(91,59,255,.5)}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(91,59,255,.7)}
-  .btn-ghost{background:rgba(255,255,255,.85);color:var(--text);border:1px solid rgba(255,255,255,.5);backdrop-filter:blur(12px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+  .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 8px 30px rgba(91,59,255,.4)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(91,59,255,.6)}
+  .btn-ghost{background:rgba(255,255,255,.8);color:var(--text);border:1px solid var(--border-2);backdrop-filter:blur(12px);box-shadow:0 4px 16px rgba(0,0,0,.04)}
   .btn-ghost:hover{background:#fff;border-color:var(--primary);color:var(--primary);transform:translateY(-2px)}
   .btn::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:left .6s}
   .btn:hover::after{left:150%}
-  /* === Hero 之下恢复白底 === */
-  .trust-band{padding:36px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.85);backdrop-filter:blur(12px);margin-top:36px;overflow:hidden;position:relative;z-index:3}
+
+  /* === 客户 marquee === */
+  .trust-band{padding:36px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.6);backdrop-filter:blur(12px);margin-top:36px;overflow:hidden;position:relative;z-index:3}
   .trust-band .label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.2em;text-align:center;margin-bottom:20px}
   .trust-marquee{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
   .trust-track{display:flex;gap:50px;animation:marquee 30s linear infinite;width:max-content}
   @keyframes marquee{to{transform:translateX(-50%)}}
   .trust-item{font-size:18px;font-weight:600;color:var(--text-2);white-space:nowrap;letter-spacing:-.3px;opacity:.7;transition:opacity .3s;flex-shrink:0}
   .trust-item:hover{opacity:1}
-  section{padding:100px 0;position:relative;z-index:2;background:transparent}
+
+  /* === Section 通用 === */
+  section{padding:100px 0;position:relative;z-index:2}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
   .section-eyebrow{display:inline-block;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:.2em;margin-bottom:16px;font-weight:600}
   .section-title{font-size:clamp(30px,4.2vw,44px);line-height:1.1;letter-spacing:-.02em;font-weight:700;margin-bottom:14px;color:var(--text)}
   .section-title em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   .section-sub{font-size:16px;color:var(--text-2);line-height:1.6}
+
+  /* === 数字 === */
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:80px}
   .stat{padding:30px 24px;border:1px solid var(--border);border-radius:18px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);text-align:center;transition:all .3s;position:relative;overflow:hidden}
   .stat::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient);opacity:0;transition:opacity .3s}
@@ -143,21 +127,73 @@
   .stat:hover::before{opacity:1}
   .stat .num{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.1;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   .stat .lbl{font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.4}
+
+  /* === 通用卡片 === */
   .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
   .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
-  .card{padding:28px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);transition:all .3s;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(91,59,255,.05)}
+  .card{padding:28px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);transition:all .3s;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(91,59,255,.04)}
   .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -10px rgba(91,59,255,.2)}
-  .card .icon{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,rgba(91,59,255,.1),rgba(255,91,155,.1));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
   .card h4{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text)}
   .card p{font-size:14px;color:var(--text-2);line-height:1.6}
+  .card .icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(91,59,255,.08),rgba(255,91,155,.08));border:1px solid rgba(91,59,255,.1);display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:all .3s}
+  .card:hover .icon{background:linear-gradient(135deg,var(--primary),var(--pink));border-color:transparent;transform:scale(1.05)}
+  .card:hover .icon svg{stroke:#fff!important;fill:#fff!important}
+  .card .icon svg{width:22px;height:22px;stroke:var(--primary);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:all .3s}
+
+  /* === AI 工具(9个) === */
   .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .tool{padding:18px 16px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);text-align:center;transition:all .3s;cursor:default}
-  .tool:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.2)}
-  .tool .t-emoji{font-size:26px;margin-bottom:8px}
-  .tool .t-name{font-size:14px;font-weight:600;color:var(--text)}
+  .tool{padding:24px 16px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);text-align:center;transition:all .3s;cursor:default;position:relative;overflow:hidden}
+  .tool:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 16px 30px -8px rgba(91,59,255,.2)}
+  .tool::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--primary),var(--pink));opacity:0;transition:opacity .3s;z-index:0}
+  .tool:hover::before{opacity:.04}
+  .tool-icon{position:relative;z-index:1;width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,rgba(91,59,255,.08),rgba(255,91,155,.08));display:flex;align-items:center;justify-content:center;margin:0 auto 10px;transition:all .3s}
+  .tool:hover .tool-icon{background:linear-gradient(135deg,var(--primary),var(--pink));transform:scale(1.05) rotate(-3deg)}
+  .tool-icon svg{width:22px;height:22px;stroke:var(--primary);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:all .3s}
+  .tool:hover .tool-icon svg{stroke:#fff}
+  .tool .t-name{position:relative;z-index:1;font-size:14px;font-weight:600;color:var(--text)}
   @media (max-width:720px){.tools-grid{grid-template-columns:repeat(2,1fr)}}
+
+  /* === 技术栈 === */
   .tech-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px}
   .tech-chip{padding:8px 18px;background:rgba(91,59,255,.06);border:1px solid rgba(91,59,255,.15);border-radius:99px;font-size:13px;color:var(--primary);font-weight:500;font-family:"JetBrains Mono",monospace}
+
+  /* === WorkBuddy 合作板块 === */
+  .wb-section{background:linear-gradient(180deg,rgba(30,136,229,.03),rgba(91,59,255,.03));border-radius:32px;padding:60px 40px;margin:0 -16px;position:relative;overflow:hidden}
+  .wb-section::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--wb),var(--primary),transparent)}
+  .wb-partnership{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:48px}
+  @media (max-width:720px){.wb-partnership{grid-template-columns:1fr;gap:32px}}
+  .wb-logos{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+  .wb-logo{display:flex;align-items:center;gap:10px;padding:12px 20px;background:rgba(255,255,255,.85);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.04);font-weight:700;font-size:16px;letter-spacing:-.3px}
+  .wb-logo img{width:32px;height:32px;border-radius:8px}
+  .wb-logo.wb-flyelep{color:var(--primary)}
+  .wb-logo.wb-tx{color:var(--wb)}
+  .wb-plus{font-size:24px;color:var(--text-3);font-weight:300}
+  .wb-tagline{font-size:20px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:12px}
+  .wb-tagline em{font-style:normal;color:var(--primary);background:linear-gradient(135deg,var(--primary),var(--wb));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .wb-desc{font-size:15px;color:var(--text-2);line-height:1.7}
+  .wb-visual{position:relative;height:280px;background:rgba(255,255,255,.5);border:1px solid var(--border);border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .wb-flow{display:flex;align-items:center;gap:20px;padding:20px}
+  .wb-step{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;background:rgba(255,255,255,.9);border:1px solid var(--border);border-radius:12px;min-width:100px;box-shadow:0 4px 12px rgba(0,0,0,.04);animation:wb-float 3s ease-in-out infinite}
+  .wb-step:nth-child(3){animation-delay:1s}
+  .wb-step:nth-child(5){animation-delay:2s}
+  .wb-step .wb-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center}
+  .wb-step .wb-ico img{width:24px;height:24px}
+  .wb-step.s1 .wb-ico{background:linear-gradient(135deg,var(--primary),var(--primary-2))}
+  .wb-step.s2 .wb-ico{background:linear-gradient(135deg,var(--wb),var(--wb-2))}
+  .wb-step.s3 .wb-ico{background:linear-gradient(135deg,var(--pink),var(--accent))}
+  .wb-step .wb-label{font-size:11px;color:var(--text-2);font-weight:500}
+  .wb-arrow{color:var(--text-3);font-size:18px;animation:arrow-pulse 1.5s ease-in-out infinite}
+  @keyframes wb-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes arrow-pulse{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(4px);opacity:1}}
+  .wb-benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .wb-benefit{padding:24px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);transition:all .3s}
+  .wb-benefit:hover{transform:translateY(-3px);box-shadow:0 12px 24px -6px rgba(30,136,229,.15);border-color:rgba(30,136,229,.2)}
+  .wb-benefit .b-icon{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--wb),var(--wb-2));display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:#fff}
+  .wb-benefit .b-icon svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .wb-benefit h4{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)}
+  .wb-benefit p{font-size:13px;color:var(--text-2);line-height:1.6}
+
+  /* === 定价 === */
   .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;max-width:920px;margin:0 auto}
   .price-card{padding:32px 28px;border:1px solid var(--border);border-radius:18px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);text-align:center;transition:all .3s;position:relative}
   .price-card.featured{border:2px solid var(--primary);box-shadow:0 20px 50px -15px rgba(91,59,255,.3);transform:scale(1.02)}
@@ -167,12 +203,16 @@
   .price-btn{display:inline-block;padding:12px 24px;background:var(--text);color:#fff;border-radius:10px;font-size:13px;font-weight:600;margin-top:20px;width:100%;transition:all .2s}
   .price-card.featured .price-btn{background:var(--gradient)}
   .price-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(91,59,255,.3)}
+
+  /* === FAQ === */
   .faqs{max-width:820px;margin:0 auto;display:grid;gap:14px}
   .faq{padding:24px 28px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);transition:border-color .2s}
   .faq:hover{border-color:rgba(91,59,255,.2)}
   .faq-q{font-size:16px;font-weight:600;margin-bottom:10px;color:var(--text);display:flex;align-items:flex-start;gap:10px}
   .faq-q::before{content:"Q";flex-shrink:0;width:24px;height:24px;background:var(--gradient);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
   .faq-a{font-size:14px;color:var(--text-2);line-height:1.7;padding-left:34px}
+
+  /* === 联系 === */
   .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;max-width:880px;margin:0 auto;padding:48px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:24px;box-shadow:0 20px 60px -15px rgba(91,59,255,.15)}
   @media (max-width:720px){.contact-grid{grid-template-columns:1fr;padding:32px;gap:28px}}
   .contact-info h3{font-size:24px;font-weight:700;margin-bottom:12px}
@@ -182,6 +222,8 @@
   .qr-card img{width:200px;height:200px;border-radius:8px;display:inline-block}
   .qr-card .qr-label{margin-top:12px;font-size:13px;color:var(--text-2);font-weight:500}
   .qr-card .qr-label strong{display:block;color:var(--text);font-size:15px;margin-bottom:2px}
+
+  /* === 证言 === */
   .testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
   .t-card{padding:28px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);position:relative;transition:all .3s}
   .t-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -10px rgba(91,59,255,.15)}
@@ -191,6 +233,8 @@
   .t-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
   .t-info .name{font-size:14px;font-weight:600;color:var(--text)}
   .t-info .role{font-size:12px;color:var(--text-3)}
+
+  /* === 最终 CTA === */
   .final{padding:100px 0;text-align:center;position:relative;z-index:2}
   .final-card{display:inline-block;padding:48px 56px;background:var(--gradient);border-radius:28px;box-shadow:0 30px 80px -20px rgba(91,59,255,.4);color:#fff;position:relative;overflow:hidden;max-width:720px;width:100%}
   .final-card::before{content:"";position:absolute;top:-50%;right:-30%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 50%);pointer-events:none}
@@ -198,7 +242,9 @@
   .final p{font-size:16px;color:rgba(255,255,255,.9);margin-bottom:24px;position:relative}
   .final .btn{background:#fff;color:var(--primary);position:relative}
   .final .btn:hover{background:#fff;color:var(--primary);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
-  footer{padding:60px 0 30px;border-top:1px solid var(--border);background:rgba(255,255,255,.9);backdrop-filter:blur(12px);position:relative;z-index:2}
+
+  /* === Footer === */
+  footer{padding:60px 0 30px;border-top:1px solid var(--border);background:rgba(255,255,255,.85);backdrop-filter:blur(12px);position:relative;z-index:2}
   .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px}
   @media (max-width:720px){.foot-grid{grid-template-columns:1fr 1fr}}
   .foot-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-weight:800;font-size:16px}
@@ -209,6 +255,8 @@
   .foot-col a:hover{color:var(--primary)}
   .foot-bottom{padding-top:30px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);flex-wrap:wrap;gap:14px}
   .foot-bottom a{color:var(--primary)}
+
+  /* === 滚动渐入 === */
   .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
   .reveal.in{opacity:1;transform:translateY(0)}
   .reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}
@@ -219,16 +267,46 @@
 
 <div class="scroll-bar" id="scrollBar"></div>
 
-<!-- 动态视频背景(蓝粒子流光) -->
-<video class="bg-video" id="bgVideo" autoplay loop muted playsinline preload="auto" poster="">
-  <source src="/bg.mp4" type="video/mp4" />
-</video>
-<div class="bg-video-overlay"></div>
-<div class="bg-stage"></div>
-<div class="light-ribbon"><div class="ribbon a"></div><div class="ribbon b"></div></div>
-<div class="grid-bg"></div>
-<div class="noise"></div>
-<div class="orbs"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div></div>
+<!-- 动态背景层(纯 SVG + CSS,白底高级感) -->
+<div class="bg-stage">
+  <div class="bg-gradient-mesh">
+    <div class="bg-grad a"></div>
+    <div class="bg-grad b"></div>
+    <div class="bg-grad c"></div>
+    <div class="bg-grad d"></div>
+    <div class="bg-grad e"></div>
+  </div>
+  <div class="bg-beam"></div>
+  <div class="bg-svg-layer">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#5b3bff" stop-opacity=".18"/>
+          <stop offset="50%" stop-color="#ff5b9b" stop-opacity=".12"/>
+          <stop offset="100%" stop-color="#00bcd4" stop-opacity=".08"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1e88e5" stop-opacity=".15"/>
+          <stop offset="100%" stop-color="#7c5cff" stop-opacity=".10"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,400 C300,300 600,500 900,350 C1200,200 1440,400 1440,400 L1440,900 L0,900 Z" fill="url(#g1)">
+        <animate attributeName="d" dur="20s" repeatCount="indefinite"
+          values="M0,400 C300,300 600,500 900,350 C1200,200 1440,400 1440,400 L1440,900 L0,900 Z;
+                  M0,350 C300,500 600,300 900,450 C1200,350 1440,250 1440,250 L1440,900 L0,900 Z;
+                  M0,400 C300,300 600,500 900,350 C1200,200 1440,400 1440,400 L1440,900 L0,900 Z"/>
+      </path>
+      <path d="M0,500 C200,400 500,600 800,500 C1100,400 1300,550 1440,500 L1440,900 L0,900 Z" fill="url(#g2)" opacity=".7">
+        <animate attributeName="d" dur="25s" repeatCount="indefinite"
+          values="M0,500 C200,400 500,600 800,500 C1100,400 1300,550 1440,500 L1440,900 L0,900 Z;
+                  M0,450 C200,600 500,400 800,550 C1100,500 1300,400 1440,450 L1440,900 L0,900 Z;
+                  M0,500 C200,400 500,600 800,500 C1100,400 1300,550 1440,500 L1440,900 L0,900 Z"/>
+      </path>
+    </svg>
+  </div>
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+</div>
 
 ﻿
 <nav class="top-nav">
@@ -239,7 +317,8 @@
     </a>
     <div class="nav-links">
       <a href="https://flyelep.cn#features" target="_blank" rel="noopener">核心功能</a>
-      <a href="https://flyelep.cn#tools" target="_blank" rel="noopener">AI 工具</a>
+      <a href="#tools">AI 工具</a>
+      <a href="#partnership">腾讯合作</a>
       <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
     </div>
@@ -267,7 +346,7 @@
     </div>
     <div class="cta-row reveal d3">
       <a class="btn btn-primary" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">🚀 立即免费体验</a>
-      <a class="btn btn-ghost" href="#features">看怎么用</a>
+      <a class="btn btn-ghost" href="#tools">看 AI 工具</a>
     </div>
   </div>
 </header>
@@ -320,16 +399,14 @@
     </div>
     <div class="grid-2">
       <div class="card reveal">
-        <div class="icon">🛍️</div>
+        <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
         <h4>电商内容</h4>
-        <p>AI 智能生成产品主图、详情页、A+ 页面、多语言翻译,提升转化率。<br/><br/>
-        <strong style="color:var(--text)">· 产品主图 · 详情页生成 · 多语言翻译 · A+ 页面制作</strong></p>
+        <p>AI 智能生成产品主图、详情页、A+ 页面、多语言翻译,提升转化率。<br/><br/><strong style="color:var(--text)">· 产品主图 · 详情页生成 · 多语言翻译 · A+ 页面制作</strong></p>
       </div>
       <div class="card reveal d1">
-        <div class="icon">📢</div>
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
         <h4>营销物料</h4>
-        <p>AI 生产视频工具、营销创意、社媒广告矩阵、多平台适配。<br/><br/>
-        <strong style="color:var(--text)">· 广告创意 · 营销分析 · 社交推广 · 多平台适配</strong></p>
+        <p>AI 生产视频工具、营销创意、社媒广告矩阵、多平台适配。<br/><br/><strong style="color:var(--text)">· 广告创意 · 营销分析 · 社交推广 · 多平台适配</strong></p>
       </div>
     </div>
   </div>
@@ -344,17 +421,17 @@
     </div>
     <div class="grid-3 reveal">
       <div class="card">
-        <div class="icon">🧠</div>
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0V9a3 3 0 0 0-3-3z"/><circle cx="12" cy="15" r="1.5"/></svg></div>
         <h4>SUN-X 行业大模型</h4>
         <p>结合 ControlNet 与自研适配算法,确保产品主体一致性,强大的画面控制,生成即卖货。</p>
       </div>
       <div class="card reveal d1">
-        <div class="icon">📊</div>
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg></div>
         <h4>自研数据标注平台</h4>
         <p>累计训练百万级电商爆款图片与高转化文案,模型不仅懂画面,更懂"卖货逻辑"。</p>
       </div>
       <div class="card reveal d2">
-        <div class="icon">🔥</div>
+        <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/><path d="M21 12a9 9 0 1 1-9-9"/></svg></div>
         <h4>实时热点 RAG</h4>
         <p>AI 搜索 Amazon / TikTok 实时数据,生成内容自动命中当季热搜关键词。</p>
       </div>
@@ -378,15 +455,81 @@
       <p class="section-sub reveal">覆盖商品内容全流程</p>
     </div>
     <div class="tools-grid">
-      <div class="tool reveal"><div class="t-emoji">🔍</div><div class="t-name">智能延展</div></div>
-      <div class="tool reveal d1"><div class="t-emoji">🌐</div><div class="t-name">图片翻译</div></div>
-      <div class="tool reveal d2"><div class="t-emoji">✏️</div><div class="t-name">局部重绘</div></div>
-      <div class="tool reveal d3"><div class="t-emoji">✨</div><div class="t-name">AI 超清</div></div>
-      <div class="tool reveal"><div class="t-emoji">🎯</div><div class="t-name">AI 抠图</div></div>
-      <div class="tool reveal d1"><div class="t-emoji">🔍</div><div class="t-name">无损放大</div></div>
-      <div class="tool reveal d2"><div class="t-emoji">🖼️</div><div class="t-name">场景替换</div></div>
-      <div class="tool reveal d3"><div class="t-emoji">🔄</div><div class="t-name">商品替换</div></div>
-      <div class="tool reveal"><div class="t-emoji">🎨</div><div class="t-name">商品换色</div></div>
+      <div class="tool reveal"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18M9 3v18M15 3v18"/></svg></div><div class="t-name">智能延展</div></div>
+      <div class="tool reveal d1"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><div class="t-name">图片翻译</div></div>
+      <div class="tool reveal d2"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></div><div class="t-name">局部重绘</div></div>
+      <div class="tool reveal d3"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.5 7L22 10l-7 6 2 8-7-4-7 4 2-8-7-6 7.5-1z"/></svg></div><div class="t-name">AI 超清</div></div>
+      <div class="tool reveal"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/></svg></div><div class="t-name">AI 抠图</div></div>
+      <div class="tool reveal d1"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M11 4v14M4 11h14M21 21l-4.35-4.35"/></svg></div><div class="t-name">无损放大</div></div>
+      <div class="tool reveal d2"><div class="tool-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/><path d="M14 13l2 2 4-4"/></svg></div><div class="t-name">场景替换</div></div>
+      <div class="tool reveal d3"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 7l-7 7-3-3 7-7 3 3z"/><path d="M11 13L4 20l-1-1 7-7"/><path d="M14 6l3 3"/></svg></div><div class="t-name">商品替换</div></div>
+      <div class="tool reveal"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="9" cy="15" r="2"/><circle cx="15" cy="15" r="2"/></svg></div><div class="t-name">商品换色</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="partnership">
+  <div class="wrap">
+    <div class="wb-section reveal">
+      <div class="wb-partnership">
+        <div>
+          <div class="wb-logos">
+            <span class="wb-logo wb-flyelep"><img src="/logo.png" alt="Flyelep" /> Flyelep</span>
+            <span class="wb-plus">×</span>
+            <span class="wb-logo wb-tx">
+              <svg viewBox="0 0 24 24" width="32" height="32" style="flex-shrink:0">
+                <rect width="24" height="24" rx="6" fill="#1e88e5"/>
+                <path d="M7 8h10M7 12h7M7 16h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              腾讯 WorkBuddy
+            </span>
+          </div>
+          <div class="wb-tagline reveal d1">Flyelep × 腾讯 WorkBuddy<br/><em>强强联合,重新定义跨境 AI</em></div>
+          <p class="wb-desc reveal d2">Flyelep 跨境内容设计能力 + WorkBuddy 全场景 AI 办公能力,共同为跨境卖家打造「视觉 + 数据 + 决策」一体化 AI 团队。一个管图,一个管事。</p>
+        </div>
+        <div class="wb-visual reveal d3">
+          <div class="wb-flow">
+            <div class="wb-step s1">
+              <div class="wb-ico"><img src="/logo.png" alt="Flyelep"/></div>
+              <div class="wb-label">Flyelep 出图</div>
+            </div>
+            <div class="wb-arrow">→</div>
+            <div class="wb-step s2">
+              <div class="wb-ico">
+                <svg viewBox="0 0 24 24" width="24" height="24"><rect width="24" height="24" rx="6" fill="#1e88e5"/><path d="M7 8h10M7 12h7M7 16h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </div>
+              <div class="wb-label">WorkBuddy 处理</div>
+            </div>
+            <div class="wb-arrow">→</div>
+            <div class="wb-step s3">
+              <div class="wb-ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="wb-label">一键上架</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wb-benefits reveal d3">
+        <div class="wb-benefit">
+          <div class="b-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+          <h4>一条指令,两个 AI</h4>
+          <p>Flyelep 出图 + WorkBuddy 写 Listing/做周报,自然语言一句话全跑完。</p>
+        </div>
+        <div class="wb-benefit">
+          <div class="b-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <h4>7×24 无人值守</h4>
+          <p>WorkBuddy 任务在云端持续运行,关闭电脑也能跑完,适合时差跨境。</p>
+        </div>
+        <div class="wb-benefit">
+          <div class="b-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h4>团队协作模式</h4>
+          <p>100+ 领域专家 + 自定义企业专家,团队共享 SOP,新人秒上手。</p>
+        </div>
+        <div class="wb-benefit">
+          <div class="b-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <h4>QQ / 企微原生</h4>
+          <p>WorkBuddy 直接在 QQ、企业微信生态里发指令,移动端也能远程操作。</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -476,12 +619,12 @@
         <div class="faq-a">英语、日语、德语、法语、西班牙语 5 种语言,OZON 俄语专门适配。</div>
       </div>
       <div class="faq reveal d3">
-        <div class="faq-q">主体保真度怎么样?商品会变形吗?</div>
-        <div class="faq-a">基于自研 SUN-X 大模型 + ControlNet 算法,商品不变形,可用率高达 98% 以上。</div>
+        <div class="faq-q">和腾讯 WorkBuddy 是什么关系?</div>
+        <div class="faq-a">Flyelep 与腾讯 WorkBuddy 是战略合作伙伴。Flyelep 负责跨境内容设计(主图/详情页/海报),WorkBuddy 负责数据处理(写文档/做周报/整理评论),一条指令两个 AI 接力跑。</div>
       </div>
       <div class="faq reveal d4">
-        <div class="faq-q">可以定制品牌专属模型吗?</div>
-        <div class="faq-a">飞驰版支持品牌定制模型,深度匹配你的品牌调性。详情可联系商务。</div>
+        <div class="faq-q">主体保真度怎么样?商品会变形吗?</div>
+        <div class="faq-a">基于自研 SUN-X 大模型 + ControlNet 算法,商品不变形,可用率高达 98% 以上。</div>
       </div>
     </div>
   </div>
@@ -516,7 +659,7 @@
   <div class="wrap">
     <div class="final-card reveal">
       <h2>准备好创作令人惊叹的作品了吗?</h2>
-      <p>1 分钟出图,10W+ 跨境卖家已经用 Flyelep 提升店铺转化率</p>
+      <p>1 分钟出图,10W+ 跨境卖家已经用 Flyelep + WorkBuddy 提升店铺转化率</p>
       <a class="btn" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">🚀 立即免费体验 Flyelep</a>
     </div>
   </div>
@@ -530,7 +673,7 @@
         <span>Flyelep</span>
       </div>
       <div>
-        <p>飞象 Agent(英文名 Flyelep)· 跨境电商专属 AI 内容设计平台,SUN-X 3.0 模型驱动,10W+ 跨境卖家在用。</p>
+        <p>飞象 Agent(英文名 Flyelep)· 跨境电商专属 AI 内容设计平台,SUN-X 3.0 模型驱动,10W+ 跨境卖家在用。<br/>战略合作:<strong style="color:var(--wb)">腾讯 WorkBuddy</strong>。</p>
       </div>
       <div class="foot-col">
         <h5>产品</h5>
@@ -540,8 +683,9 @@
         <a href="https://flyelep.cn/agent/inspiration" target="_blank" rel="noopener">灵感设计</a>
       </div>
       <div class="foot-col">
-        <h5>联系</h5>
+        <h5>合作</h5>
         <a href="https://flyelep.cn" target="_blank" rel="noopener">flyelep.cn</a>
+        <a href="#partnership">腾讯 WorkBuddy 合作</a>
         <a href="#contact">客服微信</a>
         <a href="#faq">常见问题</a>
       </div>
@@ -555,29 +699,7 @@
 
 <script>
 (function(){
-  // 视频背景:ready 后淡入
-  var v = document.getElementById('bgVideo');
-  if(v){
-    v.addEventListener('canplay', function(){
-      v.classList.add('ready');
-    }, {once:true});
-    // 一些浏览器(尤其移动)会阻止 autoplay,点击/触摸后恢复
-    document.addEventListener('click', function(){
-      if(v.paused) v.play().catch(function(){});
-    }, {once:true});
-  }
-
-  // 滚动进度
-  var bar=document.getElementById('scrollBar');
-  function updBar(){
-    var h=document.documentElement;
-    var p=(h.scrollTop||document.body.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
-    bar.style.width=(isNaN(p)?0:p)+'%';
-  }
-  window.addEventListener('scroll',updBar,{passive:true});
-  updBar();
-
-  // 数字滚动 + 渐入
+  // 数字滚动
   var io=new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if(e.isIntersecting){
@@ -601,6 +723,16 @@
     });
   },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal,.num').forEach(function(el){io.observe(el)});
+
+  // 顶部进度
+  var bar=document.getElementById('scrollBar');
+  function updBar(){
+    var h=document.documentElement;
+    var p=(h.scrollTop||document.body.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+    bar.style.width=(isNaN(p)?0:p)+'%';
+  }
+  window.addEventListener('scroll',updBar,{passive:true});
+  updBar();
 
   // UTM 跟踪
   try{
