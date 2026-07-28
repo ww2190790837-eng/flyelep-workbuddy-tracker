@@ -1,0 +1,13 @@
+﻿node_modules/
+data/
+*.log
+*.err
+*.bak
+app/app-server.*
+tunnel.*
+landing/
+admin/
+public/
+*.tmp
+.env
+.DS_Store
