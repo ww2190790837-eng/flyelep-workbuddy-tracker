@@ -1,0 +1,34 @@
+{
+  "type": "web_service",
+  "name": "flyelep-wb-tracker",
+  "ownerID": "tea-d9k5k8favr4c73a8hf90",
+  "repo": "https://github.com/ww2190790837-eng/flyelep-workbuddy-tracker",
+  "branch": "master",
+  "autoDeploy": true,
+  "serviceDetails": {
+    "runtime": "node",
+    "plan": "free",
+    "buildCommand": "npm install",
+    "startCommand": "node server.mjs",
+    "numInstances": 1,
+    "envSpecificDetails": {
+      "node": {
+        "nodeVersion": "20"
+      }
+    },
+    "envVars": [
+      {
+        "key": "NODE_VERSION",
+        "value": "20"
+      },
+      {
+        "key": "ADMIN_PASSWORD",
+        "value": "codex2026"
+      },
+      {
+        "key": "SESSION_SECRET",
+        "value": "de5ee4eb366c2cfac05d00a4221f1b31039918ed8273a572b6f818b856c89e5c"
+      }
+    ]
+  }
+}
