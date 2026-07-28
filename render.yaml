@@ -2,6 +2,7 @@
   - type: web
     name: flyelep-wb-tracker
     runtime: node
+    rootDir: app
     plan: free
     buildCommand: npm install
     startCommand: node server.mjs
