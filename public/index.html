@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#5b3bff" />
-<title>Flyelep | 跨境电商 AI 内容设计平台 · 10万+卖家在用</title>
-<meta name="description" content="Flyelep 是跨境电商专属 AI 内容设计平台,AI 复刻头部美工能力,一键生成 Amazon / Temu / Shopee / TikTok Shop / AliExpress / OZON 高转化主图、详情页、海报,支持英语/日语/德语/法语/西班牙语,5 种语言 + 6 大平台一次铺完。" />
-<meta name="keywords" content="Flyelep,flyelep.cn,跨境电商AI,亚马逊主图,Shopee详情页,Temu,OZON,AI设计,出海工具" />
+<title>Flyelep | 跨境电商 AI 内容设计平台 · 1分钟生成高转化主图详情页</title>
+<meta name="description" content="Flyelep(飞象) 是跨境电商专属 AI 内容设计平台,基于自研 SUN-X 3.0 行业大模型,1 分钟生成 Amazon / Temu / Shopee / TikTok Shop / AliExpress / OZON 高转化主图、详情页、海报,支持英语 / 日语 / 德语 / 法语 / 西班牙语,主体保真度 98% 以上,10W+ 跨境卖家在用。" />
+<meta name="keywords" content="Flyelep,flyelep.cn,跨境电商AI,SUN-X,亚马逊主图,Shopee详情页,Temu,OZON,AI设计,飞象" />
 <meta property="og:title" content="Flyelep | 跨境电商 AI 内容设计平台" />
-<meta property="og:description" content="10万+ 跨境卖家的 AI 设计伙伴。一键生成 6 大平台规范主图、详情页、海报。" />
+<meta property="og:description" content="1分钟生成高转化电商主图、详情页、海报。SUN-X 3.0 模型驱动,10W+ 跨境卖家在用。" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://flyelep.cn" />
 <meta property="og:image" content="https://flyelep.cn/agentLogo.webp" />
@@ -19,71 +19,31 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#ffffff;
-    --bg-2:#fafafe;
-    --bg-3:#f4f4ff;
+    --bg:#ffffff;--bg-2:#fafafe;--bg-3:#f4f4ff;
     --surface:#ffffff;
-    --border:rgba(15,15,40,.08);
-    --border-2:rgba(15,15,40,.12);
-    --text:#0a0a25;
-    --text-2:#4a4a6a;
-    --text-3:#8a8aa8;
-    --primary:#5b3bff;
-    --primary-2:#7c5cff;
-    --primary-3:#a07cff;
-    --accent:#ff6b35;
-    --accent-2:#ffa07a;
-    --pink:#ff5b9b;
+    --border:rgba(15,15,40,.08);--border-2:rgba(15,15,40,.12);
+    --text:#0a0a25;--text-2:#4a4a6a;--text-3:#8a8aa8;
+    --primary:#5b3bff;--primary-2:#7c5cff;--primary-3:#a07cff;
+    --accent:#ff6b35;--accent-2:#ffa07a;--pink:#ff5b9b;
     --success:#22c55e;
     --gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);
   }
   html{scroll-behavior:smooth;background:var(--bg)}
-  body{
-    font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-    background:var(--bg);color:var(--text);
-    line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"cv11","ss01";
-    position:relative;
-  }
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"cv11","ss01"}
   ::selection{background:var(--primary);color:#fff}
   img,svg{max-width:100%;display:block}
   a{color:inherit;text-decoration:none}
-
-  /* === 动态图背景层(白色主题) === */
-  .bg-stage{
-    position:fixed;inset:0;z-index:-3;pointer-events:none;overflow:hidden;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% 0%,rgba(91,59,255,.10),transparent 60%),
-      radial-gradient(ellipse 60% 50% at 90% 30%,rgba(255,91,155,.08),transparent 60%),
-      radial-gradient(ellipse 60% 50% at 10% 60%,rgba(91,59,255,.06),transparent 60%),
-      radial-gradient(ellipse 50% 50% at 50% 100%,rgba(255,107,53,.06),transparent 60%),
-      #ffffff;
-    animation:bg-shift 20s ease-in-out infinite;
-  }
+  .bg-stage{position:fixed;inset:0;z-index:-3;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(91,59,255,.10),transparent 60%),radial-gradient(ellipse 60% 50% at 90% 30%,rgba(255,91,155,.08),transparent 60%),radial-gradient(ellipse 60% 50% at 10% 60%,rgba(91,59,255,.06),transparent 60%),radial-gradient(ellipse 50% 50% at 50% 100%,rgba(255,107,53,.06),transparent 60%),#ffffff;animation:bg-shift 20s ease-in-out infinite}
   @keyframes bg-shift{0%,100%{filter:hue-rotate(0deg) saturate(1)}50%{filter:hue-rotate(8deg) saturate(1.1)}}
-  /* 动态网格 */
-  .grid-bg{
-    position:fixed;inset:0;z-index:-2;pointer-events:none;
-    background-image:
-      linear-gradient(to right,rgba(91,59,255,.04) 1px,transparent 1px),
-      linear-gradient(to bottom,rgba(91,59,255,.04) 1px,transparent 1px);
-    background-size:80px 80px;
-    mask-image:radial-gradient(ellipse 70% 60% at 50% 20%,#000 30%,transparent 80%);
-    -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 20%,#000 30%,transparent 80%);
-    animation:grid-drift 30s linear infinite;
-  }
+  .grid-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background-image:linear-gradient(to right,rgba(91,59,255,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(91,59,255,.04) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 60% at 50% 20%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 20%,#000 30%,transparent 80%);animation:grid-drift 30s linear infinite}
   @keyframes grid-drift{to{background-position:80px 80px}}
-  /* 流动光带 */
-  .light-ribbon{
-    position:fixed;top:0;left:0;right:0;height:60vh;z-index:-2;pointer-events:none;overflow:hidden;
-  }
+  .light-ribbon{position:fixed;top:0;left:0;right:0;height:60vh;z-index:-2;pointer-events:none;overflow:hidden}
   .ribbon{position:absolute;width:200%;height:100%;filter:blur(80px);opacity:.5;mix-blend-mode:multiply}
   .ribbon.a{background:linear-gradient(90deg,transparent 0%,rgba(91,59,255,.25) 25%,rgba(124,92,255,.3) 50%,rgba(255,91,155,.2) 75%,transparent 100%);animation:flow1 25s linear infinite}
   .ribbon.b{background:linear-gradient(90deg,transparent 0%,rgba(255,91,155,.2) 25%,rgba(255,107,53,.15) 50%,rgba(91,59,255,.2) 75%,transparent 100%);top:30%;animation:flow2 32s linear infinite}
   @keyframes flow1{0%{transform:translateX(-50%)}100%{transform:translateX(0%)}}
   @keyframes flow2{0%{transform:translateX(0%)}100%{transform:translateX(-50%)}}
-  /* 噪点 */
   .noise{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
-  /* 浮动光斑 */
   .orbs{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
   .orb{position:absolute;border-radius:50%;filter:blur(80px);mix-blend-mode:multiply;opacity:.35}
   .orb.a{width:480px;height:480px;background:radial-gradient(circle,#a07cff,transparent 70%);top:-100px;left:10%;animation:drift1 28s ease-in-out infinite}
@@ -94,7 +54,6 @@
   @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(90px,-100px) scale(1.18)}}
   .scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gradient);z-index:1000;transition:width .15s;box-shadow:0 0 12px rgba(91,59,255,.4)}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
-  /* === 顶部导航 === */
   .top-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);background:rgba(255,255,255,.7);border-bottom:1px solid var(--border)}
   .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
   .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:var(--text)}
@@ -105,18 +64,19 @@
   .nav-cta{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
   .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
   @media (max-width:720px){.nav-links{display:none}}
-  /* === Hero === */
   .hero{padding:80px 0 60px;text-align:center;position:relative}
   .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(91,59,255,.08);border:1px solid rgba(91,59,255,.15);font-size:13px;font-weight:500;color:var(--primary);margin-bottom:28px}
   .hero-eyebrow .pulse{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:dot 2s ease-in-out infinite}
   @keyframes dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
-  .hero h1{font-size:clamp(40px,7vw,84px);line-height:1.05;letter-spacing:-.03em;font-weight:800;margin:0 auto 24px;max-width:1000px;color:var(--text)}
+  .hero h1{font-size:clamp(36px,6.5vw,76px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 auto 22px;max-width:1000px;color:var(--text)}
   .hero h1 .grad{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% 200%;animation:flow 6s ease infinite}
   @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-  .hero p.sub{font-size:clamp(16px,1.8vw,19px);color:var(--text-2);max-width:680px;margin:0 auto 16px;line-height:1.6}
-  .hero .user-stat{display:inline-flex;align-items:center;gap:12px;padding:8px 16px;background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.04));border:1px solid rgba(34,197,94,.2);border-radius:99px;margin-bottom:36px;font-size:13px;color:var(--text-2)}
+  .hero p.sub{font-size:clamp(15px,1.7vw,18px);color:var(--text-2);max-width:680px;margin:0 auto 18px;line-height:1.6}
+  .hero p.sub strong{color:var(--text);font-weight:600}
+  .user-stat{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.04));border:1px solid rgba(34,197,94,.2);border-radius:99px;margin-bottom:32px;font-size:13px;color:var(--text-2)}
   .user-stat strong{color:var(--success);font-weight:700}
-  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:50px}
+  .user-stat .sep{color:var(--text-3);opacity:.5}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 28px;border-radius:14px;font-weight:600;font-size:15px;transition:all .25s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative;overflow:hidden;border:none;letter-spacing:-.1px}
   .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 8px 30px rgba(91,59,255,.35)}
   .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(91,59,255,.5)}
@@ -124,70 +84,93 @@
   .btn-ghost:hover{background:#fff;border-color:var(--primary);color:var(--primary);transform:translateY(-2px)}
   .btn::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:left .6s}
   .btn:hover::after{left:150%}
-  /* === 客户 marquee === */
-  .trust-band{padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(250,250,254,.6);margin-top:40px;overflow:hidden}
-  .trust-band .label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.2em;text-align:center;margin-bottom:24px}
+  .trust-band{padding:36px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(250,250,254,.6);margin-top:36px;overflow:hidden}
+  .trust-band .label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.2em;text-align:center;margin-bottom:20px}
   .trust-marquee{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
   .trust-track{display:flex;gap:50px;animation:marquee 30s linear infinite;width:max-content}
   @keyframes marquee{to{transform:translateX(-50%)}}
   .trust-item{font-size:18px;font-weight:600;color:var(--text-2);white-space:nowrap;letter-spacing:-.3px;opacity:.7;transition:opacity .3s;flex-shrink:0}
   .trust-item:hover{opacity:1}
-  /* === Section 通用 === */
   section{padding:100px 0;position:relative}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
   .section-eyebrow{display:inline-block;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:.2em;margin-bottom:16px;font-weight:600}
-  .section-title{font-size:clamp(32px,4.5vw,48px);line-height:1.1;letter-spacing:-.02em;font-weight:700;margin-bottom:16px;color:var(--text)}
+  .section-title{font-size:clamp(30px,4.2vw,44px);line-height:1.1;letter-spacing:-.02em;font-weight:700;margin-bottom:14px;color:var(--text)}
+  .section-title em{font-style:normal;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   .section-sub{font-size:16px;color:var(--text-2);line-height:1.6}
-  /* === 数据 === */
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:80px}
-  .stat{padding:32px 24px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#fff,rgba(91,59,255,.02));text-align:center;transition:all .3s;position:relative;overflow:hidden}
+  .stat{padding:30px 24px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#fff,rgba(91,59,255,.02));text-align:center;transition:all .3s;position:relative;overflow:hidden}
   .stat::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient);opacity:0;transition:opacity .3s}
   .stat:hover{transform:translateY(-4px);border-color:rgba(91,59,255,.3);box-shadow:0 20px 40px -10px rgba(91,59,255,.15)}
   .stat:hover::before{opacity:1}
-  .stat .num{font-size:42px;font-weight:800;letter-spacing:-.02em;line-height:1;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-  .stat .lbl{font-size:13px;color:var(--text-3);margin-top:8px}
-  /* === 痛点 === */
-  .pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-  .pain-card{padding:28px;border:1px solid var(--border);border-radius:16px;background:#fff;transition:all .3s}
-  .pain-card:hover{transform:translateY(-4px);border-color:rgba(255,107,53,.3);box-shadow:0 20px 40px -10px rgba(255,107,53,.12)}
-  .pain-card .icon{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,rgba(255,107,53,.1),rgba(255,91,155,.1));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
-  .pain-card h4{font-size:16px;font-weight:600;margin-bottom:8px}
-  .pain-card p{font-size:14px;color:var(--text-2);line-height:1.6}
-  /* === 步骤 === */
-  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-  .step{padding:32px 28px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(180deg,#fff,rgba(91,59,255,.02));transition:all .3s;position:relative}
-  .step:hover{transform:translateY(-4px);border-color:rgba(91,59,255,.3);box-shadow:0 20px 40px -10px rgba(91,59,255,.15)}
-  .step-n{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--primary);font-weight:600;margin-bottom:18px;display:inline-flex;align-items:center;gap:10px;padding:4px 10px;background:rgba(91,59,255,.08);border-radius:99px}
-  .step h4{font-size:20px;font-weight:700;margin-bottom:10px;color:var(--text)}
-  .step p{font-size:14px;color:var(--text-2);line-height:1.6}
-  /* === FAQ(静态展示,不可点击) === */
+  .stat .num{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.1;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .stat .lbl{font-size:12px;color:var(--text-3);margin-top:8px;line-height:1.4}
+  .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+  .card{padding:28px;border:1px solid var(--border);border-radius:16px;background:#fff;transition:all .3s;position:relative;overflow:hidden}
+  .card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -10px rgba(91,59,255,.15)}
+  .card .icon{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,rgba(91,59,255,.1),rgba(255,91,155,.1));display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+  .card h4{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text)}
+  .card p{font-size:14px;color:var(--text-2);line-height:1.6}
+  /* 工具卡(9个)*/
+  .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .tool{padding:18px 16px;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#fff,rgba(91,59,255,.02));text-align:center;transition:all .3s;cursor:default}
+  .tool:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.15)}
+  .tool .t-emoji{font-size:26px;margin-bottom:8px}
+  .tool .t-name{font-size:14px;font-weight:600;color:var(--text)}
+  @media (max-width:720px){.tools-grid{grid-template-columns:repeat(2,1fr)}}
+  /* 技术栈 */
+  .tech-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px}
+  .tech-chip{padding:8px 18px;background:rgba(91,59,255,.06);border:1px solid rgba(91,59,255,.15);border-radius:99px;font-size:13px;color:var(--primary);font-weight:500;font-family:"JetBrains Mono",monospace}
+  /* 定价 */
+  .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;max-width:920px;margin:0 auto}
+  .price-card{padding:32px 28px;border:1px solid var(--border);border-radius:18px;background:#fff;text-align:center;transition:all .3s;position:relative}
+  .price-card.featured{border:2px solid var(--primary);box-shadow:0 20px 50px -15px rgba(91,59,255,.3);transform:scale(1.02)}
+  .price-card.featured::before{content:"推荐";position:absolute;top:-12px;left:50%;transform:translateX(-50%);padding:4px 14px;background:var(--gradient);color:#fff;font-size:11px;font-weight:600;border-radius:99px;letter-spacing:.1em}
+  .price-card:hover{transform:translateY(-4px)}
+  .price-card.featured:hover{transform:scale(1.02) translateY(-4px)}
+  .price-name{font-size:20px;font-weight:700;margin-bottom:6px;color:var(--text)}
+  .price-tag{font-size:12px;color:var(--text-3);margin-bottom:20px;letter-spacing:.05em}
+  .price-btn{display:inline-block;padding:12px 24px;background:var(--text);color:#fff;border-radius:10px;font-size:13px;font-weight:600;margin-top:20px;width:100%;transition:all .2s}
+  .price-card.featured .price-btn{background:var(--gradient)}
+  .price-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(91,59,255,.3)}
+  /* FAQ(静态展示) */
   .faqs{max-width:820px;margin:0 auto;display:grid;gap:14px}
   .faq{padding:24px 28px;border:1px solid var(--border);border-radius:16px;background:#fff;transition:border-color .2s}
   .faq:hover{border-color:rgba(91,59,255,.2)}
   .faq-q{font-size:16px;font-weight:600;margin-bottom:10px;color:var(--text);display:flex;align-items:flex-start;gap:10px}
   .faq-q::before{content:"Q";flex-shrink:0;width:24px;height:24px;background:var(--gradient);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
   .faq-a{font-size:14px;color:var(--text-2);line-height:1.7;padding-left:34px}
-  /* === 微信二维码区 === */
+  /* 微信客服 */
   .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;max-width:880px;margin:0 auto;padding:48px;background:linear-gradient(135deg,rgba(91,59,255,.04),rgba(255,91,155,.04));border:1px solid var(--border);border-radius:24px}
-  @media (max-width:720px){.contact-grid{grid-template-columns:1fr;padding:32px}}
+  @media (max-width:720px){.contact-grid{grid-template-columns:1fr;padding:32px;gap:28px}}
   .contact-info h3{font-size:24px;font-weight:700;margin-bottom:12px}
   .contact-info p{font-size:15px;color:var(--text-2);line-height:1.7;margin-bottom:20px}
   .contact-info .tag{display:inline-block;padding:6px 12px;background:rgba(91,59,255,.08);border:1px solid rgba(91,59,255,.15);border-radius:99px;font-size:12px;color:var(--primary);font-weight:500;margin-right:6px;margin-bottom:6px}
-  .qr-card{text-align:center;background:#fff;padding:20px;border-radius:16px;box-shadow:0 10px 30px -8px rgba(91,59,255,.2);display:inline-block}
-  .qr-card img{width:200px;height:200px;border-radius:8px}
+  .qr-card{text-align:center;background:#fff;padding:20px;border-radius:16px;box-shadow:0 10px 30px -8px rgba(91,59,255,.2);display:inline-block;width:100%;max-width:240px}
+  .qr-card img{width:200px;height:200px;border-radius:8px;display:inline-block}
   .qr-card .qr-label{margin-top:12px;font-size:13px;color:var(--text-2);font-weight:500}
   .qr-card .qr-label strong{display:block;color:var(--text);font-size:15px;margin-bottom:2px}
-  /* === 最终 CTA === */
+  /* 证言 */
+  .testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  .t-card{padding:28px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,#fff,rgba(255,91,155,.02));position:relative;transition:all .3s}
+  .t-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -10px rgba(91,59,255,.12)}
+  .t-card .quote{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:20px}
+  .t-card .quote::before{content:"\201C";position:absolute;top:14px;right:18px;font-size:48px;color:var(--primary);opacity:.15;font-family:serif;line-height:1}
+  .t-meta{display:flex;align-items:center;gap:12px}
+  .t-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+  .t-info .name{font-size:14px;font-weight:600;color:var(--text)}
+  .t-info .role{font-size:12px;color:var(--text-3)}
+  /* 最终 CTA */
   .final{padding:100px 0;text-align:center;position:relative}
-  .final-card{display:inline-block;padding:48px 56px;background:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);border-radius:28px;box-shadow:0 30px 80px -20px rgba(91,59,255,.4);color:#fff;position:relative;overflow:hidden;max-width:720px;width:100%}
+  .final-card{display:inline-block;padding:48px 56px;background:var(--gradient);border-radius:28px;box-shadow:0 30px 80px -20px rgba(91,59,255,.4);color:#fff;position:relative;overflow:hidden;max-width:720px;width:100%}
   .final-card::before{content:"";position:absolute;top:-50%;right:-30%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 50%);pointer-events:none}
-  .final h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:14px;position:relative}
+  .final h2{font-size:clamp(30px,4.5vw,44px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:14px;position:relative}
   .final p{font-size:16px;color:rgba(255,255,255,.9);margin-bottom:24px;position:relative}
   .final .btn{background:#fff;color:var(--primary);position:relative}
   .final .btn:hover{background:#fff;color:var(--primary);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
-  /* === Footer === */
+  /* Footer */
   footer{padding:60px 0 30px;border-top:1px solid var(--border);background:rgba(250,250,254,.5)}
-  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px}
   @media (max-width:720px){.foot-grid{grid-template-columns:1fr 1fr}}
   .foot-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-weight:800;font-size:16px}
   .foot-brand img{width:36px;height:36px;border-radius:9px}
@@ -197,7 +180,7 @@
   .foot-col a:hover{color:var(--primary)}
   .foot-bottom{padding-top:30px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);flex-wrap:wrap;gap:14px}
   .foot-bottom a{color:var(--primary)}
-  /* === 滚动渐入 === */
+  /* 滚动渐入 */
   .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
   .reveal.in{opacity:1;transform:translateY(0)}
   .reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}
@@ -211,11 +194,7 @@
 <div class="light-ribbon"><div class="ribbon a"></div><div class="ribbon b"></div></div>
 <div class="grid-bg"></div>
 <div class="noise"></div>
-<div class="orbs">
-  <div class="orb a"></div>
-  <div class="orb b"></div>
-  <div class="orb c"></div>
-</div>
+<div class="orbs"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div></div>
 
 ﻿<nav class="top-nav">
   <div class="wrap top-nav-inner">
@@ -224,9 +203,9 @@
       <span>Flyelep</span>
     </a>
     <div class="nav-links">
-      <a href="#features">功能</a>
-      <a href="#how">使用流程</a>
-      <a href="#platforms">支持平台</a>
+      <a href="https://flyelep.cn#features" target="_blank" rel="noopener">核心功能</a>
+      <a href="https://flyelep.cn#tools" target="_blank" rel="noopener">AI 工具</a>
+      <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
     </div>
     <a class="nav-cta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
@@ -237,21 +216,23 @@
   <div class="wrap">
     <div class="hero-eyebrow reveal">
       <span class="pulse"></span>
-      Flyelep · 跨境电商 AI 内容设计平台
+      Flyelep AI · SUN-X 3.0 模型驱动
     </div>
     <h1 class="reveal d1">
-      上传产品图,<br/>
-      <span class="grad">6 大平台主图 一次铺完</span>
+      <span class="grad">1 分钟</span>生成高转化<br/>电商主图、详情页
     </h1>
     <p class="sub reveal d2">
-      Flyelep 是跨境电商专属 AI 内容设计平台,AI 复刻头部美工能力,一键生成高转化主图、详情页、海报,5 种语言 × 6 大平台规范,真正能上架、能合规、能转化的素材。
+      Flyelep(飞象)是基于自研 <strong>SUN-X 3.0 行业大模型</strong>的跨境电商 AI 内容设计平台。<br/>
+      深度理解商品卖点,生成即卖货,主体保真度 98% 以上。
     </p>
     <div class="user-stat reveal d2">
-      <span>已有</span><strong>100,000+</strong><span>跨境卖家在用 Flyelep</span>
+      <span>已有</span><strong>10W+ 跨境卖家</strong><span>在用 Flyelep</span>
+      <span class="sep">|</span>
+      <span>支持 Amazon / Temu / Shopee / TikTok Shop 等</span>
     </div>
     <div class="cta-row reveal d3">
       <a class="btn btn-primary" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">🚀 立即免费体验</a>
-      <a class="btn btn-ghost" href="#how">看怎么用</a>
+      <a class="btn btn-ghost" href="#features">看怎么用</a>
     </div>
   </div>
 </header>
@@ -269,7 +250,7 @@
       <span class="trust-item">独立站玩家</span>
       <span class="trust-item">代运营公司</span>
       <span class="trust-item">工厂出海</span>
-      <span class="trust-item">跨境品牌</span>
+      <span class="trust-item">女装电商品牌</span>
       <span class="trust-item">Amazon 头部卖家</span>
       <span class="trust-item">Temu 跨境</span>
       <span class="trust-item">Shopee 优选</span>
@@ -279,7 +260,7 @@
       <span class="trust-item">独立站玩家</span>
       <span class="trust-item">代运营公司</span>
       <span class="trust-item">工厂出海</span>
-      <span class="trust-item">跨境品牌</span>
+      <span class="trust-item">女装电商品牌</span>
     </div>
   </div>
 </div>
@@ -287,10 +268,10 @@
 <section id="stats">
   <div class="wrap">
     <div class="stats">
-      <div class="stat reveal"><div class="num" data-target="100000" data-format="k">0</div><div class="lbl">注册用户</div></div>
-      <div class="stat reveal d1"><div class="num" data-target="6">0</div><div class="lbl">支持跨境平台</div></div>
-      <div class="stat reveal d2"><div class="num" data-target="5">0</div><div class="lbl">多语言</div></div>
-      <div class="stat reveal d3"><div class="num" data-target="10" data-suffix="M+">0</div><div class="lbl">累计生成素材</div></div>
+      <div class="stat reveal"><div class="num" data-target="10" data-suffix="W+">0</div><div class="lbl">跨境卖家在用</div></div>
+      <div class="stat reveal d1"><div class="num" data-target="200" data-suffix="万+">0</div><div class="lbl">电商海量数据</div></div>
+      <div class="stat reveal d2"><div class="num" data-target="50" data-suffix="万+">0</div><div class="lbl">高转化实测数据</div></div>
+      <div class="stat reveal d3"><div class="num" data-target="98" data-suffix="%+">0</div><div class="lbl">主体保真可用率</div></div>
     </div>
   </div>
 </section>
@@ -298,59 +279,144 @@
 <section id="features">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-eyebrow reveal">/ The problem</span>
-      <h2 class="section-title reveal">做跨境,你每天都在 <span style="color:var(--accent)">崩溃</span>。</h2>
-      <p class="section-sub reveal">不是因为不努力,是因为你一个人扛了 4 个人的活。</p>
+      <span class="section-eyebrow reveal">/ 核心功能</span>
+      <h2 class="section-title reveal">两大核心模块,满足<em>全场景</em> AI 创作需求</h2>
+      <p class="section-sub reveal">从产品主图到营销物料,一站式完成</p>
     </div>
-    <div class="pain-grid">
-      <div class="pain-card reveal"><div class="icon">⏰</div><h4>凌晨 2 点</h4><p>还在改 Amazon A+ 主图,被运营催图比被老板催 KPI 还紧。</p></div>
-      <div class="pain-card reveal d1"><div class="icon">😵</div><h4>六个平台六套稿</h4><p>Shopee / Temu / TikTok Shop 风格各不同,一套素材改 6 版。</p></div>
-      <div class="pain-card reveal d2"><div class="icon">💸</div><h4>美工太贵</h4><p>专职 8K 起步,兼职便宜又出不了能转化的稿。</p></div>
-      <div class="pain-card reveal d3"><div class="icon">📉</div><h4>改 30 版没起色</h4><p>图改了无数版,转化没变化,你不懂爆款的公式。</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="how">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="section-eyebrow reveal">/ The solution</span>
-      <h2 class="section-title reveal">3 步,把你的 <span style="color:var(--primary)">4 人团队</span> 砍成 1 个 AI。</h2>
-    </div>
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-n">STEP 01</div>
-        <h4>上传产品图 + 卖点</h4>
-        <p>丢个产品图 + 一句卖点,中文就行。不需要设计经验,也不需要多语言能力。</p>
+    <div class="grid-2">
+      <div class="card reveal">
+        <div class="icon">🛍️</div>
+        <h4>电商内容</h4>
+        <p>AI 智能生成产品主图、详情页、A+ 页面、多语言翻译,提升转化率。<br/><br/>
+        <strong style="color:var(--text)">· 产品主图 · 详情页生成 · 多语言翻译 · A+ 页面制作</strong></p>
       </div>
-      <div class="step reveal d1">
-        <div class="step-n">STEP 02</div>
-        <h4>AI 一键出全套</h4>
-        <p>主图、详情页、海报 / 英语、日语、德语、法语、西班牙语 5 种语言 / Amazon、Temu、Shopee、TikTok Shop、AliExpress、OZON 6 平台规范全生成。</p>
-      </div>
-      <div class="step reveal d2">
-        <div class="step-n">STEP 03</div>
-        <h4>拖拽微调直接上架</h4>
-        <p>不满意直接拖、换字、改元素,所见即所得,生成完就能拼。专业级,不需要你懂设计。</p>
+      <div class="card reveal d1">
+        <div class="icon">📢</div>
+        <h4>营销物料</h4>
+        <p>AI 生产视频工具、营销创意、社媒广告矩阵、多平台适配。<br/><br/>
+        <strong style="color:var(--text)">· 广告创意 · 营销分析 · 社交推广 · 多平台适配</strong></p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="platforms">
+<section id="tech">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-eyebrow reveal">/ Platforms</span>
-      <h2 class="section-title reveal">6 大跨境平台,全部 <span style="color:var(--primary)">深度适配</span>。</h2>
-      <p class="section-sub reveal">不是套模板,是真的懂每个平台的尺寸、风格、审核规则。</p>
+      <span class="section-eyebrow reveal">/ 核心技术</span>
+      <h2 class="section-title reveal">基于 <em>SUN-X</em> 垂直行业大模型</h2>
+      <p class="section-sub reveal">深度理解商品卖点逻辑,比通用 AI 更懂电商转化</p>
     </div>
-    <div class="pain-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
-      <div class="pain-card reveal" style="text-align:center;padding:24px 12px"><div class="icon" style="margin:0 auto 12px">🛒</div><h4>Amazon</h4><p style="font-size:12px">主图 + A+ 页面</p></div>
-      <div class="pain-card reveal d1" style="text-align:center;padding:24px 12px"><div class="icon" style="margin:0 auto 12px">🟡</div><h4>Temu</h4><p style="font-size:12px">供货图规范</p></div>
-      <div class="pain-card reveal d2" style="text-align:center;padding:24px 12px"><div class="icon" style="margin:0 auto 12px">🦐</div><h4>Shopee</h4><p style="font-size:12px">店铺图</p></div>
-      <div class="pain-card reveal d3" style="text-align:center;padding:24px 12px"><div class="icon" style="margin:0 auto 12px">🎵</div><h4>TikTok Shop</h4><p style="font-size:12px">广告图</p></div>
-      <div class="pain-card reveal" style="text-align:center;padding:24px 12px"><div class="icon" style="margin:0 auto 12px">🌐</div><h4>AliExpress</h4><p style="font-size:12px">详情页</p></div>
-      <div class="pain-card reveal d1" style="text-align:center;padding:24px 12px"><div class="icon" style="margin:0 auto 12px">🇷🇺</div><h4>OZON</h4><p style="font-size:12px">俄语设计</p></div>
+    <div class="grid-3 reveal">
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h4>SUN-X 行业大模型</h4>
+        <p>结合 ControlNet 与自研适配算法,确保产品主体一致性,强大的画面控制,生成即卖货。</p>
+      </div>
+      <div class="card reveal d1">
+        <div class="icon">📊</div>
+        <h4>自研数据标注平台</h4>
+        <p>累计训练百万级电商爆款图片与高转化文案,模型不仅懂画面,更懂"卖货逻辑"。</p>
+      </div>
+      <div class="card reveal d2">
+        <div class="icon">🔥</div>
+        <h4>实时热点 RAG</h4>
+        <p>AI 搜索 Amazon / TikTok 实时数据,生成内容自动命中当季热搜关键词。</p>
+      </div>
+    </div>
+    <div class="tech-row reveal d3">
+      <span class="tech-chip">SUN-X MODEL</span>
+      <span class="tech-chip">LORA 微调</span>
+      <span class="tech-chip">NLP 引擎</span>
+      <span class="tech-chip">电商知识库</span>
+      <span class="tech-chip">ControlNet</span>
+      <span class="tech-chip">实时热点 RAG</span>
+    </div>
+  </div>
+</section>
+
+<section id="tools">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal">/ AI 工具</span>
+      <h2 class="section-title reveal">9+ 专业 AI <em>创作工具</em></h2>
+      <p class="section-sub reveal">覆盖商品内容全流程</p>
+    </div>
+    <div class="tools-grid">
+      <div class="tool reveal"><div class="t-emoji">🔍</div><div class="t-name">智能延展</div></div>
+      <div class="tool reveal d1"><div class="t-emoji">🌐</div><div class="t-name">图片翻译</div></div>
+      <div class="tool reveal d2"><div class="t-emoji">✏️</div><div class="t-name">局部重绘</div></div>
+      <div class="tool reveal d3"><div class="t-emoji">✨</div><div class="t-name">AI 超清</div></div>
+      <div class="tool reveal"><div class="t-emoji">🎯</div><div class="t-name">AI 抠图</div></div>
+      <div class="tool reveal d1"><div class="t-emoji">🔍</div><div class="t-name">无损放大</div></div>
+      <div class="tool reveal d2"><div class="t-emoji">🖼️</div><div class="t-name">场景替换</div></div>
+      <div class="tool reveal d3"><div class="t-emoji">🔄</div><div class="t-name">商品替换</div></div>
+      <div class="tool reveal"><div class="t-emoji">🎨</div><div class="t-name">商品换色</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal">/ 版本定价</span>
+      <h2 class="section-title reveal">三档版本,<em>总有一款</em>适合你</h2>
+      <p class="section-sub reveal">从个人卖家到品牌企业,灵活选择</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-name">飞凡版</div>
+        <div class="price-tag">个人卖家 / 小团队</div>
+        <p style="font-size:14px;color:var(--text-2);line-height:1.7">适合刚起步的跨境卖家,基础 AI 创作能力,满足日常素材需求。</p>
+        <a class="price-btn" href="https://flyelep.cn" target="_blank" rel="noopener">查看详情</a>
+      </div>
+      <div class="price-card featured reveal d1">
+        <div class="price-name">飞跃版</div>
+        <div class="price-tag">成长型品牌 / 代运营</div>
+        <p style="font-size:14px;color:var(--text-2);line-height:1.7">完整 SUN-X 模型能力 + 全部 9+ AI 工具 + 多语言翻译 + 团队协作模式。</p>
+        <a class="price-btn" href="https://flyelep.cn" target="_blank" rel="noopener">查看详情</a>
+      </div>
+      <div class="price-card reveal d2">
+        <div class="price-name">飞驰版</div>
+        <div class="price-tag">品牌定制 / 大卖家</div>
+        <p style="font-size:14px;color:var(--text-2);line-height:1.7">品牌定制模型 + 私有化部署 + 优先技术对接,深度匹配你的品牌调性。</p>
+        <a class="price-btn" href="https://flyelep.cn" target="_blank" rel="noopener">联系商务</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="testimonials">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal">/ 用户证言</span>
+      <h2 class="section-title reveal">他们都在用 <em>Flyelep</em></h2>
+    </div>
+    <div class="testimonials">
+      <div class="t-card reveal">
+        <p class="quote">作为小卖家,雇不起专业设计师,这个 AI 简直是救星!生成的详情页排版、配色都很高级,转化率比之前自己瞎做的高多了!</p>
+        <div class="t-meta"><div class="t-avatar">某</div><div class="t-info"><div class="name">某某</div><div class="role">女装电商品牌</div></div></div>
+      </div>
+      <div class="t-card reveal d1">
+        <p class="quote">我是设计小白,本来还怕操作复杂,结果全程傻瓜式!输入产品信息,选个喜欢的模板风格,几分钟就出图,太适合我这种手残党了!</p>
+        <div class="t-meta"><div class="t-avatar">某</div><div class="t-info"><div class="name">某某</div><div class="role">电器电商品牌</div></div></div>
+      </div>
+      <div class="t-card reveal d2">
+        <p class="quote">天哪,产品描述比我预想的好太多了!AI 自动提炼卖点,配图也精准,感觉它比我自己还了解我的货。</p>
+        <div class="t-meta"><div class="t-avatar">K</div><div class="t-info"><div class="name">Kevin</div><div class="role">电商卖家</div></div></div>
+      </div>
+      <div class="t-card reveal d3">
+        <p class="quote">产品自动贴合场景这个功能太强了!不管是电子产品还是家居用品,AI 都能智能匹配背景,省去了我大量找素材的时间。</p>
+        <div class="t-meta"><div class="t-avatar">张</div><div class="t-info"><div class="name">张先生</div><div class="role">家居卖家</div></div></div>
+      </div>
+      <div class="t-card reveal">
+        <p class="quote">真的惊艳!我只输入了几个关键词,AI 生成了完整的详情页文案和图片,而且描述超级精准,比我预想的好太多了!</p>
+        <div class="t-meta"><div class="t-avatar">J</div><div class="t-info"><div class="name">James</div><div class="role">3C 卖家</div></div></div>
+      </div>
+      <div class="t-card reveal d1">
+        <p class="quote">Flyelep 真的太懂我的产品了,我就上传了几张图,它自动生成的详情页文案比我自己写的还到位,惊艳到我了!</p>
+        <div class="t-meta"><div class="t-avatar">珊</div><div class="t-info"><div class="name">珊珊</div><div class="role">服饰卖家</div></div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -358,30 +424,29 @@
 <section id="faq">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-eyebrow reveal">/ FAQ</span>
-      <h2 class="section-title reveal">常见问题</h2>
-      <p class="section-sub reveal">关于 Flyelep 你需要知道的事</p>
+      <span class="section-eyebrow reveal">/ 常见问题</span>
+      <h2 class="section-title reveal">关于 Flyelep 你需要知道的事</h2>
     </div>
     <div class="faqs">
       <div class="faq reveal">
-        <div class="faq-q">Flyelep 跟 Midjourney / 即梦有什么区别?</div>
-        <div class="faq-a">MJ / 即梦给你一张"图",Flyelep 给你"一套能上架、能合规、懂转化"的素材 —— 6 平台规范、5 种语言、批量铺货,整套一次给你,不用二次返工。Flyelep 是专为跨境电商场景训练,不是通用图像生成。</div>
+        <div class="faq-q">Flyelep(飞象)是免费的吗?</div>
+        <div class="faq-a">提供免费试用,可在 flyelep.cn 注册体验。飞凡版 / 飞跃版 / 飞驰版三档可选,详情可联系客服咨询。</div>
       </div>
       <div class="faq reveal d1">
-        <div class="faq-q">真的免费吗?有没有套路?</div>
-        <div class="faq-a">真的。基础功能免费,不绑卡、不收押金。专业版按需升级,价格透明,无后续自动扣费。</div>
+        <div class="faq-q">支持哪些跨境平台?</div>
+        <div class="faq-a">Amazon、Temu、Shopee、TikTok Shop、AliExpress、OZON 六大平台,深度适配各平台规范。</div>
       </div>
       <div class="faq reveal d2">
-        <div class="faq-q">不会写代码能用吗?</div>
-        <div class="faq-a">能。Flyelep 是零代码工具 —— 拖拽 + 文字,跟美图秀秀一样简单,不需要任何技术背景。</div>
+        <div class="faq-q">支持哪些语言?</div>
+        <div class="faq-a">英语、日语、德语、法语、西班牙语 5 种语言,OZON 俄语专门适配。</div>
       </div>
       <div class="faq reveal d3">
-        <div class="faq-q">生成的主图会被平台判违规吗?</div>
-        <div class="faq-a">Flyelep 模板按 Amazon A+ / Temu / TikTok Shop 等规范训练,合规底子扎实;生成后你仍可人工二审。</div>
+        <div class="faq-q">主体保真度怎么样?商品会变形吗?</div>
+        <div class="faq-a">基于自研 SUN-X 大模型 + ControlNet 算法,商品不变形,可用率高达 98% 以上。</div>
       </div>
       <div class="faq reveal d4">
-        <div class="faq-q">支持哪些语种和平台?</div>
-        <div class="faq-a">平台:Amazon / Temu / Shopee / TikTok Shop / AliExpress / OZON。语言:英 / 日 / 德 / 法 / 西,OZON 俄语专门适配。</div>
+        <div class="faq-q">可以定制品牌专属模型吗?</div>
+        <div class="faq-a">飞驰版支持品牌定制模型,深度匹配你的品牌调性。详情可联系商务。</div>
       </div>
     </div>
   </div>
@@ -391,12 +456,12 @@
   <div class="wrap">
     <div class="contact-grid reveal">
       <div class="contact-info">
-        <h3>扫一扫,加客服微信</h3>
+        <h3>扫码联系专属客服</h3>
         <p>更多功能咨询 / 入驻 / 代理合作,加 Flyelep 官方客服微信,一对一服务。</p>
         <div>
-          <span class="tag">7×12 客服在线</span>
           <span class="tag">1v1 咨询</span>
           <span class="tag">免费试用</span>
+          <span class="tag">企业方案</span>
         </div>
       </div>
       <div style="text-align:center">
@@ -415,8 +480,8 @@
 <section class="final">
   <div class="wrap">
     <div class="final-card reveal">
-      <h2>10万+ 跨境卖家,已经在用 Flyelep</h2>
-      <p>你离爆单,只差一个 AI 队友的距离。</p>
+      <h2>准备好创作令人惊叹的作品了吗?</h2>
+      <p>1 分钟出图,10W+ 跨境卖家已经用 Flyelep 提升店铺转化率</p>
       <a class="btn" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">🚀 立即免费体验 Flyelep</a>
     </div>
   </div>
@@ -430,24 +495,25 @@
         <span>Flyelep</span>
       </div>
       <div>
-        <p>飞象 Agent(英文名 Flyelep)· 跨境电商专属 AI 内容设计平台,10万+ 卖家在用。</p>
+        <p>飞象 Agent(英文名 Flyelep)· 跨境电商专属 AI 内容设计平台,SUN-X 3.0 模型驱动,10W+ 跨境卖家在用。</p>
       </div>
       <div class="foot-col">
         <h5>产品</h5>
+        <a href="https://flyelep.cn" target="_blank" rel="noopener">官方首页</a>
         <a href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">海报生成</a>
         <a href="https://flyelep.cn/agent/detailPage" target="_blank" rel="noopener">详情页设计</a>
         <a href="https://flyelep.cn/agent/inspiration" target="_blank" rel="noopener">灵感设计</a>
       </div>
       <div class="foot-col">
         <h5>联系</h5>
-        <a href="https://flyelep.cn" target="_blank" rel="noopener">官网</a>
+        <a href="https://flyelep.cn" target="_blank" rel="noopener">flyelep.cn</a>
         <a href="#contact">客服微信</a>
         <a href="#faq">常见问题</a>
       </div>
     </div>
     <div class="foot-bottom">
       <div>© 2026 Flyelep · 跨境电商 AI 内容设计平台</div>
-      <div><a href="https://flyelep.cn" target="_blank" rel="noopener">flyelep.cn</a> · Made for 跨境人</div>
+      <div><a href="https://flyelep.cn" target="_blank" rel="noopener">flyelep.cn</a> · 官方</div>
     </div>
   </div>
 </footer>
@@ -462,22 +528,18 @@
   }
   window.addEventListener('scroll',updBar,{passive:true});
   updBar();
-
   var io=new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if(e.isIntersecting){
         if(e.target.classList.contains('num')){
           var t=parseFloat(e.target.dataset.target)||0;
           var suf=e.target.dataset.suffix||'';
-          var fmt=e.target.dataset.format||'';
-          var dur=1800;var start=null;
+          var dur=1600;var start=null;
           function step(ts){
             if(!start)start=ts;
             var p=Math.min((ts-start)/dur,1);
-            var eased=1-Math.pow(1-p,3);
-            var v=t*eased;
-            var str=fmt==='k'?(v/1000).toFixed(0)+'K':(Number.isInteger(t)?Math.floor(v):v.toFixed(1));
-            e.target.textContent=str+suf;
+            var v=t*(1-Math.pow(1-p,3));
+            e.target.textContent=Math.floor(v)+suf;
             if(p<1)requestAnimationFrame(step);
           }
           requestAnimationFrame(step);
@@ -489,7 +551,6 @@
     });
   },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal,.num').forEach(function(el){io.observe(el)});
-
   try{
     var p=new URLSearchParams(location.search);
     var keys=['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
