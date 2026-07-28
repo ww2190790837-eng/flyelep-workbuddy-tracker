@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 8080;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me';
-const PUBLIC_URL = process.env.PUBLIC_URL || '';
+const PUBLIC_URL = process.env.PUBLIC_URL || 'https://flyelep.com';
 const DATA_DIR = path.join(__dirname,'data');
 if(!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, {recursive:true});
 const DB_FILE = path.join(DATA_DIR,'db.json');
