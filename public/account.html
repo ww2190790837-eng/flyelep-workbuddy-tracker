@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#5b3bff" />
+<title>我的账户 · Flyelep</title>
+<link rel="icon" href="https://flyelep.cn/linkLogo.png" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#fafafe;--surface:#ffffff;
+    --border:rgba(15,15,40,.08);--border-2:rgba(15,15,40,.12);
+    --text:#0a0a25;--text-2:#4a4a6a;--text-3:#8a8aa8;
+    --primary:#5b3bff;--primary-2:#7c5cff;
+    --accent:#ff6b35;--pink:#ff5b9b;
+    --wb:#1e88e5;--wb-2:#00bcd4;
+    --success:#22c55e;--danger:#ef4444;
+    --gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);
+  }
+  html{background:#fafafe}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#fafafe;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;font-feature-settings:"cv11","ss01"}
+  ::selection{background:var(--primary);color:#fff}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+  .top-nav{background:rgba(255,255,255,.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:var(--text)}
+  .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
+  .nav-back{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
+  .nav-back:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
+  .account-shell{padding:48px 0 80px}
+  .account-card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.15);overflow:hidden}
+  .account-head{padding:32px 36px;background:var(--gradient);color:#fff;display:flex;align-items:center;gap:18px}
+  .account-avatar{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;border:2px solid rgba(255,255,255,.3)}
+  .account-name{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+  .account-email{font-size:13px;opacity:.85}
+  .account-body{padding:32px 36px}
+  .account-section{margin-bottom:32px}
+  .account-section:last-child{margin-bottom:0}
+  .account-section h3{font-size:13px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);margin-bottom:16px;font-weight:600}
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+  .info-cell{padding:18px;border:1px solid var(--border);border-radius:12px;background:rgba(91,59,255,.02)}
+  .info-cell .label{font-size:12px;color:var(--text-3);margin-bottom:6px}
+  .info-cell .value{font-size:15px;font-weight:600;color:var(--text)}
+  .plan-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;border-radius:99px;font-size:12px;font-weight:600}
+  .empty-state{text-align:center;padding:80px 32px}
+  .empty-state .em{font-size:48px;margin-bottom:16px}
+  .empty-state h2{font-size:22px;margin-bottom:10px;color:var(--text)}
+  .empty-state p{color:var(--text-2);margin-bottom:24px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;transition:all .2s;cursor:pointer;border:none;letter-spacing:-.1px}
+  .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 6px 20px rgba(91,59,255,.4)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(91,59,255,.5)}
+  .btn-ghost{background:rgba(255,255,255,.8);color:var(--text);border:1px solid var(--border-2)}
+  .btn-ghost:hover{background:#fff;border-color:var(--primary);color:var(--primary)}
+  .btn-danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
+  .btn-danger:hover{background:#fef2f2}
+  .quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .quick-action{padding:20px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.7);transition:all .3s;cursor:pointer;display:block}
+  .quick-action:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.15)}
+  .quick-action .qa-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
+  .quick-action h4{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)}
+  .quick-action p{font-size:13px;color:var(--text-2);line-height:1.5}
+  footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.5)}
+  .loading{text-align:center;padding:80px 0;color:var(--text-3)}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="wrap top-nav-inner">
+    <a class="nav-logo" href="/">
+      <img src="/logo.png" alt="Flyelep" />
+      <span>Flyelep</span>
+    </a>
+    <a class="nav-back" href="/">← 返回首页</a>
+  </div>
+</nav>
+
+<main class="account-shell">
+  <div class="wrap" id="app">
+    <div class="loading">加载中...</div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Flyelep · 跨境电商 AI 内容设计平台</div>
+</footer>
+
+<script>
+async function init(){
+  const app = document.getElementById("app");
+  const r = await fetch("/api/auth/me", {credentials:"include"});
+  const {user} = await r.json();
+  if (!user) {
+    app.innerHTML = `
+      <div class="card empty-state" style="background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.15);">
+        <div class="em">🔐</div>
+        <h2>需要登录</h2>
+        <p>请先登录或注册 Flyelep 账户</p>
+        <a class="btn btn-primary" href="/">返回首页登录</a>
+      </div>
+    `;
+    return;
+  }
+  const first = (user.name||user.email||"U")[0].toUpperCase();
+  const memberSince = new Date(user.createdAt).toLocaleDateString("zh-CN", {year:"numeric",month:"long",day:"numeric"});
+  const lastLogin = new Date(user.lastLoginAt).toLocaleString("zh-CN", {month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  app.innerHTML = `
+    <div class="account-card">
+      <div class="account-head">
+        <div class="account-avatar">${first}</div>
+        <div>
+          <div class="account-name">${user.name||"用户"}</div>
+          <div class="account-email">${user.email}</div>
+        </div>
+      </div>
+      <div class="account-body">
+        <div class="account-section">
+          <h3>账户信息</h3>
+          <div class="info-grid">
+            <div class="info-cell">
+              <div class="label">用户 ID</div>
+              <div class="value" style="font-family:'JetBrains Mono',monospace;font-size:13px">${user.id}</div>
+            </div>
+            <div class="info-cell">
+              <div class="label">注册时间</div>
+              <div class="value">${memberSince}</div>
+            </div>
+            <div class="info-cell">
+              <div class="label">上次登录</div>
+              <div class="value">${lastLogin}</div>
+            </div>
+            <div class="info-cell">
+              <div class="label">登录次数</div>
+              <div class="value">${user.loginCount||1} 次</div>
+            </div>
+            <div class="info-cell">
+              <div class="label">当前套餐</div>
+              <div class="value"><span class="plan-badge">${user.plan==="trial"?"试用版":user.plan}</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="account-section">
+          <h3>快捷操作</h3>
+          <div class="quick-actions">
+            <a class="quick-action" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">
+              <div class="qa-icon">🎨</div>
+              <h4>开始 AI 创作</h4>
+              <p>去 Flyelep 官方站,1 分钟生成主图详情页</p>
+            </a>
+            <a class="quick-action" href="/">
+              <div class="qa-icon">🏠</div>
+              <h4>返回首页</h4>
+              <p>查看平台所有功能与定价</p>
+            </a>
+            <a class="quick-action" href="https://workbuddy.qq.com" target="_blank" rel="noopener">
+              <div class="qa-icon" style="background:linear-gradient(135deg,var(--wb),var(--wb-2))">🔗</div>
+              <h4>腾讯 WorkBuddy</h4>
+              <p>了解我们的战略合作伙伴</p>
+            </a>
+            <a class="quick-action" id="logoutBtn" style="cursor:pointer">
+              <div class="qa-icon" style="background:linear-gradient(135deg,#ef4444,#f87171)">🚪</div>
+              <h4>退出登录</h4>
+              <p>登出当前账户</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    if (!confirm("确定要退出登录吗?")) return;
+    await fetch("/api/auth/logout", {method:"POST", credentials:"include"});
+    location.href = "/";
+  });
+}
+init();
+</script>
+
+</body>
+</html>

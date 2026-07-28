@@ -322,9 +322,58 @@
       <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
     </div>
+    <a href="#" id="navAuthLink" style="padding:9px 16px;font-size:13px;font-weight:600;color:var(--primary);border-radius:10px;transition:all .2s;display:none">登录 / 注册</a>
     <a class="nav-cta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
+    <div id="navUserBox" style="display:none;align-items:center;gap:10px">
+      <a href="/account.html" style="display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border-radius:10px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--text);transition:all .2s">
+        <span id="navAvatar" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700"></span>
+        <span id="navName"></span>
+      </a>
+      <a class="nav-cta" href="/account.html" style="background:rgba(91,59,255,.1);color:var(--primary);box-shadow:none">我的</a>
+    </div>
   </div>
 </nav>
+
+<!-- 用户浮层(右上角,登录后显示) -->
+<div id="userFloatingBar" style="position:fixed;top:80px;right:24px;z-index:40;display:none">
+  <a href="/account.html" id="userFloatingLink" style="display:flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:99px;box-shadow:0 8px 24px -8px rgba(91,59,255,.2);font-size:13px;font-weight:500;color:var(--text);transition:all .2s">
+    <span id="floatingAvatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700"></span>
+    <span id="floatingName"></span>
+  </a>
+</div>
+
+<!-- 登录/注册 Modal -->
+<div id="authModal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(10,10,40,.5);backdrop-filter:blur(8px);padding:24px">
+  <div style="background:#fff;border-radius:20px;max-width:440px;width:100%;box-shadow:0 30px 80px -20px rgba(0,0,0,.4);overflow:hidden;position:relative">
+    <button id="authClose" style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.04);border:none;cursor:pointer;font-size:18px;color:var(--text-3);transition:all .2s;display:flex;align-items:center;justify-content:center">×</button>
+    <div style="padding:36px 36px 28px;text-align:center">
+      <img src="/logo.png" alt="Flyelep" style="width:56px;height:56px;border-radius:14px;margin:0 auto 14px;display:block;box-shadow:0 6px 20px rgba(91,59,255,.25)" />
+      <h2 id="authTitle" style="font-size:22px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px">登录 Flyelep</h2>
+      <p id="authSubtitle" style="font-size:13px;color:var(--text-3);margin-bottom:24px">使用你的邮箱继续</p>
+    </div>
+    <form id="authForm" style="padding:0 36px 32px">
+      <div id="nameField" style="margin-bottom:14px;display:none">
+        <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500">昵称(可选)</label>
+        <input type="text" name="name" placeholder="给自己起个名字" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s" onfocus="this.style.borderColor='var(--primary)';this.style.background='#fff'" onblur="this.style.borderColor='var(--border)';this.style.background='#fafafe'" />
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500">邮箱</label>
+        <input type="email" name="email" required placeholder="[email protected]" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s" onfocus="this.style.borderColor='var(--primary)';this.style.background='#fff'" onblur="this.style.borderColor='var(--border)';this.style.background='#fafafe'" />
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500">密码</label>
+        <input type="password" name="password" required minlength="6" placeholder="至少 6 位" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s" onfocus="this.style.borderColor='var(--primary)';this.style.background='#fff'" onblur="this.style.borderColor='var(--border)';this.style.background='#fafafe'" />
+      </div>
+      <div id="authError" style="display:none;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#b91c1c;font-size:13px;margin-bottom:14px"></div>
+      <button type="submit" id="authSubmit" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:-.1px">登录</button>
+      <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--text-3)">
+        <span id="authToggleText">还没有账户?</span>
+        <a href="#" id="authToggle" style="color:var(--primary);font-weight:600;margin-left:4px">立即注册</a>
+      </p>
+    </form>
+  </div>
+</div>
+
 
 <header class="hero">
   <div class="wrap">
@@ -761,6 +810,131 @@
       }catch(err){}
     },true);
   }catch(e){}
+})();
+</script>
+
+
+<script>
+(function(){
+  var authModal = document.getElementById("authModal");
+  var authForm = document.getElementById("authForm");
+  var authClose = document.getElementById("authClose");
+  var authTitle = document.getElementById("authTitle");
+  var authSubtitle = document.getElementById("authSubtitle");
+  var authSubmit = document.getElementById("authSubmit");
+  var authError = document.getElementById("authError");
+  var authToggle = document.getElementById("authToggle");
+  var authToggleText = document.getElementById("authToggleText");
+  var nameField = document.getElementById("nameField");
+  var userBar = document.getElementById("userFloatingBar");
+  var mode = "login";
+
+  function openModal(m){
+    mode = m || "login";
+    if (mode === "register") {
+      authTitle.textContent = "注册 Flyelep 账户";
+      authSubtitle.textContent = "1 分钟开通,基础功能免费";
+      nameField.style.display = "block";
+      authSubmit.textContent = "注册并登录";
+      authToggleText.textContent = "已有账户?";
+      authToggle.textContent = "立即登录";
+      authForm.querySelector("input[name=password]").setAttribute("minlength", "6");
+    } else {
+      authTitle.textContent = "登录 Flyelep";
+      authSubtitle.textContent = "使用你的邮箱继续";
+      nameField.style.display = "none";
+      authSubmit.textContent = "登录";
+      authToggleText.textContent = "还没有账户?";
+      authToggle.textContent = "立即注册";
+    }
+    authError.style.display = "none";
+    authForm.reset();
+    authModal.style.display = "flex";
+    setTimeout(function(){authForm.querySelector("input[name=email]").focus()},100);
+  }
+  function closeModal(){ authModal.style.display = "none"; }
+
+  authClose.addEventListener("click", closeModal);
+  authModal.addEventListener("click", function(e){ if(e.target === authModal) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && authModal.style.display === "flex") closeModal(); });
+
+  authToggle.addEventListener("click", function(e){
+    e.preventDefault();
+    openModal(mode === "login" ? "register" : "login");
+  });
+
+  authForm.addEventListener("submit", async function(e){
+    e.preventDefault();
+    authError.style.display = "none";
+    var fd = new FormData(authForm);
+    var payload = {email: fd.get("email"), password: fd.get("password")};
+    if (mode === "register" && fd.get("name")) payload.name = fd.get("name");
+    var endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
+    authSubmit.disabled = true;
+    authSubmit.textContent = "处理中...";
+    try {
+      var r = await fetch(endpoint, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload), credentials:"include"});
+      var data = await r.json();
+      if (!r.ok || !data.ok) throw new Error(data.error || ("HTTP " + r.status));
+      // 成功:关闭 modal,刷新用户状态
+      closeModal();
+      await refreshUser();
+    } catch(err) {
+      authError.textContent = err.message || "出错了,请重试";
+      authError.style.display = "block";
+    } finally {
+      authSubmit.disabled = false;
+      authSubmit.textContent = mode === "login" ? "登录" : "注册并登录";
+    }
+  });
+
+  async function refreshUser(){
+    try{
+      var r = await fetch("/api/auth/me", {credentials:"include", cache:"no-store"});
+      var d = await r.json();
+      var u = d && d.user;
+      if (u) {
+        var first = (u.name || u.email || "U")[0].toUpperCase();
+        var navAvatar = document.getElementById("navAvatar");
+        var navName = document.getElementById("navName");
+        var floatingAvatar = document.getElementById("floatingAvatar");
+        var floatingName = document.getElementById("floatingName");
+        if (navAvatar) navAvatar.textContent = first;
+        if (navName) navName.textContent = u.name || u.email.split("@")[0];
+        if (floatingAvatar) floatingAvatar.textContent = first;
+        if (floatingName) floatingName.textContent = u.name || u.email.split("@")[0];
+        var navBox = document.getElementById("navUserBox");
+        var authLink = document.getElementById("navAuthLink");
+        if (navBox) navBox.style.display = "flex";
+        if (authLink) authLink.style.display = "none";
+        if (userBar) userBar.style.display = "block";
+      } else {
+        var navBox = document.getElementById("navUserBox");
+        var authLink = document.getElementById("navAuthLink");
+        if (navBox) navBox.style.display = "none";
+        if (authLink) authLink.style.display = "inline-flex";
+        if (userBar) userBar.style.display = "none";
+      }
+    } catch(e) { console.log("me check fail", e); }
+  }
+
+  // 绑定 nav 的"登录/注册"链接
+  document.addEventListener("click", function(e){
+    var t = e.target;
+    if (t && t.id === "navAuthLink") {
+      e.preventDefault();
+      openModal("login");
+    }
+  });
+
+  // 暴露给全局,这样其他代码可以调用
+  window.flyelepAuth = { open: openModal, close: closeModal, refresh: refreshUser };
+
+  // 页面加载时拉一次
+  refreshUser();
+
+  // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
+  // 暂时不动,让用户自己选
 })();
 </script>
 
