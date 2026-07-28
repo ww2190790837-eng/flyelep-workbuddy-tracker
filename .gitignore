@@ -7,7 +7,6 @@ app/app-server.*
 tunnel.*
 landing/
 admin/
-public/
 *.tmp
 .env
 .DS_Store
