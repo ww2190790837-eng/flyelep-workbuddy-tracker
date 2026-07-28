@@ -2,11 +2,8 @@
 data/
 *.log
 *.err
-*.bak
-app/app-server.*
-tunnel.*
-landing/
-admin/
-*.tmp
-.env
+body*.json
+gh-login.*
+gh-extract/
 .DS_Store
+.env

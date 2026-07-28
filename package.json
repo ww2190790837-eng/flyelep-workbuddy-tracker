@@ -1,0 +1,1 @@
+﻿{"name":"flyelep-workbuddy-tracker","version":"1.0.0","description":"Flyelep × WorkBuddy 抖音落地页 + UTM 后台","main":"server.mjs","type":"module","scripts":{"start":"node server.mjs","dev":"node --watch server.mjs"},"engines":{"node":">=18"},"dependencies":{"express":"4.19.2","cookie-parser":"1.4.7"}}

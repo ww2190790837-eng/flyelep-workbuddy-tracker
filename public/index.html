@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a74ff" />
+<title>飞象 × Codex | 跨境电商 AI 团队招募中</title>
+<meta name="description" content="飞象 Agent 出"脸面",Codex 出"脑子" —— 跨境电商两条命脉,两个 AI 一次搞定。Amazon / Temu / Shopee / TikTok Shop / AliExpress / OZON 6 大平台素材 + 多语言 + 批量生成,7 天免费试用。" />
+<meta property="og:title" content="Flyelep 飞象 × Codex 跨境 AI 团队" />
+<meta property="og:description" content="一个管图,一个管数据;7 天免费体验跨境电商 AI 设计智能体。" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://dy-yuan-gu.obs.cn-south-1.myhuaweicloud.com/static_file/2026-02-27/65a0a77f52544b08a90b1cabb8b9fe25.png" />
+<style>
+  :root{
+    --primary:#0a74ff;
+    --primary-dark:#095ed1;
+    --accent:#ff6b35;
+    --bg:#0b1020;
+    --bg-2:#0f1733;
+    --card:#121b3a;
+    --text:#f5f7ff;
+    --muted:#aab3d4;
+    --line:#1f2a55;
+    --success:#22c55e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+  img{max-width:100%;display:block}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+  .top-bar{background:linear-gradient(90deg,var(--primary),#4f46e5);color:#fff;font-size:13px;padding:8px 16px;text-align:center;letter-spacing:.5px}
+  .top-bar b{font-weight:700}
+  header.hero{padding:48px 0 32px;background:radial-gradient(60% 80% at 50% 0%,rgba(10,116,255,.25),transparent 60%),var(--bg)}
+  .logos{display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:24px;flex-wrap:wrap}
+  .logo-pill{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+  .logo-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .logo-pill.codex .dot{background:var(--success)}
+  .x-sign{font-size:22px;color:var(--muted);font-weight:300}
+  .hero h1{font-size:34px;line-height:1.25;text-align:center;margin-bottom:14px;background:linear-gradient(90deg,#fff 0%,#a8c5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero p.sub{text-align:center;color:var(--muted);font-size:16px;margin-bottom:28px;padding:0 8px}
+  .hero .tag-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:32px;padding:0 8px}
+  .tag{font-size:12px;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted)}
+  .cta-row{display:flex;flex-direction:column;gap:12px;padding:0 20px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px 20px;border-radius:12px;font-weight:700;font-size:16px;border:none;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;text-align:center;line-height:1.3}
+  .btn-primary{background:linear-gradient(90deg,var(--accent),#ff8c42);color:#fff;box-shadow:0 8px 24px rgba(255,107,53,.35)}
+  .btn-secondary{background:linear-gradient(90deg,var(--primary),#4f46e5);color:#fff;box-shadow:0 8px 24px rgba(10,116,255,.35)}
+  .btn:active{transform:scale(.98)}
+  .hero-sub-text{text-align:center;color:var(--muted);font-size:12px;margin-top:14px;padding:0 16px}
+  section{padding:48px 0}
+  h2.section-title{font-size:24px;text-align:center;margin-bottom:8px}
+  .section-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:32px}
+  .pain{display:grid;gap:12px;padding:0 8px}
+  .pain-item{background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+  .pain-item .emoji{font-size:20px;flex-shrink:0}
+  .pain-item .text{font-size:14px;color:#ffd6c2;line-height:1.5}
+  .platforms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  .platform{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center;font-size:13px;font-weight:600}
+  .platform small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+  .compare{background:var(--bg-2);padding:32px 16px;margin:0 -16px;border-radius:20px;border:1px solid var(--line)}
+  .compare-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px}
+  .compare-col{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--line)}
+  .compare-col.head{background:linear-gradient(135deg,rgba(255,107,53,.18),rgba(10,116,255,.18));border-color:var(--primary)}
+  .compare-col h3{font-size:16px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .compare-col ul{list-style:none;font-size:13px;color:var(--muted)}
+  .compare-col ul li{padding:6px 0;border-bottom:1px dashed var(--line);display:flex;gap:6px;align-items:flex-start}
+  .compare-col ul li:last-child{border-bottom:none}
+  .compare-col ul li::before{content:"✓";color:var(--success);font-weight:700;flex-shrink:0}
+  .steps{display:grid;gap:14px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;gap:14px;align-items:flex-start}
+  .step-num{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#4f46e5);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+  .step h4{font-size:15px;margin-bottom:4px}
+  .step p{font-size:13px;color:var(--muted);line-height:1.5}
+  .who{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .who-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;font-size:13px}
+  .who-card .emoji{font-size:24px;margin-bottom:6px}
+  .faq-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .faq-q{font-weight:700;font-size:14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .faq-q .toggle{color:var(--primary);font-size:18px;transition:transform .2s}
+  .faq-a{font-size:13px;color:var(--muted);display:none;line-height:1.6;padding-top:6px}
+  .faq-item.open .faq-a{display:block}
+  .faq-item.open .toggle{transform:rotate(45deg)}
+  .final-cta{background:linear-gradient(135deg,var(--primary),#4f46e5);border-radius:20px;padding:32px 20px;text-align:center;margin:0 -16px;position:relative;overflow:hidden}
+  .final-cta::before{content:"";position:absolute;top:-50%;right:-30%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.1),transparent 50%);pointer-events:none}
+  .final-cta h2{font-size:24px;margin-bottom:8px;position:relative}
+  .final-cta p{font-size:14px;color:#cbd5ff;margin-bottom:20px;position:relative}
+  .final-cta .btn{position:relative}
+  .final-cta .small{font-size:11px;color:#cbd5ff;margin-top:12px;position:relative}
+  footer{padding:32px 16px;text-align:center;color:var(--muted);font-size:11px;border-top:1px solid var(--line);margin-top:32px}
+  footer a{color:var(--primary)}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .float{animation:float 3s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,53,.5)}50%{box-shadow:0 0 0 12px rgba(255,107,53,0)}}
+  .pulse{animation:pulse 2s infinite}
+  @media (min-width:600px){.cta-row{flex-direction:row;justify-content:center}.btn{width:auto;padding:18px 28px;font-size:17px}.hero h1{font-size:42px}.platforms{grid-template-columns:repeat(6,1fr)}.who{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="top-bar">🔥 抖音评论区专属入口 · 7 天免费 · 不收费不办卡</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="logos">
+      <span class="logo-pill"><span class="dot"></span>Flyelep 飞象</span>
+      <span class="x-sign">×</span>
+      <span class="logo-pill codex"><span class="dot"></span>Codex 电商</span>
+    </div>
+    <h1>一个管"脸面"<br/>一个管"脑子"</h1>
+    <p class="sub">跨境电商两条命脉,两个 AI 一次搞定。<br/>把 4 人团队砍成 2 个 AI,你只管喝咖啡。</p>
+    <div class="tag-row">
+      <span class="tag">🛒 Amazon</span>
+      <span class="tag">🟡 Temu</span>
+      <span class="tag">🦐 Shopee</span>
+      <span class="tag">🎵 TikTok Shop</span>
+      <span class="tag">🌐 AliExpress</span>
+      <span class="tag">🇷🇺 OZON</span>
+      <span class="tag">🇺🇸🇯🇵🇩🇪🇫🇷 多语言</span>
+      <span class="tag">⚡ 批量铺货</span>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-primary pulse" href="https://flyelep.cn/?utm_source=douyin&utm_medium=video&utm_campaign=flyelep_codex" target="_blank" rel="noopener">🚀 立即体验飞象 Agent(基础免费)</a>
+      <a class="btn btn-secondary" href="#codex" onclick="document.getElementById('codex').scrollIntoView({behavior:'smooth'})">⚙️ 了解 Codex 怎么联动</a>
+    </div>
+    <p class="hero-sub-text">支持手机/网页/小程序入口 · 不需要邀请码</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2 class="section-title">😩 跨境卖家每天都在崩溃</h2>
+    <p class="section-sub">你 time 去了哪里?</p>
+    <div class="pain">
+      <div class="pain-item"><span class="emoji">⏰</span><div class="text">凌晨 2 点还在改 Amazon A+ 主图,被运营催图比被老板催 KPI 还紧。</div></div>
+      <div class="pain-item"><span class="emoji">😵</span><div class="text">Shopee / Temu / TikTok Shop 六个平台风格不同,一套素材要改 6 版。</div></div>
+      <div class="pain-item"><span class="emoji">💸</span><div class="text">招专职美工 8K 起步,兼职便宜又出不了能转化的稿子。</div></div>
+      <div class="pain-item"><span class="emoji">📉</span><div class="text">图改了 30 版,转化率没起色,不知道 AI 设计的爆款公式长什么样。</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="section-title">🐘 飞象 Agent 在做什么</h2>
+    <p class="section-sub">基于千万级跨境爆款训练的 AI 设计智能体</p>
+    <div class="platforms">
+      <div class="platform">Amazon<small>主图+A+</small></div>
+      <div class="platform">Temu<small>供货图</small></div>
+      <div class="platform">Shopee<small>店铺图</small></div>
+      <div class="platform">TikTok Shop<small>广告图</small></div>
+      <div class="platform">AliExpress<small>详情页</small></div>
+      <div class="platform">OZON<small>俄语设计</small></div>
+    </div>
+    <div class="steps" style="margin-top:32px">
+      <div class="step"><div class="step-num">1</div><div><h4>上传产品图 + 卖点</h4><p>不需要设计经验,也不需要多语言能力,卖点用中文写就行。</p></div></div>
+      <div class="step"><div class="step-num">2</div><div><h4>AI 一键出全套</h4><p>主图 / 详情页 / 爆款海报 / 5 种语言 / 6 平台规范,几秒钟出图。</p></div></div>
+      <div class="step"><div class="step-num">3</div><div><h4>拖拽微调直接上架</h4><p>不满意?直接拖、换字、改元素,所见即所得,生成完就能拼。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="codex">
+  <div class="wrap">
+    <h2 class="section-title">🤖 Codex 怎么补齐另一半</h2>
+    <p class="section-sub">图够了,运营还要做什么?Codex 帮你跑数据</p>
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-col head"><h3>🐘 飞象 Agent</h3><ul><li>主图 / 详情页 / 海报</li><li>6 大平台规范适配</li><li>多语言设计</li><li>拖拽微调</li><li>批量生成</li></ul></div>
+        <div class="compare-col head"><h3>🤖 Codex 电商</h3><ul><li>周报/纪要/PPT 一键出</li><li>100+ 领域专家</li><li>QQ/企微远程发令</li><li>多 Agent 并行</li><li>本地文件读写</li></ul></div>
+      </div>
+      <div class="compare-row" style="margin-bottom:0">
+        <div class="compare-col" style="grid-column:1/-1;text-align:center;background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(10,116,255,.12))">
+          <h3 style="justify-content:center">⚡ 联手公式</h3>
+          <p style="font-size:13px;color:var(--muted)">WorkBuddy 写文档 → 飞象出图 → WorkBuddy 做周报 → 飞象再出海报。<br/>一条指令,两个 AI 接力跑。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="section-title">👥 适合谁</h2>
+    <p class="section-sub">如果你有这些场景,这个组合就是为你准备的</p>
+    <div class="who">
+      <div class="who-card"><div class="emoji">👨‍💼</div>亚马逊老板</div>
+      <div class="who-card"><div class="emoji">🛍️</div>独立站运营</div>
+      <div class="who-card"><div class="emoji">📦</div>Temu 铺货人</div>
+      <div class="who-card"><div class="emoji">🎬</div>TikTok Shop 投手</div>
+      <div class="who-card"><div class="emoji">🏭</div>工厂出海</div>
+      <div class="who-card"><div class="emoji">🚀</div>跨境新手</div>
+      <div class="who-card"><div class="emoji">👩‍🎨</div>美工想提效</div>
+      <div class="who-card"><div class="emoji">📈</div>代运营团队</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="section-title">❓ 常见疑问</h2>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">飞象跟 Midjourney / 即梦有什么区别?<span class="toggle">+</span></div>
+      <div class="faq-a">MJ 给你一张"图",飞象给你"一套能上架、能合规、懂转化"的素材 —— 多平台规范、多语言、批量铺货整套帮你搞定,不再二次返工。</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">免费试用是真的吗?有没有套路?<span class="toggle">+</span></div>
+      <div class="faq-a">真的。基础功能免费,不绑卡、不收押金。专业版按需升级,价格透明,无后续自动扣费。</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">我不会写代码,Codex 怎么用?<span class="toggle">+</span></div>
+      <div class="faq-a">跟 AI 聊天一样,你说"给我把这周 50 个新品的 Listing 全部生成英文版",Codex 就跑起来。不需要懂任何代码。</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">生成的主图会被平台判定违规吗?<span class="toggle">+</span></div>
+      <div class="faq-a">飞象模板本身就是按 Amazon A+ / Temu 供货图 / TikTok Shop 广告图等规范训练的,合规底子扎实;生成后你仍可二次审核。</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q">支持哪些语种?<span class="toggle">+</span></div>
+      <div class="faq-a">英语、日语、德语、法语、西班牙语主流市场全部覆盖,OZON 俄语专门适配。其他语言可联系客服定制。</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="final-cta">
+      <h2>👇 7 天免费试,不收钱</h2>
+      <p>评论区扣"飞象"进来的用户专属福利<br/>基础功能 0 元体验,不绑卡,不催你升级</p>
+      <a class="btn btn-primary" href="https://flyelep.cn/?utm_source=douyin&utm_medium=video&utm_campaign=flyelep_codex" target="_blank" rel="noopener">🚀 立即打开飞象 Agent</a>
+      <p class="small">官方客服:support@bextai.com</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>本页面为抖音号引流落地页,非 Flyelep 官方</p>
+  <p>Flyelep 飞象 Agent 由 <a href="https://flyelep.cn" target="_blank" rel="noopener">flyelep.cn</a> 提供</p>
+  <p>© 2026 · Made for 跨境人</p>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded',function(){
+    var btn = document.querySelectorAll('a.btn-primary');
+    var p = new URLSearchParams(location.search);
+    var src = p.get('utm_source') || 'douyin';
+    var med = p.get('utm_medium') || 'video';
+    btn.forEach(function(b,i){
+      try{
+        var url = new URL(b.href);
+        if(!url.searchParams.get('utm_source')) url.searchParams.set('utm_source',src);
+        if(!url.searchParams.get('utm_medium')) url.searchParams.set('utm_medium',med);
+        url.searchParams.set('utm_content','cta_' + (i === 0 ? 'hero' : 'final'));
+        b.href = url.toString();
+      }catch(e){}
+    });
+  });
+</script>
+
+<script>
+﻿(function(){
+  try{
+    var p=new URLSearchParams(location.search);
+    var keys=['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
+    var qs=[];
+    keys.forEach(function(k){var v=p.get(k);if(v) qs.push(k+'='+encodeURIComponent(v));});
+    if(qs.length){
+      var img=new Image();
+      img.src='/t.gif?'+qs.join('&')+'&p='+encodeURIComponent(location.pathname);
+      img.style.cssText='position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;';
+      document.body.appendChild(img);
+    }
+    document.addEventListener('click',function(e){
+      var a=e.target.closest&&e.target.closest('a.btn');
+      if(!a)return;
+      try{
+        var u=new URL(a.href);
+        var body={target:u.host+u.pathname,label:(a.textContent||'').trim().slice(0,40)};
+        var p2=new URLSearchParams(location.search);
+        ['utm_source','utm_campaign','utm_content'].forEach(function(k){var v=p2.get(k);if(v) body[k]=v;});
+        if(navigator.sendBeacon){
+          navigator.sendBeacon('/api/click',new Blob([JSON.stringify(body)],{type:'application/json'}));
+        }else{
+          fetch('/api/click',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true});
+        }
+      }catch(err){}
+    },true);
+  }catch(e){}
+})();
+
+</script>
+</body>
+</html>
