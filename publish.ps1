@@ -14,8 +14,9 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $root
 
-$gh = Join-Path $root "gh-tool\bin\gh.exe"
+$gh = Join-Path $root 'gh-tool\bin\gh.exe'
 $token = & $gh auth token 2>$null
+if (-not $token) { Err "无法获取 GitHub token,请先运行: $gh auth login" }
 $pushUrl = "https://x-access-token:$token@github.com/ww2190790837-eng/flyelep-workbuddy-tracker.git"
 
 function Ok($m){ Write-Host "✅ $m" -ForegroundColor Green }
@@ -47,7 +48,7 @@ if ($status) {
 # 3. push(用 token 走 URL,绕开 credential helper 空格问题)
 Info "git push..."
 $env:GIT_TERMINAL_PROMPT = "0"  # 禁用交互
-git push $pushUrl $Branch 2>&1
+git -c credential.helper= push $pushUrl $Branch 2>&1
 if ($LASTEXITCODE -ne 0) { Err "push 失败" }
 Ok "push 成功"
 
