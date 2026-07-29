@@ -20,53 +20,112 @@
     --wb:#1e88e5;--wb-2:#00bcd4;
     --success:#22c55e;--danger:#ef4444;
     --gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);
+    --gold:linear-gradient(135deg,#f6c75a,#e0962a);
   }
   html{background:#fafafe}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#fafafe;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;font-feature-settings:"cv11","ss01"}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#fafafe;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
   ::selection{background:var(--primary);color:#fff}
   a{color:inherit;text-decoration:none}
   img{max-width:100%;display:block}
-  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
-  .top-nav{background:rgba(255,255,255,.85);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  .wrap{max-width:980px;margin:0 auto;padding:0 24px}
+  .top-nav{background:rgba(255,255,255,.85);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
   .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
-  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:var(--text)}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px}
   .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
   .nav-back{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
   .nav-back:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
-  .account-shell{padding:48px 0 80px}
-  .account-card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.15);overflow:hidden}
-  .account-head{padding:32px 36px;background:var(--gradient);color:#fff;display:flex;align-items:center;gap:18px}
-  .account-avatar{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;border:2px solid rgba(255,255,255,.3)}
-  .account-name{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
-  .account-email{font-size:13px;opacity:.85}
-  .account-body{padding:32px 36px}
-  .account-section{margin-bottom:32px}
-  .account-section:last-child{margin-bottom:0}
-  .account-section h3{font-size:13px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);margin-bottom:16px;font-weight:600}
-  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
-  .info-cell{padding:18px;border:1px solid var(--border);border-radius:12px;background:rgba(91,59,255,.02)}
-  .info-cell .label{font-size:12px;color:var(--text-3);margin-bottom:6px}
-  .info-cell .value{font-size:15px;font-weight:600;color:var(--text)}
-  .plan-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;border-radius:99px;font-size:12px;font-weight:600}
-  .empty-state{text-align:center;padding:80px 32px}
-  .empty-state .em{font-size:48px;margin-bottom:16px}
-  .empty-state h2{font-size:22px;margin-bottom:10px;color:var(--text)}
-  .empty-state p{color:var(--text-2);margin-bottom:24px}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;transition:all .2s;cursor:pointer;border:none;letter-spacing:-.1px}
-  .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 6px 20px rgba(91,59,255,.4)}
-  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(91,59,255,.5)}
-  .btn-ghost{background:rgba(255,255,255,.8);color:var(--text);border:1px solid var(--border-2)}
-  .btn-ghost:hover{background:#fff;border-color:var(--primary);color:var(--primary)}
+  .account-shell{padding:40px 0 80px}
+  .loading{text-align:center;padding:80px 0;color:var(--text-3)}
+  .card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.12);overflow:hidden}
+
+  /* 会员卡 */
+  .member{position:relative;color:#fff;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;overflow:hidden}
+  .member.grad-trial{background:linear-gradient(135deg,#5b3bff,#7c5cff)}
+  .member.grad-pro{background:linear-gradient(135deg,#7c5cff,#ff5b9b)}
+  .member.grad-ent{background:linear-gradient(135deg,#1e88e5,#00bcd4)}
+  .member::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12);filter:blur(10px)}
+  .member-left{position:relative;z-index:1}
+  .member-tier{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.2);font-size:12px;font-weight:600;margin-bottom:10px}
+  .member-name{font-size:22px;font-weight:700;letter-spacing:-.3px}
+  .member-mail{font-size:13px;opacity:.85;margin-top:2px}
+  .member-meta{font-size:12px;opacity:.8;margin-top:10px}
+  .member-right{position:relative;z-index:1;text-align:right}
+  .btn-upgrade{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:12px;background:#fff;color:var(--primary);font-weight:700;font-size:13px;transition:all .2s}
+  .btn-upgrade:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+
+  /* 统计 */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+  .stat{padding:22px 24px;border-right:1px solid var(--border)}
+  .stat:last-child{border-right:none}
+  .stat .v{font-size:24px;font-weight:800;letter-spacing:-.5px;font-feature-settings:"tnum"}
+  .stat .v small{font-size:13px;font-weight:600;color:var(--text-3);margin-left:2px}
+  .stat .l{font-size:12px;color:var(--text-3);margin-top:4px}
+  @media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(2){border-right:none}.stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--border)}}
+
+  .section{padding:26px 32px;border-top:1px solid var(--border)}
+  .section h3{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-3);margin-bottom:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .section h3 .dot{width:6px;height:6px;border-radius:50%;background:var(--primary)}
+
+  /* 工具网格 */
+  .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:680px){.tools{grid-template-columns:1fr}}
+  .tool{padding:18px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.7);transition:all .3s;cursor:pointer;display:block}
+  .tool:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.15)}
+  .tool .ti{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
+  .tool.wb .ti{background:linear-gradient(135deg,var(--wb),var(--wb-2))}
+  .tool h4{font-size:15px;font-weight:600;margin-bottom:4px}
+  .tool p{font-size:13px;color:var(--text-2);line-height:1.5}
+
+  /* 动态时间线 */
+  .timeline{position:relative;padding-left:24px}
+  .timeline::before{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--border)}
+  .tl-item{position:relative;padding:0 0 18px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 2px rgba(91,59,255,.2)}
+  .tl-title{font-size:14px;font-weight:600}
+  .tl-time{font-size:12px;color:var(--text-3);margin-top:2px}
+
+  /* 邀请 */
+  .refbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border:1px dashed rgba(91,59,255,.4);border-radius:14px;background:rgba(91,59,255,.03)}
+  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--text-2)}
+  .btn-copy{padding:11px 18px;border:none;border-radius:10px;background:var(--gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
+  .btn-copy:hover{transform:translateY(-1px)}
+
+  /* 设置 */
+  .set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+  .set-row:last-child{border-bottom:none}
+  .set-row .sl{font-size:14px;font-weight:500}
+  .set-row .sd{font-size:12px;color:var(--text-3);margin-top:2px}
+  .set-val{font-size:14px;color:var(--text-2);max-width:50%;text-align:right;word-break:break-all}
+  .btn-mini{padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;background:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text)}
+  .btn-mini:hover{border-color:var(--primary);color:var(--primary)}
+  .switch{position:relative;width:44px;height:24px;border-radius:99px;background:var(--border-2);cursor:pointer;transition:background .2s;flex:none}
+  .switch.on{background:var(--primary)}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .switch.on::after{transform:translateX(20px)}
+
+  /* 改密弹层 */
+  .modal{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(10,10,40,.5);backdrop-filter:blur(8px);padding:24px}
+  .modal.show{display:flex}
+  .modal-card{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:28px;box-shadow:0 30px 80px -20px rgba(0,0,0,.4)}
+  .modal-card h3{font-size:18px;font-weight:700;margin-bottom:18px}
+  .modal-card .field{margin-bottom:14px}
+  .modal-card label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
+  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s}
+  .modal-card input:focus{outline:none;border-color:var(--primary);background:#fff}
+  .modal-err{display:none;color:var(--danger);font-size:13px;margin:4px 0 12px}
+  .modal-actions{display:flex;gap:10px;margin-top:8px}
+  .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
+  .btn-ok{background:var(--gradient);color:#fff}
+  .btn-cancel{background:#f0f0f6;color:var(--text-2)}
+
+  .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;transition:all .2s;cursor:pointer;border:1px solid var(--border-2);background:#fff;color:var(--text)}
+  .btn-ghost:hover{background:#fafafe;border-color:var(--primary);color:var(--primary)}
   .btn-danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
   .btn-danger:hover{background:#fef2f2}
-  .quick-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-  .quick-action{padding:20px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.7);transition:all .3s;cursor:pointer;display:block}
-  .quick-action:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.15)}
-  .quick-action .qa-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
-  .quick-action h4{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text)}
-  .quick-action p{font-size:13px;color:var(--text-2);line-height:1.5}
   footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.5)}
-  .loading{text-align:center;padding:80px 0;color:var(--text-3)}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a25;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -88,99 +147,186 @@
 </main>
 
 <footer>
-  <div class="wrap">© 2026 Flyelep · 跨境电商 AI 内容设计平台</div>
+  <div class="wrap">© 2026 Flyelep · 跨境电商 AI 内容设计平台 · 与腾讯 WorkBuddy 战略合作</div>
 </footer>
 
+<div class="modal" id="pwModal">
+  <div class="modal-card">
+    <h3>修改密码</h3>
+    <div class="field"><label>当前密码</label><input type="password" id="pwOld" autocomplete="current-password" /></div>
+    <div class="field"><label>新密码(至少 6 位)</label><input type="password" id="pwNew" autocomplete="new-password" /></div>
+    <div class="modal-err" id="pwErr"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="pwCancel">取消</button>
+      <button class="btn-ok" id="pwSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
+function toast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show")},2200);
+}
+function rel(ts){
+  var d=Date.now()-ts, s=Math.floor(d/1000);
+  if(s<60)return "刚刚";
+  if(s<3600)return Math.floor(s/60)+" 分钟前";
+  if(s<86400)return Math.floor(s/3600)+" 小时前";
+  if(s<86400*30)return Math.floor(s/86400)+" 天前";
+  return new Date(ts).toLocaleDateString("zh-CN");
+}
+function fmtDate(ts){return new Date(ts).toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric"});}
+
+var PLAN={
+  trial:{name:"试用版",cls:"grad-trial",upgrade:"升级到专业版"},
+  pro:{name:"专业版",cls:"grad-pro",upgrade:"查看企业方案"},
+  ent:{name:"企业版",cls:"grad-ent",upgrade:"联系专属顾问"}
+};
+var PUBLIC="/";
+
 async function init(){
-  const app = document.getElementById("app");
-  const r = await fetch("/api/auth/me", {credentials:"include"});
-  const {user} = await r.json();
-  if (!user) {
-    app.innerHTML = `
-      <div class="card empty-state" style="background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.15);">
-        <div class="em">🔐</div>
-        <h2>需要登录</h2>
-        <p>请先登录或注册 Flyelep 账户</p>
-        <a class="btn btn-primary" href="/">返回首页登录</a>
-      </div>
-    `;
-    return;
-  }
-  const first = (user.name||user.email||"U")[0].toUpperCase();
-  const memberSince = new Date(user.createdAt).toLocaleDateString("zh-CN", {year:"numeric",month:"long",day:"numeric"});
-  const lastLogin = new Date(user.lastLoginAt).toLocaleString("zh-CN", {month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
-  app.innerHTML = `
-    <div class="account-card">
-      <div class="account-head">
-        <div class="account-avatar">${first}</div>
-        <div>
-          <div class="account-name">${user.name||"用户"}</div>
-          <div class="account-email">${user.email}</div>
+  var app=document.getElementById("app");
+  var r=await fetch("/api/auth/me",{credentials:"include"});
+  var d=await r.json();
+  if(!d.user){ location.href="/login.html"; return; }
+  var u=d.user;
+  var plan=PLAN[u.plan]||PLAN.trial;
+  var first=(u.name||u.email||"U")[0].toUpperCase();
+  var memberDays=Math.max(1,Math.floor((Date.now()-(u.createdAt||Date.now()))/86400000));
+  var refUrl=(location.origin)+"/?utm_source=referral&utm_content="+(u.id||"me");
+
+  app.innerHTML=`
+    <div class="card" style="margin-bottom:20px">
+      <div class="member ${plan.cls}">
+        <div class="member-left">
+          <span class="member-tier">${plan.name}</span>
+          <div class="member-name">${u.name||"飞象用户"}</div>
+          <div class="member-mail">${u.email}</div>
+          <div class="member-meta">自 ${fmtDate(u.createdAt||Date.now())} 加入 · 会员 ${memberDays} 天</div>
+        </div>
+        <div class="member-right">
+          <a class="btn-upgrade" href="https://flyelep.cn#pricing" target="_blank" rel="noopener">${plan.upgrade} →</a>
         </div>
       </div>
-      <div class="account-body">
-        <div class="account-section">
-          <h3>账户信息</h3>
-          <div class="info-grid">
-            <div class="info-cell">
-              <div class="label">用户 ID</div>
-              <div class="value" style="font-family:'JetBrains Mono',monospace;font-size:13px">${user.id}</div>
-            </div>
-            <div class="info-cell">
-              <div class="label">注册时间</div>
-              <div class="value">${memberSince}</div>
-            </div>
-            <div class="info-cell">
-              <div class="label">上次登录</div>
-              <div class="value">${lastLogin}</div>
-            </div>
-            <div class="info-cell">
-              <div class="label">登录次数</div>
-              <div class="value">${user.loginCount||1} 次</div>
-            </div>
-            <div class="info-cell">
-              <div class="label">当前套餐</div>
-              <div class="value"><span class="plan-badge">${user.plan==="trial"?"试用版":user.plan}</span></div>
-            </div>
-          </div>
+      <div class="stats">
+        <div class="stat"><div class="v">${memberDays}<small>天</small></div><div class="l">会员时长</div></div>
+        <div class="stat"><div class="v">${u.loginCount||1}<small>次</small></div><div class="l">累计登录</div></div>
+        <div class="stat"><div class="v" style="font-size:15px;padding-top:5px">${plan.name}</div><div class="l">当前套餐</div></div>
+        <div class="stat"><div class="v" style="font-size:15px;padding-top:5px;color:var(--success)">正常</div><div class="l">账户状态</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="section">
+        <h3><span class="dot"></span>我的创作工具</h3>
+        <div class="tools">
+          <a class="tool" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">
+            <div class="ti">🎨</div><h4>AI 海报生成</h4><p>1 分钟出高转化主图与海报</p></a>
+          <a class="tool" href="https://flyelep.cn/agent/detailPage" target="_blank" rel="noopener">
+            <div class="ti">📄</div><h4>详情页设计</h4><p>多平台规范自动适配</p></a>
+          <a class="tool" href="https://flyelep.cn/agent/inspiration" target="_blank" rel="noopener">
+            <div class="ti">💡</div><h4>灵感设计</h4><p>爆款素材库一键复用</p></a>
         </div>
-        <div class="account-section">
-          <h3>快捷操作</h3>
-          <div class="quick-actions">
-            <a class="quick-action" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">
-              <div class="qa-icon">🎨</div>
-              <h4>开始 AI 创作</h4>
-              <p>去 Flyelep 官方站,1 分钟生成主图详情页</p>
-            </a>
-            <a class="quick-action" href="/">
-              <div class="qa-icon">🏠</div>
-              <h4>返回首页</h4>
-              <p>查看平台所有功能与定价</p>
-            </a>
-            <a class="quick-action" href="https://workbuddy.qq.com" target="_blank" rel="noopener">
-              <div class="qa-icon" style="background:linear-gradient(135deg,var(--wb),var(--wb-2))">🔗</div>
-              <h4>腾讯 WorkBuddy</h4>
-              <p>了解我们的战略合作伙伴</p>
-            </a>
-            <a class="quick-action" id="logoutBtn" style="cursor:pointer">
-              <div class="qa-icon" style="background:linear-gradient(135deg,#ef4444,#f87171)">🚪</div>
-              <h4>退出登录</h4>
-              <p>登出当前账户</p>
-            </a>
-          </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="section">
+        <h3><span class="dot"></span>近期动态</h3>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-title">账户注册成功</div><div class="tl-time">${fmtDate(u.createdAt||Date.now())} · 欢迎加入 Flyelep</div></div>
+          <div class="tl-item"><div class="tl-title">最近登录</div><div class="tl-time">${rel(u.lastLoginAt||Date.now())} · IP 地区已记录</div></div>
+          <div class="tl-item"><div class="tl-title">绑定邮箱 ${u.email}</div><div class="tl-time">可用于找回密码与接收通知</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="section">
+        <h3><span class="dot"></span>邀请有礼</h3>
+        <p style="font-size:13px;color:var(--text-2);margin-bottom:14px">分享你的专属链接,好友注册双方各得 7 天专业版体验。</p>
+        <div class="refbox">
+          <input id="refUrl" readonly value="${refUrl}" />
+          <button class="btn-copy" id="copyRef">复制链接</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section" style="padding-bottom:8px">
+        <h3><span class="dot"></span>账户设置</h3>
+        <div class="set-row">
+          <div><div class="sl">昵称</div><div class="sd">展示在账户与作品上</div></div>
+          <div class="set-val">${u.name||"—"}</div>
+        </div>
+        <div class="set-row">
+          <div><div class="sl">登录邮箱</div><div class="sd">用于登录与通知</div></div>
+          <div class="set-val">${u.email}</div>
+        </div>
+        <div class="set-row">
+          <div><div class="sl">登录密码</div><div class="sd">建议定期更换</div></div>
+          <button class="btn-mini" id="openPw">修改密码</button>
+        </div>
+        <div class="set-row">
+          <div><div class="sl">邮件通知</div><div class="sd">产品更新与新功能提醒</div></div>
+          <div class="switch on" id="swNotif"></div>
+        </div>
+        <div class="set-row">
+          <div><div class="sl">用户 ID</div><div class="sd">技术标识,勿外泄</div></div>
+          <div class="set-val" style="font-family:'JetBrains Mono',monospace;font-size:12px">${u.id}</div>
+        </div>
+        <div style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap">
+          <a class="btn-ghost" href="https://flyelep.cn" target="_blank" rel="noopener">访问官网</a>
+          <a class="btn-ghost" href="/admin" style="color:var(--wb)">管理后台</a>
+          <button class="btn-danger" id="logoutBtn">退出登录</button>
         </div>
       </div>
     </div>
   `;
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    if (!confirm("确定要退出登录吗?")) return;
-    await fetch("/api/auth/logout", {method:"POST", credentials:"include"});
-    location.href = "/";
+
+  document.getElementById("copyRef").addEventListener("click",function(){
+    var inp=document.getElementById("refUrl");
+    inp.select();
+    try{ document.execCommand("copy"); }catch(e){ navigator.clipboard&&navigator.clipboard.writeText(inp.value); }
+    toast("邀请链接已复制");
+  });
+  var sw=document.getElementById("swNotif");
+  sw.addEventListener("click",function(){ sw.classList.toggle("on"); toast(sw.classList.contains("on")?"已开启邮件通知":"已关闭邮件通知"); });
+  document.getElementById("openPw").addEventListener("click",function(){ document.getElementById("pwModal").classList.add("show"); });
+  document.getElementById("pwCancel").addEventListener("click",function(){ document.getElementById("pwModal").classList.remove("show"); });
+  document.getElementById("pwSave").addEventListener("click",savePw);
+  document.getElementById("logoutBtn").addEventListener("click",async function(){
+    if(!confirm("确定退出登录?"))return;
+    await fetch("/api/auth/logout",{method:"POST",credentials:"include"});
+    location.href="/";
   });
 }
+
+async function savePw(){
+  var oldP=document.getElementById("pwOld").value;
+  var newP=document.getElementById("pwNew").value;
+  var err=document.getElementById("pwErr");
+  err.style.display="none";
+  if(!oldP||!newP){ err.textContent="请填写完整"; err.style.display="block"; return; }
+  if(newP.length<6){ err.textContent="新密码至少 6 位"; err.style.display="block"; return; }
+  try{
+    var resp=await fetch("/api/auth/change-password",{
+      method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",
+      body:JSON.stringify({oldPassword:oldP,newPassword:newP})
+    });
+    var data=await resp.json();
+    if(!resp.ok||!data.ok){ err.textContent=data.error||"修改失败"; err.style.display="block"; return; }
+    document.getElementById("pwModal").classList.remove("show");
+    document.getElementById("pwOld").value="";document.getElementById("pwNew").value="";
+    toast("密码已更新");
+  }catch(e){ err.textContent="网络异常,请重试"; err.style.display="block"; }
+}
+
 init();
 </script>
-
 </body>
 </html>

@@ -75,6 +75,10 @@ app.use(session({
     maxAge: 30 * 24 * 3600 * 1000 // 30 天
   }
 }));
+// 管理员后台页(必须放在 static 之前,否则会被 extensions:['html'] 当文件直接返回,绕过鉴权)
+app.get("/admin", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Auth 路由 =====
@@ -108,6 +112,20 @@ app.post("/api/auth/login", (req, res) => {
 
 app.post("/api/auth/logout", (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
+});
+
+app.post("/api/auth/change-password", (req, res) => {
+  const u = req.session.userId ? findUserById(req.session.userId) : null;
+  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
+  const { oldPassword, newPassword } = req.body || {};
+  if (!oldPassword || !newPassword) return res.status(400).json({ ok: false, error: "请填写完整" });
+  if (!bcrypt.compareSync(oldPassword, u.passwordHash)) return res.status(401).json({ ok: false, error: "当前密码不正确" });
+  if (newPassword.length < 6 || newPassword.length > 64) return res.status(400).json({ ok: false, error: "新密码需 6-64 位" });
+  u.passwordHash = bcrypt.hashSync(newPassword, 10);
+  const users = loadUsers();
+  const idx = users.findIndex((x) => x.id === u.id);
+  if (idx >= 0) { users[idx] = u; saveUsers(users); }
+  res.json({ ok: true });
 });
 
 app.get("/api/auth/me", (req, res) => {
@@ -154,11 +172,9 @@ function requireAdmin(req, res, next) {
     res.cookie("admin", "ok", { signed: true, maxAge: 7 * 24 * 3600 * 1000 });
     return res.redirect("/admin");
   }
-  res.status(401).send("<h1>401</h1><p>需要管理员密码</p><form method=GET><input name=token placeholder=password autofocus style=padding:8px;font-size:16px><button>进入</button></form>");
+  // 未授权:转到干净的登录页;若带了 token 但错误,带 e=1 提示
+  return res.redirect("/admin-login" + (req.query.token ? "?e=1" : ""));
 }
-app.get("/admin", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
 app.get("/admin/api/stats", requireAdmin, (req, res) => {
   const users = loadUsers();
   res.json({

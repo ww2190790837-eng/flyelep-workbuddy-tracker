@@ -321,8 +321,9 @@
       <a href="#partnership">腾讯合作</a>
       <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
+      <a href="/admin" style="color:var(--wb)">管理后台</a>
     </div>
-    <a href="#" id="navAuthLink" style="padding:9px 16px;font-size:13px;font-weight:600;color:var(--primary);border-radius:10px;transition:all .2s;display:none">登录 / 注册</a>
+    <a href="/login.html" id="navAuthLink" style="padding:9px 16px;font-size:13px;font-weight:600;color:var(--primary);border-radius:10px;transition:all .2s;display:none">登录 / 注册</a>
     <a class="nav-cta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
     <div id="navUserBox" style="display:none;align-items:center;gap:10px">
       <a href="/account.html" style="display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border-radius:10px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--text);transition:all .2s">
@@ -369,6 +370,9 @@
       <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--text-3)">
         <span id="authToggleText">还没有账户?</span>
         <a href="#" id="authToggle" style="color:var(--primary);font-weight:600;margin-left:4px">立即注册</a>
+      </p>
+      <p style="text-align:center;margin-top:6px;font-size:12px">
+        <a href="/login.html" style="color:var(--text-3);text-decoration:none">在完整登录页操作 →</a>
       </p>
     </form>
   </div>
@@ -918,12 +922,12 @@
     } catch(e) { console.log("me check fail", e); }
   }
 
-  // 绑定 nav 的"登录/注册"链接
+  // 绑定 nav 的"登录/注册"链接 → 跳转到完整登录页
   document.addEventListener("click", function(e){
     var t = e.target;
     if (t && t.id === "navAuthLink") {
       e.preventDefault();
-      openModal("login");
+      location.href = "/login.html";
     }
   });
 
