@@ -45,6 +45,18 @@
   .chart{height:140px;display:flex;align-items:flex-end;gap:2px;padding:8px 0}
   .chart .col{flex:1;background:linear-gradient(180deg,var(--primary),#4f46e5);border-radius:2px 2px 0 0;min-width:6px;position:relative}
   .chart .col:hover::after{content:attr(data-tip);position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;white-space:nowrap}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;padding:16px}
+  .modal.show{display:flex}
+  .modal-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;max-width:480px;width:100%;max-height:80vh;overflow:auto}
+  .modal-card h3{font-size:16px;margin-bottom:14px}
+  .modal-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .modal-row:last-child{border-bottom:none}
+  .modal-row .k{color:var(--muted)}
+  .modal-row .v{max-width:60%;overflow:hidden;text-overflow:ellipsis;text-align:right}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;background:rgba(255,255,255,.08);color:var(--muted)}
+  .tag.pro{background:rgba(10,116,255,.18);color:var(--primary)}
+  .tag.ent{background:rgba(34,197,94,.18);color:var(--success)}
 </style>
 </head>
 <body>
@@ -63,6 +75,7 @@
   <div class="kpi"><div class="label">独立访客 (UV)</div><div class="num" id="kpi-unique">—</div></div>
   <div class="kpi"><div class="label">点击 CTA 次数</div><div class="num" id="kpi-clicks">—</div></div>
   <div class="kpi"><div class="label">点击转化率</div><div class="num" id="kpi-cvr">—</div></div>
+  <div class="kpi"><div class="label">注册用户</div><div class="num" id="kpi-users">—</div></div>
 </div>
 
 <div class="builder">
@@ -111,6 +124,13 @@
   <div id="clicksByTarget"></div>
 </div>
 
+<div class="panel">
+  <h2>注册用户管理 <span class="pill" id="usersCount"></span></h2>
+  <div style="overflow-x:auto">
+    <table id="t-users"><thead><tr><th>昵称</th><th>邮箱</th><th>套餐</th><th>注册时间</th><th>最后登录</th><th>登录次数</th><th>操作</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+
 <div class="row">
   <div class="panel">
     <h2>最近 50 次访问</h2>
@@ -122,6 +142,17 @@
     <h2>最近 50 次点击</h2>
     <div style="overflow-x:auto">
       <table id="t-clicks"><thead><tr><th>时间</th><th>来源</th><th>活动</th><th>目标</th><th>标签</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="uModal" onclick="if(event.target===this)closeUser()">
+  <div class="modal-card">
+    <h3>用户详情</h3>
+    <div id="uDetail"></div>
+    <div class="modal-actions">
+      <button class="btn outline" onclick="closeUser()">关闭</button>
+      <button class="btn danger" id="uDel">删除用户</button>
     </div>
   </div>
 </div>
@@ -161,6 +192,7 @@
       $('kpi-unique').textContent = d.unique;
       $('kpi-clicks').textContent = d.clicks;
       $('kpi-cvr').textContent = d.cvr + '%';
+      $('kpi-users').textContent = d.userCount || 0;
       renderBars('bySource', d.bySource, 'bySourceCount');
       renderBars('byMedium', d.byMedium, 'byMediumCount');
       renderBars('byCampaign', d.byCampaign, 'byCampaignCount');
@@ -196,9 +228,58 @@
       document.body.insertAdjacentHTML('afterbegin', '<div class="panel" style="border-color:var(--danger);color:#fca5a5">加载失败:'+esc(e.message)+'</div>');
     }
   }
+  function fmtDate(t){ return t ? new Date(t).toLocaleString('zh-CN',{hour12:false}) : '-'; }
+  let currentUsers = [];
+  async function loadUsers(){
+    try{
+      const r = await fetch('/admin/api/users',{cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      currentUsers = await r.json();
+      $('usersCount').textContent = currentUsers.length + ' 人';
+      const tb = $('t-users').querySelector('tbody');
+      if(!currentUsers.length){ tb.innerHTML = '<tr><td colspan="7" class="empty">暂无注册用户</td></tr>'; return; }
+      tb.innerHTML = currentUsers.map(u => `
+        <tr>
+          <td>${esc(u.name || '-')}</td>
+          <td title="${esc(u.email)}">${esc(u.email)}</td>
+          <td><span class="tag ${u.plan==='pro'?'pro':u.plan==='ent'?'ent':''}">${u.plan==='pro'?'专业版':u.plan==='ent'?'企业版':'试用版'}</span></td>
+          <td>${fmtDate(u.createdAt)}</td>
+          <td>${fmtDate(u.lastLoginAt)}</td>
+          <td>${u.loginCount||0}</td>
+          <td><button class="btn outline" onclick="showUser('${esc(u.id)}')">查看</button></td>
+        </tr>
+      `).join('');
+    }catch(e){ console.log('load users failed', e); }
+  }
+  function showUser(id){
+    const u = currentUsers.find(x => x.id === id);
+    if(!u) return;
+    $('uDetail').innerHTML = `
+      <div class="modal-row"><span class="k">用户 ID</span><span class="v">${esc(u.id)}</span></div>
+      <div class="modal-row"><span class="k">昵称</span><span class="v">${esc(u.name || '-')}</span></div>
+      <div class="modal-row"><span class="k">邮箱</span><span class="v">${esc(u.email)}</span></div>
+      <div class="modal-row"><span class="k">套餐</span><span class="v">${u.plan==='pro'?'专业版':u.plan==='ent'?'企业版':'试用版'}</span></div>
+      <div class="modal-row"><span class="k">角色</span><span class="v">${u.role || 'user'}</span></div>
+      <div class="modal-row"><span class="k">注册时间</span><span class="v">${fmtDate(u.createdAt)}</span></div>
+      <div class="modal-row"><span class="k">最后登录</span><span class="v">${fmtDate(u.lastLoginAt)}</span></div>
+      <div class="modal-row"><span class="k">登录次数</span><span class="v">${u.loginCount||0}</span></div>
+    `;
+    $('uDel').onclick = async () => {
+      if(!confirm('确定删除 '+esc(u.email || u.id)+' ? 不可恢复。')) return;
+      try{
+        const r = await fetch('/admin/api/users/'+encodeURIComponent(u.id),{method:'DELETE'});
+        const d = await r.json();
+        if(!r.ok || !d.ok){ alert('删除失败:'+(d.error||r.status)); return; }
+        closeUser(); loadUsers();
+      }catch(e){ alert('删除失败:'+e.message); }
+    };
+    $('uModal').classList.add('show');
+  }
+  function closeUser(){ $('uModal').classList.remove('show'); }
+
   buildUtm();
-  load();
-  setInterval(load, 8000);
+  load(); loadUsers();
+  setInterval(() => { load(); loadUsers(); }, 8000);
 </script>
 </body>
 </html>

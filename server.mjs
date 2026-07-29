@@ -62,6 +62,7 @@ function getUtm(q) {
 }
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "64kb" }));
 app.use(cookieParser(SESSION_SECRET));
 app.use(session({
@@ -170,7 +171,9 @@ function requireAdmin(req, res, next) {
   if (req.signedCookies && req.signedCookies.admin === "ok") return next();
   if (req.query.token === ADMIN_PASSWORD) {
     res.cookie("admin", "ok", { signed: true, maxAge: 7 * 24 * 3600 * 1000 });
-    return res.redirect("/admin");
+    // 仅后台页面需要重定向到干净 URL;API 路由直接放行
+    if (req.method === "GET" && req.path === "/admin") return res.redirect("/admin");
+    return next();
   }
   // 未授权:转到干净的登录页;若带了 token 但错误,带 e=1 提示
   return res.redirect("/admin-login" + (req.query.token ? "?e=1" : ""));
@@ -218,6 +221,22 @@ app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
   res.set("Content-Type", "text/csv;charset=utf-8");
   res.set("Content-Disposition", "attachment; filename=visits.csv");
   res.send("\uFEFF" + lines.join("\n"));
+});
+
+app.get("/admin/api/users", requireAdmin, (req, res) => {
+  const users = loadUsers();
+  res.json(users.map((u) => ({
+    id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role,
+    createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount
+  })));
+});
+
+app.delete("/admin/api/users/:id", requireAdmin, (req, res) => {
+  const users = loadUsers();
+  const filtered = users.filter((u) => u.id !== req.params.id);
+  if (filtered.length === users.length) return res.status(404).json({ ok: false, error: "用户不存在" });
+  saveUsers(filtered);
+  res.json({ ok: true });
 });
 
 app.get("/healthz", (req, res) => res.json({ ok: true, ts: Date.now() }));
