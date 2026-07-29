@@ -323,24 +323,15 @@
       <a href="#faq">常见问题</a>
     </div>
     <a href="/login.html" id="navAuthLink" style="padding:9px 16px;font-size:13px;font-weight:600;color:var(--primary);border-radius:10px;transition:all .2s;display:none">登录 / 注册</a>
-    <a class="nav-cta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
+    <a class="nav-cta" id="navTrialCta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
     <div id="navUserBox" style="display:none;align-items:center;gap:10px">
-      <a href="/account.html" style="display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border-radius:10px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--text);transition:all .2s">
-        <span id="navAvatar" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700"></span>
-        <span id="navName"></span>
+      <a href="/account.html" id="navUserPill" style="display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:99px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);transition:all .2s">
+        <span id="navAvatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;background-size:cover;background-position:center;flex-shrink:0"></span>
+        <span id="navName" style="white-space:nowrap"></span>
       </a>
-      <a class="nav-cta" href="/account.html" style="background:rgba(91,59,255,.1);color:var(--primary);box-shadow:none">我的</a>
     </div>
   </div>
 </nav>
-
-<!-- 用户浮层(右上角,登录后显示) -->
-<div id="userFloatingBar" style="position:fixed;top:80px;right:24px;z-index:40;display:none">
-  <a href="/account.html" id="userFloatingLink" style="display:flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:99px;box-shadow:0 8px 24px -8px rgba(91,59,255,.2);font-size:13px;font-weight:500;color:var(--text);transition:all .2s">
-    <span id="floatingAvatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700"></span>
-    <span id="floatingName"></span>
-  </a>
-</div>
 
 <!-- 登录/注册 Modal -->
 <div id="authModal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(10,10,40,.5);backdrop-filter:blur(8px);padding:24px">
@@ -829,7 +820,6 @@
   var authToggle = document.getElementById("authToggle");
   var authToggleText = document.getElementById("authToggleText");
   var nameField = document.getElementById("nameField");
-  var userBar = document.getElementById("userFloatingBar");
   var mode = "login";
 
   function openModal(m){
@@ -891,32 +881,39 @@
     }
   });
 
+  function setAvatar(el, u){
+    if (!el) return;
+    if (u.avatar) {
+      el.textContent = "";
+      el.style.backgroundImage = "none";
+      el.style.background = "url('" + u.avatar + "') center/cover no-repeat";
+    } else {
+      el.style.backgroundImage = "";
+      el.style.background = "linear-gradient(135deg,var(--primary),var(--pink))";
+      el.textContent = (u.name || u.email || "U")[0].toUpperCase();
+    }
+  }
+
   async function refreshUser(){
     try{
       var r = await fetch("/api/auth/me", {credentials:"include", cache:"no-store"});
       var d = await r.json();
       var u = d && d.user;
+      var navBox = document.getElementById("navUserBox");
+      var authLink = document.getElementById("navAuthLink");
+      var trialCta = document.getElementById("navTrialCta");
+      var navAvatar = document.getElementById("navAvatar");
+      var navName = document.getElementById("navName");
       if (u) {
-        var first = (u.name || u.email || "U")[0].toUpperCase();
-        var navAvatar = document.getElementById("navAvatar");
-        var navName = document.getElementById("navName");
-        var floatingAvatar = document.getElementById("floatingAvatar");
-        var floatingName = document.getElementById("floatingName");
-        if (navAvatar) navAvatar.textContent = first;
-        if (navName) navName.textContent = u.name || u.email.split("@")[0];
-        if (floatingAvatar) floatingAvatar.textContent = first;
-        if (floatingName) floatingName.textContent = u.name || u.email.split("@")[0];
-        var navBox = document.getElementById("navUserBox");
-        var authLink = document.getElementById("navAuthLink");
+        setAvatar(navAvatar, u);
+        if (navName) navName.textContent = u.name || (u.email ? u.email.split("@")[0] : "我");
         if (navBox) navBox.style.display = "flex";
         if (authLink) authLink.style.display = "none";
-        if (userBar) userBar.style.display = "block";
+        if (trialCta) trialCta.style.display = "none";
       } else {
-        var navBox = document.getElementById("navUserBox");
-        var authLink = document.getElementById("navAuthLink");
         if (navBox) navBox.style.display = "none";
         if (authLink) authLink.style.display = "inline-flex";
-        if (userBar) userBar.style.display = "none";
+        if (trialCta) trialCta.style.display = "";
       }
     } catch(e) { console.log("me check fail", e); }
   }

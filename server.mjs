@@ -6,6 +6,8 @@ import { nanoid } from "nanoid";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
+import mongoose from "mongoose";
+import crypto from "node:crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,8 +17,6 @@ const PUBLIC_URL = process.env.PUBLIC_URL || "https://flyelep-wb-tracker.onrende
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "codex2026";
 const DATA_DIR = path.join(__dirname, "data");
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-const AVATAR_DIR = path.join(DATA_DIR, "avatars");
-if (!fs.existsSync(AVATAR_DIR)) fs.mkdirSync(AVATAR_DIR, { recursive: true });
 
 // ===== 简易 JSON DB =====
 const USERS_FILE = path.join(DATA_DIR, "users.json");
@@ -32,56 +32,97 @@ function saveJSON(file, data) { fs.writeFileSync(file, JSON.stringify(data, null
 let db = loadJSON(DB_FILE, { visits: [], clicks: [] });
 function saveDB() { saveJSON(DB_FILE, db); }
 
-// users
-function loadUsers() { return loadJSON(USERS_FILE, []); }
+// users(仅 JSON 回退使用 saveUsers;其余读写走下方 MongoDB 存储层)
 function saveUsers(u) { saveJSON(USERS_FILE, u); }
-function findUserByEmail(email) { return loadUsers().find(u => u.email.toLowerCase() === email.toLowerCase()); }
-function findUserById(id) { return loadUsers().find(u => u.id === id); }
-function createUser({ email, password, name }) {
-  const users = loadUsers();
-  if (findUserByEmail(email)) return null;
+function publicUser(u) { return { id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role, avatar: u.avatar || null, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount }; }
+
+// ============================================================
+//  用户存储层:优先 MongoDB(联网持久化),否则回退本地 JSON 文件
+// ============================================================
+const MONGODB_URI = process.env.MONGODB_URI || "";
+let usingMongo = false;
+let UserModel = null;
+
+async function initUsersStore() {
+  if (!MONGODB_URI) {
+    console.log("[store] 未配置 MONGODB_URI,使用本地 JSON 文件(data/users.json)");
+    return;
+  }
+  try {
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000 });
+    const userSchema = new mongoose.Schema({
+      id: { type: String, unique: true, index: true },
+      email: { type: String, unique: true, lowercase: true, index: true },
+      name: String,
+      passwordHash: String,
+      plan: { type: String, default: "trial" },
+      role: { type: String, default: "user" },
+      avatar: { type: String, default: null }, // 存 base64 data URL
+      createdAt: Number,
+      lastLoginAt: Number,
+      loginCount: { type: Number, default: 1 }
+    });
+    UserModel = mongoose.model("User", userSchema);
+    usingMongo = true;
+    console.log("[store] 已连接 MongoDB,用户数据持久化到云端");
+  } catch (e) {
+    console.error("[store] MongoDB 连接失败,回退本地 JSON 文件:", e.message);
+    usingMongo = false;
+  }
+}
+
+// 头像:校验 base64 data URL,直接存进用户文档(不再写文件)
+function validateAvatar(dataUrl) {
+  const m = /^data:(image\/(png|jpeg|jpg|webp|gif));base64,(.+)$/i.exec(dataUrl || "");
+  if (!m) return null;
+  const buf = Buffer.from(m[2], "base64");
+  if (!buf || buf.length > 2 * 1024 * 1024) return null; // 解码后上限 2MB
+  return dataUrl;
+}
+
+async function loadUsers() {
+  if (usingMongo) return UserModel.find({}).lean();
+  return loadJSON(USERS_FILE, []);
+}
+async function findUserByEmail(email) {
+  if (usingMongo) return UserModel.findOne({ email: String(email).toLowerCase() }).lean();
+  return (await loadUsers()).find(u => u.email.toLowerCase() === String(email).toLowerCase());
+}
+async function findUserById(id) {
+  if (usingMongo) return UserModel.findOne({ id }).lean();
+  return (await loadUsers()).find(u => u.id === id);
+}
+async function createUser({ email, password, name }) {
   const id = nanoid(12);
   const passwordHash = bcrypt.hashSync(password, 10);
   const now = Date.now();
   const user = {
     id, email: email.toLowerCase(), name: name || email.split("@")[0],
-    passwordHash, plan: "trial", role: "user",
+    passwordHash, plan: "trial", role: "user", avatar: null,
     createdAt: now, lastLoginAt: now, loginCount: 1
   };
-  users.push(user);
-  saveUsers(users);
+  if (usingMongo) await UserModel.create(user);
+  else { const users = await loadUsers(); users.push(user); saveUsers(users); }
   return user;
 }
-function publicUser(u) { return { id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role, avatar: u.avatar || null, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount }; }
-
-// 头像:把 base64 data URL 解码写文件到 data/avatars/{id}.{ext},返回可访问 URL
-function saveAvatarFile(id, dataUrl) {
-  const m = /^data:(image\/(png|jpeg|jpg|webp|gif));base64,(.+)$/i.exec(dataUrl || "");
-  if (!m) return null;
-  const ext = m[1].split("/")[1].replace("jpeg", "jpg");
-  let buf;
-  try { buf = Buffer.from(m[2], "base64"); } catch (e) { return null; }
-  if (!buf || buf.length > 2 * 1024 * 1024) return null; // 解码后上限 2MB
-  // 删除同用户旧头像(不同扩展名)
-  try {
-    for (const f of fs.readdirSync(AVATAR_DIR)) {
-      if (f === id + "." + ext) continue;
-      if (f.startsWith(id + ".")) { try { fs.unlinkSync(path.join(AVATAR_DIR, f)); } catch (e) {} }
-    }
-  } catch (e) {}
-  const file = path.join(AVATAR_DIR, id + "." + ext);
-  try { fs.writeFileSync(file, buf); } catch (e) { return null; }
-  return "/avatars/" + id + "." + ext;
+async function updateUser(u) {
+  if (usingMongo) await UserModel.updateOne({ id: u.id }, u, { upsert: false });
+  else {
+    const users = await loadUsers();
+    const idx = users.findIndex(x => x.id === u.id);
+    if (idx >= 0) { users[idx] = u; saveUsers(users); }
+  }
 }
-function removeAvatarFile(id) {
-  try {
-    for (const f of fs.readdirSync(AVATAR_DIR)) {
-      if (f.startsWith(id + ".")) { try { fs.unlinkSync(path.join(AVATAR_DIR, f)); } catch (e) {} }
-    }
-  } catch (e) {}
+async function deleteUserById(id) {
+  if (usingMongo) { const r = await UserModel.deleteOne({ id }); return r.deletedCount > 0; }
+  const users = await loadUsers();
+  const filtered = users.filter(u => u.id !== id);
+  if (filtered.length === users.length) return false;
+  saveUsers(filtered);
+  return true;
 }
 
-function hash(s) { return require("crypto").createHash("sha256").update(s).digest("hex").slice(0, 16); }
+function hash(s) { return crypto.createHash("sha256").update(s).digest("hex").slice(0, 16); }
 function getClientIp(req) { return (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress || ""; }
 function getUtm(q) {
   return {
@@ -109,34 +150,31 @@ app.use(session({
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
-app.use("/avatars", express.static(AVATAR_DIR));
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Auth 路由 =====
-app.post("/api/auth/register", (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
   const { email, password, name } = req.body || {};
   if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
   if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(email)) return res.status(400).json({ ok: false, error: "邮箱格式不正确" });
   if (password.length < 6) return res.status(400).json({ ok: false, error: "密码至少 6 位" });
   if (password.length > 64) return res.status(400).json({ ok: false, error: "密码太长" });
-  const existing = findUserByEmail(email);
+  const existing = await findUserByEmail(email);
   if (existing) return res.status(409).json({ ok: false, error: "该邮箱已注册,请直接登录" });
-  const user = createUser({ email, password, name });
+  const user = await createUser({ email, password, name });
   req.session.userId = user.id;
   res.json({ ok: true, user: publicUser(user) });
 });
 
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
-  const user = findUserByEmail(email);
+  const user = await findUserByEmail(email);
   if (!user) return res.status(401).json({ ok: false, error: "邮箱或密码错误" });
   if (!bcrypt.compareSync(password, user.passwordHash)) return res.status(401).json({ ok: false, error: "邮箱或密码错误" });
   user.lastLoginAt = Date.now();
   user.loginCount = (user.loginCount || 1) + 1;
-  const users = loadUsers();
-  const idx = users.findIndex(u => u.id === user.id);
-  if (idx >= 0) { users[idx] = user; saveUsers(users); }
+  await updateUser(user);
   req.session.userId = user.id;
   res.json({ ok: true, user: publicUser(user) });
 });
@@ -145,28 +183,26 @@ app.post("/api/auth/logout", (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-app.post("/api/auth/change-password", (req, res) => {
-  const u = req.session.userId ? findUserById(req.session.userId) : null;
+app.post("/api/auth/change-password", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
   if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
   const { oldPassword, newPassword } = req.body || {};
   if (!oldPassword || !newPassword) return res.status(400).json({ ok: false, error: "请填写完整" });
   if (!bcrypt.compareSync(oldPassword, u.passwordHash)) return res.status(401).json({ ok: false, error: "当前密码不正确" });
   if (newPassword.length < 6 || newPassword.length > 64) return res.status(400).json({ ok: false, error: "新密码需 6-64 位" });
   u.passwordHash = bcrypt.hashSync(newPassword, 10);
-  const users = loadUsers();
-  const idx = users.findIndex((x) => x.id === u.id);
-  if (idx >= 0) { users[idx] = u; saveUsers(users); }
+  await updateUser(u);
   res.json({ ok: true });
 });
 
-app.get("/api/auth/me", (req, res) => {
-  const u = req.session.userId ? findUserById(req.session.userId) : null;
+app.get("/api/auth/me", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
   res.json({ user: u ? publicUser(u) : null });
 });
 
 // 更新昵称 / 头像(需登录)
-app.post("/api/auth/profile", (req, res) => {
-  const u = req.session.userId ? findUserById(req.session.userId) : null;
+app.post("/api/auth/profile", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
   if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
   const { name, avatar } = req.body || {};
   if (name !== undefined) {
@@ -177,19 +213,16 @@ app.post("/api/auth/profile", (req, res) => {
   }
   if (avatar !== undefined) {
     if (avatar === null || avatar === "") {
-      removeAvatarFile(u.id);
       u.avatar = null;
     } else if (typeof avatar === "string" && avatar.startsWith("data:image/")) {
-      const url = saveAvatarFile(u.id, avatar);
-      if (!url) return res.status(400).json({ ok: false, error: "头像格式不支持或文件过大(解码上限 2MB)" });
-      u.avatar = url;
+      const valid = validateAvatar(avatar);
+      if (!valid) return res.status(400).json({ ok: false, error: "头像格式不支持或文件过大(解码上限 2MB)" });
+      u.avatar = valid;
     } else {
       return res.status(400).json({ ok: false, error: "头像数据无效" });
     }
   }
-  const users = loadUsers();
-  const idx = users.findIndex((x) => x.id === u.id);
-  if (idx >= 0) { users[idx] = u; saveUsers(users); }
+  await updateUser(u);
   res.json({ ok: true, user: publicUser(u) });
 });
 
@@ -205,10 +238,10 @@ app.get("/t.gif", (req, res) => {
   db.visits.push({ ts: Date.now(), ip, ua, referer: ref, path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
   if (db.visits.length > 20000) db.visits = db.visits.slice(-20000);
   saveDB();
+  if (isUnique) { res.cookie("vid", vid, { maxAge: 30 * 24 * 3600 * 1000, sameSite: "lax" }); }
   res.set("Content-Type", "image/gif");
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.send(Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64"));
-  if (isUnique) { res.cookie("vid", vid, { maxAge: 30 * 24 * 3600 * 1000, sameSite: "lax" }); }
 });
 
 app.post("/api/click", (req, res) => {
@@ -237,8 +270,8 @@ function requireAdmin(req, res, next) {
   // 未授权:转到干净的登录页;若带了 token 但错误,带 e=1 提示
   return res.redirect("/admin-login" + (req.query.token ? "?e=1" : ""));
 }
-app.get("/admin/api/stats", requireAdmin, (req, res) => {
-  const users = loadUsers();
+app.get("/admin/api/stats", requireAdmin, async (req, res) => {
+  const users = await loadUsers();
   res.json({
     total: db.visits.length,
     unique: db.visits.filter(x => x.unique).length,
@@ -282,8 +315,8 @@ app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
   res.send("\uFEFF" + lines.join("\n"));
 });
 
-app.get("/admin/api/users", requireAdmin, (req, res) => {
-  const users = loadUsers();
+app.get("/admin/api/users", requireAdmin, async (req, res) => {
+  const users = await loadUsers();
   res.json(users.map((u) => ({
     id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role,
     avatar: u.avatar || null,
@@ -291,14 +324,13 @@ app.get("/admin/api/users", requireAdmin, (req, res) => {
   })));
 });
 
-app.delete("/admin/api/users/:id", requireAdmin, (req, res) => {
-  const users = loadUsers();
-  const filtered = users.filter((u) => u.id !== req.params.id);
-  if (filtered.length === users.length) return res.status(404).json({ ok: false, error: "用户不存在" });
-  saveUsers(filtered);
+app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
+  const ok = await deleteUserById(req.params.id);
+  if (!ok) return res.status(404).json({ ok: false, error: "用户不存在" });
   res.json({ ok: true });
 });
 
 app.get("/healthz", (req, res) => res.json({ ok: true, ts: Date.now() }));
 
+await initUsersStore();
 app.listen(PORT, "0.0.0.0", () => console.log("listening on " + PORT));
