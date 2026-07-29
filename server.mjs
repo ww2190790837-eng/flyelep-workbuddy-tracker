@@ -15,6 +15,8 @@ const PUBLIC_URL = process.env.PUBLIC_URL || "https://flyelep-wb-tracker.onrende
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "codex2026";
 const DATA_DIR = path.join(__dirname, "data");
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const AVATAR_DIR = path.join(DATA_DIR, "avatars");
+if (!fs.existsSync(AVATAR_DIR)) fs.mkdirSync(AVATAR_DIR, { recursive: true });
 
 // ===== 简易 JSON DB =====
 const USERS_FILE = path.join(DATA_DIR, "users.json");
@@ -50,7 +52,34 @@ function createUser({ email, password, name }) {
   saveUsers(users);
   return user;
 }
-function publicUser(u) { return { id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount }; }
+function publicUser(u) { return { id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role, avatar: u.avatar || null, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount }; }
+
+// 头像:把 base64 data URL 解码写文件到 data/avatars/{id}.{ext},返回可访问 URL
+function saveAvatarFile(id, dataUrl) {
+  const m = /^data:(image\/(png|jpeg|jpg|webp|gif));base64,(.+)$/i.exec(dataUrl || "");
+  if (!m) return null;
+  const ext = m[1].split("/")[1].replace("jpeg", "jpg");
+  let buf;
+  try { buf = Buffer.from(m[2], "base64"); } catch (e) { return null; }
+  if (!buf || buf.length > 2 * 1024 * 1024) return null; // 解码后上限 2MB
+  // 删除同用户旧头像(不同扩展名)
+  try {
+    for (const f of fs.readdirSync(AVATAR_DIR)) {
+      if (f === id + "." + ext) continue;
+      if (f.startsWith(id + ".")) { try { fs.unlinkSync(path.join(AVATAR_DIR, f)); } catch (e) {} }
+    }
+  } catch (e) {}
+  const file = path.join(AVATAR_DIR, id + "." + ext);
+  try { fs.writeFileSync(file, buf); } catch (e) { return null; }
+  return "/avatars/" + id + "." + ext;
+}
+function removeAvatarFile(id) {
+  try {
+    for (const f of fs.readdirSync(AVATAR_DIR)) {
+      if (f.startsWith(id + ".")) { try { fs.unlinkSync(path.join(AVATAR_DIR, f)); } catch (e) {} }
+    }
+  } catch (e) {}
+}
 
 function hash(s) { return require("crypto").createHash("sha256").update(s).digest("hex").slice(0, 16); }
 function getClientIp(req) { return (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress || ""; }
@@ -80,6 +109,7 @@ app.use(session({
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+app.use("/avatars", express.static(AVATAR_DIR));
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Auth 路由 =====
@@ -132,6 +162,35 @@ app.post("/api/auth/change-password", (req, res) => {
 app.get("/api/auth/me", (req, res) => {
   const u = req.session.userId ? findUserById(req.session.userId) : null;
   res.json({ user: u ? publicUser(u) : null });
+});
+
+// 更新昵称 / 头像(需登录)
+app.post("/api/auth/profile", (req, res) => {
+  const u = req.session.userId ? findUserById(req.session.userId) : null;
+  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
+  const { name, avatar } = req.body || {};
+  if (name !== undefined) {
+    const n = String(name).trim();
+    if (n.length === 0) return res.status(400).json({ ok: false, error: "昵称不能为空" });
+    if (n.length > 40) return res.status(400).json({ ok: false, error: "昵称过长(最多 40 字)" });
+    u.name = n;
+  }
+  if (avatar !== undefined) {
+    if (avatar === null || avatar === "") {
+      removeAvatarFile(u.id);
+      u.avatar = null;
+    } else if (typeof avatar === "string" && avatar.startsWith("data:image/")) {
+      const url = saveAvatarFile(u.id, avatar);
+      if (!url) return res.status(400).json({ ok: false, error: "头像格式不支持或文件过大(解码上限 2MB)" });
+      u.avatar = url;
+    } else {
+      return res.status(400).json({ ok: false, error: "头像数据无效" });
+    }
+  }
+  const users = loadUsers();
+  const idx = users.findIndex((x) => x.id === u.id);
+  if (idx >= 0) { users[idx] = u; saveUsers(users); }
+  res.json({ ok: true, user: publicUser(u) });
 });
 
 // ===== 跟踪 API(原有)=====
@@ -227,6 +286,7 @@ app.get("/admin/api/users", requireAdmin, (req, res) => {
   const users = loadUsers();
   res.json(users.map((u) => ({
     id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role,
+    avatar: u.avatar || null,
     createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount
   })));
 });

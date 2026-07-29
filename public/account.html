@@ -49,6 +49,10 @@
   .member-name{font-size:22px;font-weight:700;letter-spacing:-.3px}
   .member-mail{font-size:13px;opacity:.85;margin-top:2px}
   .member-meta{font-size:12px;opacity:.8;margin-top:10px}
+  .member-left{display:flex;align-items:center;gap:16px}
+  .member-info{min-width:0}
+  .member-ava{width:64px;height:64px;border-radius:50%;overflow:hidden;flex:none;border:2px solid rgba(255,255,255,.55);background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff}
+  .member-ava img{width:100%;height:100%;object-fit:cover}
   .member-right{position:relative;z-index:1;text-align:right}
   .btn-upgrade{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:12px;background:#fff;color:var(--primary);font-weight:700;font-size:13px;transition:all .2s}
   .btn-upgrade:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
@@ -123,6 +127,17 @@
   .btn-ghost:hover{background:#fafafe;border-color:var(--primary);color:var(--primary)}
   .btn-danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
   .btn-danger:hover{background:#fef2f2}
+
+  /* 编辑资料弹层 */
+  .profile-ava-wrap{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  .profile-ava{width:72px;height:72px;border-radius:50%;overflow:hidden;flex:none;border:1px solid var(--border);background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;cursor:pointer;transition:all .2s}
+  .profile-ava:hover{box-shadow:0 0 0 3px rgba(91,59,255,.25)}
+  .profile-ava img{width:100%;height:100%;object-fit:cover}
+  .profile-ava-actions{display:flex;flex-direction:column;gap:8px}
+  .profile-ava-actions .btn-mini{font-size:12px;padding:7px 13px}
+  #avaRemove{color:var(--danger);border-color:#fecaca}
+  #avaRemove:hover{background:#fef2f2;color:var(--danger)}
+  .profile-hint{font-size:12px;color:var(--text-3);margin-top:-8px;margin-bottom:14px}
   footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.5)}
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a25;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -163,6 +178,27 @@
   </div>
 </div>
 
+<div class="modal" id="profileModal">
+  <div class="modal-card">
+    <h3>编辑资料</h3>
+    <div class="profile-ava-wrap">
+      <div class="profile-ava" id="profileAva" title="点击更换头像"></div>
+      <div class="profile-ava-actions">
+        <label class="btn-mini" for="avaInput">更换头像</label>
+        <input type="file" id="avaInput" accept="image/*" hidden />
+        <button class="btn-mini" id="avaRemove">移除头像</button>
+      </div>
+    </div>
+    <p class="profile-hint">支持 JPG/PNG/WebP,建议正方形,自动压缩到 256×256。</p>
+    <div class="field"><label>昵称</label><input type="text" id="nameInput" maxlength="40" placeholder="给自己起个名字" /></div>
+    <div class="modal-err" id="profileErr"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="profileCancel">取消</button>
+      <button class="btn-ok" id="profileSave">保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -180,6 +216,29 @@ function rel(ts){
   return new Date(ts).toLocaleDateString("zh-CN");
 }
 function fmtDate(ts){return new Date(ts).toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric"});}
+function avatarHtml(u){
+  if(u && u.avatar) return '<img src="'+u.avatar+'" alt="" />';
+  var ch=(u&&u.name?u.name:u&&u.email?"U":"U")[0].toUpperCase();
+  return '<span>'+ch+'</span>';
+}
+// 把图片文件压缩成 256x256 JPEG base64(cover 裁剪)
+function downscaleAvatar(file, cb){
+  if(!file) return cb(null);
+  var reader=new FileReader();
+  reader.onerror=function(){ cb(null); };
+  reader.onload=function(){
+    var img=new Image();
+    img.onerror=function(){ cb(null); };
+    img.onload=function(){
+      var size=256, s=Math.min(img.width,img.height), sx=(img.width-s)/2, sy=(img.height-s)/2;
+      var c=document.createElement("canvas"); c.width=size; c.height=size;
+      var ctx=c.getContext("2d"); ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
+      try{ cb(c.toDataURL("image/jpeg",0.82)); }catch(e){ cb(null); }
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 var PLAN={
   trial:{name:"试用版",cls:"grad-trial",upgrade:"升级到专业版"},
@@ -203,10 +262,13 @@ async function init(){
     <div class="card" style="margin-bottom:20px">
       <div class="member ${plan.cls}">
         <div class="member-left">
-          <span class="member-tier">${plan.name}</span>
-          <div class="member-name">${u.name||"飞象用户"}</div>
-          <div class="member-mail">${u.email}</div>
-          <div class="member-meta">自 ${fmtDate(u.createdAt||Date.now())} 加入 · 会员 ${memberDays} 天</div>
+          <div class="member-ava" id="memberAva">${avatarHtml(u)}</div>
+          <div class="member-info">
+            <span class="member-tier">${plan.name}</span>
+            <div class="member-name" id="memberName">${u.name||"飞象用户"}</div>
+            <div class="member-mail">${u.email}</div>
+            <div class="member-meta">自 ${fmtDate(u.createdAt||Date.now())} 加入 · 会员 ${memberDays} 天</div>
+          </div>
         </div>
         <div class="member-right">
           <a class="btn-upgrade" href="https://flyelep.cn#pricing" target="_blank" rel="noopener">${plan.upgrade} →</a>
@@ -260,8 +322,12 @@ async function init(){
       <div class="section" style="padding-bottom:8px">
         <h3><span class="dot"></span>账户设置</h3>
         <div class="set-row">
+          <div><div class="sl">个人资料</div><div class="sd">头像与昵称</div></div>
+          <button class="btn-mini" id="openProfile">编辑资料</button>
+        </div>
+        <div class="set-row">
           <div><div class="sl">昵称</div><div class="sd">展示在账户与作品上</div></div>
-          <div class="set-val">${u.name||"—"}</div>
+          <div class="set-val" id="nickVal">${u.name||"—"}</div>
         </div>
         <div class="set-row">
           <div><div class="sl">登录邮箱</div><div class="sd">用于登录与通知</div></div>
@@ -293,6 +359,55 @@ async function init(){
     try{ document.execCommand("copy"); }catch(e){ navigator.clipboard&&navigator.clipboard.writeText(inp.value); }
     toast("邀请链接已复制");
   });
+
+  // ===== 编辑资料(头像 + 昵称)=====
+  (function bindProfile(){
+    var modal=document.getElementById("profileModal");
+    var avaEl=document.getElementById("profileAva");
+    var nameInput=document.getElementById("nameInput");
+    var errEl=document.getElementById("profileErr");
+    var avaInput=document.getElementById("avaInput");
+    var pendingAvatar=null; // null=未改; ""=清除; dataURL=新头像
+    function renderPreview(){
+      if(pendingAvatar==="") avaEl.innerHTML=avatarHtml({name:u.name,email:u.email,avatar:null});
+      else if(pendingAvatar) avaEl.innerHTML='<img src="'+pendingAvatar+'" alt="" />';
+      else avaEl.innerHTML=avatarHtml(u);
+    }
+    document.getElementById("openProfile").addEventListener("click",function(){
+      pendingAvatar=null; errEl.style.display="none"; nameInput.value=u.name||"";
+      renderPreview(); modal.classList.add("show");
+    });
+    document.getElementById("profileCancel").addEventListener("click",function(){ modal.classList.remove("show"); });
+    modal.addEventListener("click",function(e){ if(e.target===modal) modal.classList.remove("show"); });
+    avaEl.addEventListener("click",function(){ avaInput.click(); });
+    avaInput.addEventListener("change",function(){
+      var f=avaInput.files&&avaInput.files[0]; if(!f) return;
+      downscaleAvatar(f,function(d){
+        if(!d){ errEl.textContent="图片读取失败,换一张试试"; errEl.style.display="block"; return; }
+        pendingAvatar=d; renderPreview();
+      });
+    });
+    document.getElementById("avaRemove").addEventListener("click",function(){ pendingAvatar=""; avaInput.value=""; renderPreview(); });
+    document.getElementById("profileSave").addEventListener("click",async function(){
+      errEl.style.display="none";
+      var nm=nameInput.value.trim();
+      if(!nm){ errEl.textContent="昵称不能为空"; errEl.style.display="block"; return; }
+      var payload={ name:nm };
+      if(pendingAvatar!==null) payload.avatar=pendingAvatar;
+      try{
+        var resp=await fetch("/api/auth/profile",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(payload)});
+        var data=await resp.json();
+        if(!resp.ok||!data.ok){ errEl.textContent=data.error||"保存失败"; errEl.style.display="block"; return; }
+        u.name=data.user.name; u.avatar=data.user.avatar;
+        document.getElementById("memberAva").innerHTML=avatarHtml(u);
+        document.getElementById("memberName").textContent=u.name;
+        document.getElementById("nickVal").textContent=u.name;
+        modal.classList.remove("show");
+        toast("资料已更新");
+      }catch(e){ errEl.textContent="网络异常,请重试"; errEl.style.display="block"; }
+    });
+  })();
+
   var sw=document.getElementById("swNotif");
   sw.addEventListener("click",function(){ sw.classList.toggle("on"); toast(sw.classList.contains("on")?"已开启邮件通知":"已关闭邮件通知"); });
   document.getElementById("openPw").addEventListener("click",function(){ document.getElementById("pwModal").classList.add("show"); });
