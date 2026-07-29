@@ -23,20 +23,26 @@ function Warn($m){ Write-Host "⚠️  $m" -ForegroundColor Yellow }
 function Info($m){ Write-Host "ℹ️  $m" -ForegroundColor Cyan }
 function Err($m){ Write-Host "❌ $m" -ForegroundColor Red; exit 1 }
 
-# 1. 检查改动
+# 1. 检查改动和未推送 commit
 Info "检查文件改动..."
 $status = git status --short
-if (-not $status) { Warn "没有改动,跳过"; exit 0 }
-Write-Host $status
-Write-Host ""
-$confirm = Read-Host "👉 改的就是这些?回车继续"
-Info "继续..."
+$ahead = [int](git rev-list --count origin/$Branch..HEAD 2>$null)
+if (-not $status -and $ahead -eq 0) { Warn "没有改动,跳过"; exit 0 }
+if ($ahead -gt 0) { Info "检测到 $ahead 个本地 commit 未推送" }
+if ($status) {
+  Write-Host $status
+  Write-Host ""
+  $confirm = Read-Host "👉 改的就是这些?回车继续"
+  Info "继续..."
 
-# 2. add + commit
-git add -A
-git -c user.email="[email protected]" -c user.name="ww2190790837-eng" commit -m $Message
-if ($LASTEXITCODE -ne 0) { Err "commit 失败" }
-Ok "commit 成功"
+  # 2. add + commit
+  git add -A
+  git -c user.email="[email protected]" -c user.name="ww2190790837-eng" commit -m $Message
+  if ($LASTEXITCODE -ne 0) { Err "commit 失败" }
+  Ok "commit 成功"
+} else {
+  Info "工作区没有新改动,直接 push 已有的 $ahead 个 commit"
+}
 
 # 3. push(用 token 走 URL,绕开 credential helper 空格问题)
 Info "git push..."
