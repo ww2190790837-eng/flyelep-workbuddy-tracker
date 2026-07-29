@@ -7,3 +7,6 @@ gh-login.*
 gh-extract/
 .DS_Store
 .env
+
+# agent working memory (local only, never commit)
+.workbuddy/

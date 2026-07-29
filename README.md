@@ -3,25 +3,29 @@
 ## 项目结构
 
 ```
-app/
-├── server.mjs       # Express 后端(静态服务 + 跟踪 API + 管理后台)
+codex电商/
+├── server.mjs       # Express 后端(静态服务 + UTM 跟踪 + 用户系统 + 管理后台)
 ├── package.json
 ├── render.yaml      # Render.com 一键部署配置
 ├── Dockerfile       # 通用 Docker 部署
 ├── vercel.json      # Vercel 部署配置
-└── public/
-    ├── index.html   # 抖音落地页(含 UTM 跟踪)
-    └── admin.html   # UTM 后台仪表盘
+├── start.ps1        # 本地一键启动(Windows)
+├── publish.ps1      # 一键发布到 Render(需联网 + gh 已登录)
+├── public/
+│   ├── index.html   # 抖音落地页(含 UTM 跟踪 + 注册/登录弹窗)
+│   ├── admin.html   # UTM 后台仪表盘
+│   └── account.html # 用户账户页
+└── data/            # 运行时生成(users.json / db.json / events.json),已被 .gitignore 排除
 ```
 
 ## 本地运行
 
 ```bash
-cd app
 npm install
 node server.mjs
 # 访问 http://localhost:8080
-# 后台:http://localhost:8080/admin/?token=admin123
+# 后台:http://localhost:8080/admin/?token=codex2026
+#   (若用 start.ps1 启动,默认 token 为 admin123)
 ```
 
 ## 永久部署(任选一种)
