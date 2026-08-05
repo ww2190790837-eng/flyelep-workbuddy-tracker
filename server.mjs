@@ -75,7 +75,7 @@ async function initUsersStore() {
 function validateAvatar(dataUrl) {
   const m = /^data:(image\/(png|jpeg|jpg|webp|gif));base64,(.+)$/i.exec(dataUrl || "");
   if (!m) return null;
-  const buf = Buffer.from(m[2], "base64");
+  const buf = Buffer.from(m[3], "base64"); // m[3] 才是 base64 数据
   if (!buf || buf.length > 2 * 1024 * 1024) return null; // 解码后上限 2MB
   return dataUrl;
 }
@@ -133,7 +133,7 @@ function getUtm(q) {
 
 const app = express();
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "64kb" }));
+app.use(express.json({ limit: "256kb" }));
 app.use(cookieParser(SESSION_SECRET));
 app.use(session({
   secret: SESSION_SECRET,
@@ -154,7 +154,8 @@ app.use(express.static(path.join(__dirname, "public"), { index: "index.html", ex
 
 // ===== Auth 路由 =====
 app.post("/api/auth/register", async (req, res) => {
-  const { email, password, name } = req.body || {};
+  let { email, password, name } = req.body || {};
+  email = String(email || "").trim().toLowerCase();
   if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
   if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(email)) return res.status(400).json({ ok: false, error: "邮箱格式不正确" });
   if (password.length < 6) return res.status(400).json({ ok: false, error: "密码至少 6 位" });
@@ -167,9 +168,10 @@ app.post("/api/auth/register", async (req, res) => {
 });
 
 app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
-  const user = await findUserByEmail(email);
+  const rawEmail = String((req.body || {}).email || "").trim().toLowerCase();
+  const password = (req.body || {}).password || "";
+  if (!rawEmail || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
+  const user = await findUserByEmail(rawEmail);
   if (!user) return res.status(401).json({ ok: false, error: "邮箱或密码错误" });
   if (!bcrypt.compareSync(password, user.passwordHash)) return res.status(401).json({ ok: false, error: "邮箱或密码错误" });
   user.lastLoginAt = Date.now();
@@ -330,7 +332,13 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/healthz", (req, res) => res.json({ ok: true, ts: Date.now() }));
+app.get("/healthz", (req, res) => res.json({
+  ok: true,
+  ts: Date.now(),
+  store: usingMongo ? "mongodb" : "json",
+  mongoConfigured: !!MONGODB_URI,
+  mongoConnected: mongoose.connection.readyState === 1
+}));
 
 await initUsersStore();
 app.listen(PORT, "0.0.0.0", () => console.log("listening on " + PORT));
