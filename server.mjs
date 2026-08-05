@@ -43,32 +43,69 @@ const MONGODB_URI = process.env.MONGODB_URI || "";
 let usingMongo = false;
 let UserModel = null;
 
+// ---- GitHub Gist 持久化(备用联网存储:跨设备 + 重启不丢,无需 Atlas) ----
+const GIST_TOKEN = process.env.USERS_GIST_TOKEN || "";
+const GIST_ID = process.env.USERS_GIST_ID || "";
+const GIST_FILENAME = "flyelep_users.json";
+let usingGist = false;
+let gistCache = [];
+async function gistFetch() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : [];
+}
+async function gistPush(users) {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(users, null, 2) } } })
+  });
+  if (!r.ok) throw new Error("gist push " + r.status);
+}
+
 async function initUsersStore() {
-  if (!MONGODB_URI) {
-    console.log("[store] 未配置 MONGODB_URI,使用本地 JSON 文件(data/users.json)");
-    return;
+  // 1) MongoDB 优先(联网持久化首选)
+  if (MONGODB_URI) {
+    try {
+      await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000 });
+      const userSchema = new mongoose.Schema({
+        id: { type: String, unique: true, index: true },
+        email: { type: String, unique: true, lowercase: true, index: true },
+        name: String,
+        passwordHash: String,
+        plan: { type: String, default: "trial" },
+        role: { type: String, default: "user" },
+        avatar: { type: String, default: null }, // 存 base64 data URL
+        createdAt: Number,
+        lastLoginAt: Number,
+        loginCount: { type: Number, default: 1 }
+      });
+      UserModel = mongoose.model("User", userSchema);
+      usingMongo = true;
+      console.log("[store] 已连接 MongoDB,用户数据持久化到云端");
+      return;
+    } catch (e) {
+      console.error("[store] MongoDB 连接失败,尝试 Gist 持久化:", e.message);
+    }
   }
-  try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000 });
-    const userSchema = new mongoose.Schema({
-      id: { type: String, unique: true, index: true },
-      email: { type: String, unique: true, lowercase: true, index: true },
-      name: String,
-      passwordHash: String,
-      plan: { type: String, default: "trial" },
-      role: { type: String, default: "user" },
-      avatar: { type: String, default: null }, // 存 base64 data URL
-      createdAt: Number,
-      lastLoginAt: Number,
-      loginCount: { type: Number, default: 1 }
-    });
-    UserModel = mongoose.model("User", userSchema);
-    usingMongo = true;
-    console.log("[store] 已连接 MongoDB,用户数据持久化到云端");
-  } catch (e) {
-    console.error("[store] MongoDB 连接失败,回退本地 JSON 文件:", e.message);
-    usingMongo = false;
+  // 2) GitHub Gist 持久化(跨设备 + 重启不丢,无需 Atlas)
+  if (GIST_TOKEN && GIST_ID) {
+    try {
+      gistCache = await gistFetch();
+      usingGist = true;
+      console.log(`[store] 已启用 GitHub Gist 持久化(用户数 ${gistCache.length})`);
+      return;
+    } catch (e) {
+      console.error("[store] Gist 读取失败,回退本地 JSON 文件:", e.message);
+      gistCache = [];
+    }
   }
+  // 3) 本地 JSON(临时,重启可能丢)
+  console.log("[store] 使用本地 JSON 文件(data/users.json)");
 }
 
 // 头像:校验 base64 data URL,直接存进用户文档(不再写文件)
@@ -82,6 +119,7 @@ function validateAvatar(dataUrl) {
 
 async function loadUsers() {
   if (usingMongo) return UserModel.find({}).lean();
+  if (usingGist) return gistCache;
   return loadJSON(USERS_FILE, []);
 }
 async function findUserByEmail(email) {
@@ -102,12 +140,16 @@ async function createUser({ email, password, name }) {
     createdAt: now, lastLoginAt: now, loginCount: 1
   };
   if (usingMongo) await UserModel.create(user);
+  else if (usingGist) { gistCache.push(user); await gistPush(gistCache).catch(e => console.error("[store] gist push 失败:", e.message)); }
   else { const users = await loadUsers(); users.push(user); saveUsers(users); }
   return user;
 }
 async function updateUser(u) {
   if (usingMongo) await UserModel.updateOne({ id: u.id }, u, { upsert: false });
-  else {
+  else if (usingGist) {
+    const idx = gistCache.findIndex(x => x.id === u.id);
+    if (idx >= 0) { gistCache[idx] = u; await gistPush(gistCache).catch(e => console.error("[store] gist push 失败:", e.message)); }
+  } else {
     const users = await loadUsers();
     const idx = users.findIndex(x => x.id === u.id);
     if (idx >= 0) { users[idx] = u; saveUsers(users); }
@@ -115,6 +157,13 @@ async function updateUser(u) {
 }
 async function deleteUserById(id) {
   if (usingMongo) { const r = await UserModel.deleteOne({ id }); return r.deletedCount > 0; }
+  if (usingGist) {
+    const before = gistCache.length;
+    gistCache = gistCache.filter(u => u.id !== id);
+    if (gistCache.length === before) return false;
+    await gistPush(gistCache).catch(e => console.error("[store] gist push 失败:", e.message));
+    return true;
+  }
   const users = await loadUsers();
   const filtered = users.filter(u => u.id !== id);
   if (filtered.length === users.length) return false;
@@ -335,7 +384,7 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 app.get("/healthz", (req, res) => res.json({
   ok: true,
   ts: Date.now(),
-  store: usingMongo ? "mongodb" : "json",
+  store: usingMongo ? "mongodb" : (usingGist ? "gist" : "json"),
   mongoConfigured: !!MONGODB_URI,
   mongoConnected: mongoose.connection.readyState === 1
 }));
