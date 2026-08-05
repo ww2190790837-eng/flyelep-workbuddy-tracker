@@ -40,31 +40,15 @@
      动态背景层 —— 纯 SVG + CSS 流动渐变
      ============================================ */
   .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#fafafe}
-  .bg-gradient-mesh{position:absolute;inset:-20%;width:140%;height:140%}
-  .bg-grad{position:absolute;border-radius:50%;filter:blur(120px);mix-blend-mode:normal;will-change:transform}
-  .bg-grad.a{width:60vw;height:60vw;background:radial-gradient(circle,rgba(91,59,255,.50),transparent 60%);top:-20%;left:-10%;animation:blob1 25s ease-in-out infinite}
-  .bg-grad.b{width:55vw;height:55vw;background:radial-gradient(circle,rgba(255,91,155,.40),transparent 60%);top:30%;right:-15%;animation:blob2 30s ease-in-out infinite}
-  .bg-grad.c{width:50vw;height:50vw;background:radial-gradient(circle,rgba(30,136,229,.32),transparent 60%);bottom:-20%;left:20%;animation:blob3 35s ease-in-out infinite}
-  .bg-grad.d{width:45vw;height:45vw;background:radial-gradient(circle,rgba(0,188,212,.28),transparent 60%);top:50%;right:10%;animation:blob4 28s ease-in-out infinite}
-  .bg-grad.e{width:40vw;height:40vw;background:radial-gradient(circle,rgba(255,107,53,.28),transparent 60%);bottom:10%;left:50%;transform:translateX(-50%);animation:blob5 32s ease-in-out infinite}
-  @keyframes blob1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(15vw,10vh) scale(1.15)}66%{transform:translate(-10vw,15vh) scale(.9)}}
-  @keyframes blob2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-15vw,8vh) scale(1.2)}66%{transform:translate(8vw,-10vh) scale(.85)}}
-  @keyframes blob3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(10vw,-12vh) scale(1.18)}}
-  @keyframes blob4{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-12vw,-8vh) scale(1.1)}80%{transform:translate(8vw,10vh) scale(.95)}}
-  @keyframes blob5{0%,100%{transform:translate(-50%,0) scale(1)}50%{transform:translate(-30%,-10vh) scale(1.2)}}
-  /* SVG 流光波浪 */
-  .bg-svg-layer{position:absolute;inset:0;width:100%;height:100%;opacity:.5;mix-blend-mode:normal}
-  .bg-svg-layer svg{width:100%;height:100%;display:block}
-  /* 光束扫描 */
-  .bg-beam{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg at 50% 50%,transparent 0deg,rgba(91,59,255,.06) 30deg,transparent 60deg,rgba(255,91,155,.06) 90deg,transparent 120deg,rgba(30,136,229,.06) 180deg,transparent 240deg,rgba(0,188,212,.06) 300deg,transparent 360deg);animation:beam-spin 30s linear infinite;opacity:.6}
-  @keyframes beam-spin{to{transform:rotate(360deg)}}
+  /* Canvas 流场粒子背景 (canvas 自绘,覆盖整屏) */
+  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   /* 噪点纹理 */
   .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:normal}
   /* 移动网格 */
   .bg-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(91,59,255,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(91,59,255,.04) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-move 40s linear infinite;opacity:.7}
   @keyframes grid-move{to{background-position:64px 64px}}
   /* 减弱动效 */
-  @media (prefers-reduced-motion:reduce){.bg-grad,.bg-beam,.bg-grid{animation:none}}
+  @media (prefers-reduced-motion:reduce){.bg-grid{animation:none}}
   .scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gradient);z-index:1000;transition:width .15s;box-shadow:0 0 12px rgba(91,59,255,.4)}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
 
@@ -269,41 +253,7 @@
 
 <!-- 动态背景层(纯 SVG + CSS,白底高级感) -->
 <div class="bg-stage">
-  <div class="bg-gradient-mesh">
-    <div class="bg-grad a"></div>
-    <div class="bg-grad b"></div>
-    <div class="bg-grad c"></div>
-    <div class="bg-grad d"></div>
-    <div class="bg-grad e"></div>
-  </div>
-  <div class="bg-beam"></div>
-  <div class="bg-svg-layer">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#5b3bff" stop-opacity=".18"/>
-          <stop offset="50%" stop-color="#ff5b9b" stop-opacity=".12"/>
-          <stop offset="100%" stop-color="#00bcd4" stop-opacity=".08"/>
-        </linearGradient>
-        <linearGradient id="g2" x1="1" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#1e88e5" stop-opacity=".15"/>
-          <stop offset="100%" stop-color="#7c5cff" stop-opacity=".10"/>
-        </linearGradient>
-      </defs>
-      <path d="M0,400 C300,300 600,500 900,350 C1200,200 1440,400 1440,400 L1440,900 L0,900 Z" fill="url(#g1)">
-        <animate attributeName="d" dur="20s" repeatCount="indefinite"
-          values="M0,400 C300,300 600,500 900,350 C1200,200 1440,400 1440,400 L1440,900 L0,900 Z;
-                  M0,350 C300,500 600,300 900,450 C1200,350 1440,250 1440,250 L1440,900 L0,900 Z;
-                  M0,400 C300,300 600,500 900,350 C1200,200 1440,400 1440,400 L1440,900 L0,900 Z"/>
-      </path>
-      <path d="M0,500 C200,400 500,600 800,500 C1100,400 1300,550 1440,500 L1440,900 L0,900 Z" fill="url(#g2)" opacity=".7">
-        <animate attributeName="d" dur="25s" repeatCount="indefinite"
-          values="M0,500 C200,400 500,600 800,500 C1100,400 1300,550 1440,500 L1440,900 L0,900 Z;
-                  M0,450 C200,600 500,400 800,550 C1100,500 1300,400 1440,450 L1440,900 L0,900 Z;
-                  M0,500 C200,400 500,600 800,500 C1100,400 1300,550 1440,500 L1440,900 L0,900 Z"/>
-      </path>
-    </svg>
-  </div>
+  <canvas class="bg-canvas" id="bgCanvas"></canvas>
   <div class="bg-grid"></div>
   <div class="bg-noise"></div>
 </div>
@@ -937,6 +887,7 @@
   // 暂时不动,让用户自己选
 })();
 </script>
+<script src="/bg-home.js"></script>
 
 </body>
 </html>
