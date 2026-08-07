@@ -41,8 +41,8 @@
     blobs = COLORS.map(function (c, i) {
       return {
         color: c,
-        // 大半径,占屏 40%-65%
-        r: Math.max(W, H) * rand(0.40, 0.65),
+        // 大半径,占屏 45%-72%
+        r: Math.max(W, H) * rand(0.45, 0.72),
         // 起始位置:四角 + 中间分布
         x: W * ([0.15, 0.8, 0.5, 0.85][i]),
         y: H * ([0.15, 0.25, 0.85, 0.8][i]),
@@ -53,7 +53,7 @@
         // 呼吸速度 (很慢)
         speed: rand(0.00018, 0.0005),
         // 漂移幅度
-        amp: rand(0.05, 0.10)
+        amp: rand(0.08, 0.14)
       };
     });
   }
@@ -77,9 +77,9 @@
       var rr = b.r * breathe;
       var col = b.color;
       var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
-      g.addColorStop(0, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.20)");
-      g.addColorStop(0.45, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.09)");
-      g.addColorStop(0.75, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.03)");
+      g.addColorStop(0, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.42)");
+      g.addColorStop(0.45, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.20)");
+      g.addColorStop(0.75, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.09)");
       g.addColorStop(1, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0)");
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -98,9 +98,9 @@
       var b = blobs[i];
       var col = b.color;
       var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-      g.addColorStop(0, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.20)");
-      g.addColorStop(0.45, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.09)");
-      g.addColorStop(0.75, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.03)");
+      g.addColorStop(0, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.42)");
+      g.addColorStop(0.45, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.20)");
+      g.addColorStop(0.75, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.09)");
       g.addColorStop(1, "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0)");
       ctx.fillStyle = g;
       ctx.beginPath();
