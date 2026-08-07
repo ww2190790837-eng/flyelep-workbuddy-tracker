@@ -7,13 +7,23 @@
 <style>
   :root{--bg:#0b1020;--bg2:#0f1733;--card:#121b3a;--line:#1f2a55;--text:#f5f7ff;--muted:#aab3d4;--primary:#0a74ff;--accent:#ff6b35;--success:#22c55e;--warn:#eab308;--danger:#ef4444}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;padding:16px;max-width:1200px;margin:0 auto}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;background:radial-gradient(130% 90% at 50% -20%,#15204a 0%,var(--bg) 60%);color:var(--text);line-height:1.55;padding:16px;max-width:1200px;margin:0 auto;min-height:100vh}
   h1{font-size:24px;margin-bottom:6px}
   h1 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
   .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
   .sub a{color:var(--primary);text-decoration:none}
+  /* 顶栏 */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:rgba(18,27,58,.7);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:12px;margin-bottom:18px}
+  .tb-brand{display:flex;align-items:center;gap:9px;font-size:14px;min-width:0}
+  .tb-logo{font-size:18px}
+  .tb-name{font-weight:700;color:var(--text);white-space:nowrap}
+  .tb-sep{color:var(--muted)}
+  .tb-page{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tb-actions{display:flex;gap:8px;flex:none}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
-  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .kpi{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;transition:transform .2s,border-color .2s}
+  .kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+  .kpi:hover{transform:translateY(-2px);border-color:rgba(10,116,255,.45)}
   .kpi .label{color:var(--muted);font-size:12px;margin-bottom:4px}
   .kpi .num{font-size:28px;font-weight:800;background:linear-gradient(90deg,var(--primary),#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   .kpi .delta{font-size:11px;color:var(--muted);margin-top:2px}
@@ -40,7 +50,8 @@
   .builder{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
   .builder h2{font-size:15px;margin-bottom:12px}
   .builder .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:8px}
-  .builder input,.builder select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:8px 10px;border-radius:6px;font-size:13px}
+  .builder input,.builder select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:8px 10px;border-radius:6px;font-size:13px;transition:border-color .2s,box-shadow .2s}
+  .builder input:focus,.builder select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,116,255,.22)}
   .builder .out{margin-top:8px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;font-family:Menlo,Monaco,Consolas,monospace;font-size:12px;word-break:break-all;color:var(--success)}
   .chart{height:140px;display:flex;align-items:flex-end;gap:2px;padding:8px 0}
   .chart .col{flex:1;background:linear-gradient(180deg,var(--primary),#4f46e5);border-radius:2px 2px 0 0;min-width:6px;position:relative}
@@ -63,13 +74,24 @@
 </head>
 <body>
 
+<header class="topbar">
+  <div class="tb-brand">
+    <span class="tb-logo">🐘</span>
+    <span class="tb-name">飞象 × WorkBuddy</span>
+    <span class="tb-sep">/</span>
+    <span class="tb-page">数据看板</span>
+  </div>
+  <div class="tb-actions">
+    <a class="btn outline" href="/">← 首页</a>
+    <button class="btn" onclick="location.reload()">🔄 刷新</button>
+  </div>
+</header>
 <h1><span class="dot"></span>UTM 投放后台</h1>
 <p class="sub">
   飞象 × WorkBuddy 抖音落地页数据
   · 主机:<span id="host"></span>
   · <a href="/admin/api/export.csv">导出 CSV</a>
   · <a href="/admin/api/reset?confirm=yes" onclick="return confirm('确定清空所有数据?')">清空</a>
-  · <button class="btn outline" onclick="location.reload()" style="float:right">🔄 刷新</button>
 </p>
 
 <div class="grid">
