@@ -37,11 +37,15 @@
   a{color:inherit;text-decoration:none}
 
   /* ============================================
-     动态背景层 —— 纯 SVG + CSS 流动渐变
+     动态背景层 —— 首屏视频 + Canvas 叠加(仅在 Hero 内)
      ============================================ */
-  .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#fafafe}
-  /* Canvas 流场粒子背景 (canvas 自绘,覆盖整屏) */
-  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .bg-stage{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#0a0a18}
+  /* === 全屏视频背景 === */
+  .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+  /* 首屏深色渐变遮罩(保证白字可读) */
+  .hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(8,8,22,.50) 0%,rgba(8,8,22,.66) 42%,rgba(10,12,30,.82) 78%,rgba(15,15,40,.92) 100%)}
+  /* Canvas 流场粒子 (叠加在视频之上,微妙光晕) */
+  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.22;mix-blend-mode:screen}
   /* 噪点纹理 */
   .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:normal}
   /* 移动网格 */
@@ -52,14 +56,14 @@
   .scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gradient);z-index:1000;transition:width .15s;box-shadow:0 0 12px rgba(91,59,255,.4)}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
 
-  /* === 顶部导航 === */
-  .top-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);background:rgba(255,255,255,.7);border-bottom:1px solid var(--border)}
+  /* === 顶部导航(深色玻璃,适配视频首屏) === */
+  .top-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);background:rgba(10,10,30,.42);border-bottom:1px solid rgba(255,255,255,.08)}
   .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
-  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:var(--text)}
-  .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:#fff}
+  .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
   .nav-links{display:flex;gap:32px;align-items:center}
-  .nav-links a{color:var(--text-2);font-size:14px;font-weight:500;transition:color .2s}
-  .nav-links a:hover{color:var(--primary)}
+  .nav-links a{color:rgba(255,255,255,.72);font-size:14px;font-weight:500;transition:color .2s}
+  .nav-links a:hover{color:#fff}
   .nav-cta{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
   .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
   /* 登录/注册 —— 描边药丸(次级按钮),与渐变主按钮平衡 */
@@ -68,25 +72,26 @@
   .nav-auth:hover{background:rgba(91,59,255,.08);border-color:rgba(91,59,255,.5);transform:translateY(-1px);box-shadow:0 6px 18px rgba(91,59,255,.15)}
   @media (max-width:720px){.nav-links{display:none}.nav-auth,.nav-cta{padding:8px 14px;font-size:12px}}
 
-  /* === Hero === */
-  .hero{padding:100px 0 80px;text-align:center;position:relative}
-  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(91,59,255,.2);font-size:13px;font-weight:500;color:var(--primary);margin-bottom:28px;box-shadow:0 4px 16px rgba(91,59,255,.08)}
+  /* === Hero (深色视频背景版) === */
+  .hero{padding:110px 0 90px;text-align:center;position:relative;z-index:1;color:#fff;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+  .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:180px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,transparent,#fafafe)}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.10);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);font-size:13px;font-weight:500;color:rgba(255,255,255,.88);margin-bottom:28px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
   .hero-eyebrow .pulse{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:dot 2s ease-in-out infinite}
   @keyframes dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
-  .hero h1{font-size:clamp(36px,6.5vw,76px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 auto 22px;max-width:1000px;color:var(--text)}
-  .hero h1 .grad{background:var(--gradient);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:flow 6s ease infinite}
+  .hero h1{font-size:clamp(36px,6.5vw,76px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 auto 22px;max-width:1000px;color:#fff;text-shadow:0 2px 40px rgba(0,0,0,.35)}
+  .hero h1 .grad{background:linear-gradient(135deg,#fff 0%,#a07cff 40%,#ff5b9b 70%,#ffa07a 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:flow 6s ease infinite}
   @keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-  .hero p.sub{font-size:clamp(15px,1.7vw,18px);color:var(--text-2);max-width:680px;margin:0 auto 18px;line-height:1.6}
-  .hero p.sub strong{color:var(--text);font-weight:600}
-  .user-stat{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;padding:8px 18px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(34,197,94,.2);border-radius:99px;margin-bottom:32px;font-size:13px;color:var(--text-2);box-shadow:0 4px 16px rgba(0,0,0,.05)}
+  .hero p.sub{font-size:clamp(15px,1.7vw,18px);color:rgba(255,255,255,.78);max-width:680px;margin:0 auto 18px;line-height:1.65}
+  .hero p.sub strong{color:rgba(255,255,255,.95);font-weight:600}
+  .user-stat{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;padding:9px 20px;background:rgba(255,255,255,.08);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:99px;margin-bottom:32px;font-size:13px;color:rgba(255,255,255,.72);box-shadow:0 4px 24px rgba(0,0,0,.2)}
   .user-stat strong{color:var(--success);font-weight:700}
-  .user-stat .sep{color:var(--text-3);opacity:.5}
+  .user-stat .sep{color:rgba(255,255,255,.35)}
   .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 28px;border-radius:14px;font-weight:600;font-size:15px;transition:all .25s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative;overflow:hidden;border:none;letter-spacing:-.1px}
-  .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 8px 30px rgba(91,59,255,.4)}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(91,59,255,.6)}
-  .btn-ghost{background:rgba(255,255,255,.8);color:var(--text);border:1px solid var(--border-2);backdrop-filter:blur(12px);box-shadow:0 4px 16px rgba(0,0,0,.04)}
-  .btn-ghost:hover{background:#fff;border-color:var(--primary);color:var(--primary);transform:translateY(-2px)}
+  .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 8px 30px rgba(91,59,255,.45)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(91,59,255,.65)}
+  .btn-ghost{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,.15)}
+  .btn-ghost:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#fff;transform:translateY(-2px)}
   .btn::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:left .6s}
   .btn:hover::after{left:150%}
 
@@ -255,13 +260,6 @@
 
 <div class="scroll-bar" id="scrollBar"></div>
 
-<!-- 动态背景层(纯 SVG + CSS,白底高级感) -->
-<div class="bg-stage">
-  <canvas class="bg-canvas" id="bgCanvas"></canvas>
-  <div class="bg-grid"></div>
-  <div class="bg-noise"></div>
-</div>
-
 ﻿
 <nav class="top-nav">
   <div class="wrap top-nav-inner">
@@ -326,6 +324,15 @@
 
 
 <header class="hero">
+  <div class="bg-stage">
+    <video class="hero-video" autoplay muted loop playsinline preload="auto">
+      <source src="/hero-bg.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-overlay"></div>
+    <canvas class="bg-canvas" id="bgCanvas"></canvas>
+    <div class="bg-grid"></div>
+    <div class="bg-noise"></div>
+  </div>
   <div class="wrap">
     <div class="hero-eyebrow reveal">
       <span class="pulse"></span>
