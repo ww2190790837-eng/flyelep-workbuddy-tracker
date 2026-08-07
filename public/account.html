@@ -12,23 +12,23 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#fafafe;--surface:#ffffff;
-    --border:rgba(15,15,40,.08);--border-2:rgba(15,15,40,.12);
-    --text:#0a0a25;--text-2:#4a4a6a;--text-3:#8a8aa8;
-    --primary:#5b3bff;--primary-2:#7c5cff;
+    --bg:#080b14;--surface:#111524;
+    --border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);
+    --text:#eef1f8;--text-2:#a9afc4;--text-3:#727896;
+    --primary:#7c5cff;--primary-2:#9b7cff;
     --accent:#ff6b35;--pink:#ff5b9b;
     --wb:#1e88e5;--wb-2:#00bcd4;
     --success:#22c55e;--danger:#ef4444;
-    --gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);
+    --gradient:linear-gradient(135deg,#7c5cff 0%,#9b7cff 45%,#ff5b9b 100%);
     --gold:linear-gradient(135deg,#f6c75a,#e0962a);
   }
-  html{background:#fafafe}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#fafafe;color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+  html{background:var(--bg)}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(124,92,255,.16),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
   ::selection{background:var(--primary);color:#fff}
   a{color:inherit;text-decoration:none}
   img{max-width:100%;display:block}
   .wrap{max-width:980px;margin:0 auto;padding:0 24px}
-  .top-nav{background:rgba(255,255,255,.85);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  .top-nav{background:rgba(10,12,24,.7);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
   .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
   .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px}
   .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
@@ -36,7 +36,7 @@
   .nav-back:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
   .account-shell{padding:40px 0 80px}
   .loading{text-align:center;padding:80px 0;color:var(--text-3)}
-  .card{background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.12);overflow:hidden}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.25);overflow:hidden}
 
   /* 会员卡 */
   .member{position:relative;color:#fff;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;overflow:hidden}
@@ -73,7 +73,7 @@
   /* 工具网格 */
   .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:900px){.tools{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.tools{grid-template-columns:1fr}}
-  .tool{padding:18px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.7);transition:all .3s;cursor:pointer;display:block}
+  .tool{padding:18px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.04);transition:all .3s;cursor:pointer;display:block}
   .tool:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.15)}
   .tool .ti{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
   .tool.wb .ti{background:linear-gradient(135deg,var(--wb),var(--wb-2))}
@@ -85,13 +85,13 @@
   .timeline::before{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--border)}
   .tl-item{position:relative;padding:0 0 18px}
   .tl-item:last-child{padding-bottom:0}
-  .tl-item::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 2px rgba(91,59,255,.2)}
+  .tl-item::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(91,59,255,.2)}
   .tl-title{font-size:14px;font-weight:600}
   .tl-time{font-size:12px;color:var(--text-3);margin-top:2px}
 
   /* 邀请 */
-  .refbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border:1px dashed rgba(91,59,255,.4);border-radius:14px;background:rgba(91,59,255,.03)}
-  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--text-2)}
+  .refbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border:1px dashed rgba(91,59,255,.4);border-radius:14px;background:rgba(91,59,255,.07)}
+  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#161a28;color:var(--text)}
   .btn-copy{padding:11px 18px;border:none;border-radius:10px;background:var(--gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
   .btn-copy:hover{transform:translateY(-1px)}
 
@@ -101,7 +101,7 @@
   .set-row .sl{font-size:14px;font-weight:500}
   .set-row .sd{font-size:12px;color:var(--text-3);margin-top:2px}
   .set-val{font-size:14px;color:var(--text-2);max-width:50%;text-align:right;word-break:break-all}
-  .btn-mini{padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;background:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text)}
+  .btn-mini{padding:8px 14px;border:1px solid var(--border-2);border-radius:9px;background:rgba(255,255,255,.06);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text)}
   .btn-mini:hover{border-color:var(--primary);color:var(--primary)}
   .switch{position:relative;width:44px;height:24px;border-radius:99px;background:var(--border-2);cursor:pointer;transition:background .2s;flex:none}
   .switch.on{background:var(--primary)}
@@ -111,22 +111,22 @@
   /* 改密弹层 */
   .modal{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(10,10,40,.5);backdrop-filter:blur(8px);padding:24px}
   .modal.show{display:flex}
-  .modal-card{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:28px;box-shadow:0 30px 80px -20px rgba(0,0,0,.4)}
+  .modal-card{background:var(--surface);border:1px solid rgba(255,255,255,.12);border-radius:18px;max-width:420px;width:100%;padding:28px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6)}
   .modal-card h3{font-size:18px;font-weight:700;margin-bottom:18px}
   .modal-card .field{margin-bottom:14px}
   .modal-card label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
-  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s}
-  .modal-card input:focus{outline:none;border-color:var(--primary);background:#fff}
+  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#161a28;color:var(--text);transition:all .2s}
+  .modal-card input:focus{outline:none;border-color:var(--primary);background:#1d2233}
   .modal-err{display:none;color:var(--danger);font-size:13px;margin:4px 0 12px}
   .modal-actions{display:flex;gap:10px;margin-top:8px}
   .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
   .btn-ok{background:var(--gradient);color:#fff}
-  .btn-cancel{background:#f0f0f6;color:var(--text-2)}
+  .btn-cancel{background:rgba(255,255,255,.08);color:var(--text-2)}
 
-  .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;transition:all .2s;cursor:pointer;border:1px solid var(--border-2);background:#fff;color:var(--text)}
-  .btn-ghost:hover{background:#fafafe;border-color:var(--primary);color:var(--primary)}
-  .btn-danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
-  .btn-danger:hover{background:#fef2f2}
+  .btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:600;font-size:14px;transition:all .2s;cursor:pointer;border:1px solid var(--border-2);background:rgba(255,255,255,.06);color:var(--text)}
+  .btn-ghost:hover{background:rgba(255,255,255,.1);border-color:var(--primary);color:var(--primary)}
+  .btn-danger{background:rgba(255,255,255,.06);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+  .btn-danger:hover{background:rgba(239,68,68,.12)}
 
   /* 编辑资料弹层 */
   .profile-ava-wrap{display:flex;align-items:center;gap:16px;margin-bottom:18px}
@@ -135,10 +135,10 @@
   .profile-ava img{width:100%;height:100%;object-fit:cover}
   .profile-ava-actions{display:flex;flex-direction:column;gap:8px}
   .profile-ava-actions .btn-mini{font-size:12px;padding:7px 13px}
-  #avaRemove{color:var(--danger);border-color:#fecaca}
-  #avaRemove:hover{background:#fef2f2;color:var(--danger)}
+  #avaRemove{color:var(--danger);border-color:rgba(239,68,68,.3)}
+  #avaRemove:hover{background:rgba(239,68,68,.12);color:var(--danger)}
   .profile-hint{font-size:12px;color:var(--text-3);margin-top:-8px;margin-bottom:14px}
-  footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.5)}
+  footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.04)}
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a25;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>

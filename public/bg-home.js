@@ -60,8 +60,7 @@
 
   function frame(t) {
     // 浅色底
-    ctx.fillStyle = "#fafafe";
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
 
     // 正常混合 (浅色底不能用 lighter,会发白)
     ctx.globalCompositeOperation = "source-over";
@@ -91,8 +90,7 @@
   }
 
   function staticFrame() {
-    ctx.fillStyle = "#fafafe";
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = "source-over";
     for (var i = 0; i < blobs.length; i++) {
       var b = blobs[i];
