@@ -1,10 +1,10 @@
 /*
- * bg-home.js — 主页动态背景 (深空流动版,重写)
- * 视频定格后仍需持续动感:
- *   - 4 个品牌色光团在屏幕上缓慢平移穿越(环绕边界)
- *   - 一层白色星点持续上浮 + 闪烁
- * 用 screen 混合叠加在定格视频之上,深空风格。
- * DPR 限制 / 隐藏页暂停 / reduced-motion 降级。
+ * bg-home.js — 主页动态背景 (深空流动版 v2,明显持续动效)
+ * 叠加在定格视频之上,保证始终"在动":
+ *   1) 一条柔光横扫带 —— 持续从左向右划过整屏(最直观的动感)
+ *   2) 白色星点层 —— 快速上浮 + 闪烁
+ *   3) 4 个品牌色光团 —— 明显平移穿越 + 呼吸
+ * 使用 screen 混合,深空风格。DPR≤2 / 隐藏页暂停 / reduced-motion 降级。
  */
 (function () {
   var canvas = document.getElementById("bgCanvas");
@@ -18,10 +18,10 @@
   var W = 0, H = 0, DPR = 1;
   var orbs = [];
   var stars = [];
+  var sweep = null;
   var rafId = null;
   var last = 0;
 
-  // 品牌色板(深空)
   var COLORS = [
     [124, 92, 255],   // 紫
     [255, 91, 155],   // 粉
@@ -40,18 +40,20 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     initOrbs();
     initStars();
+    // 横扫带:宽度约 30% 屏,速度约每 9 秒过一屏
+    sweep = { x: -W * 0.35, w: W * 0.32, speed: W / 9 };
   }
 
   function initOrbs() {
     orbs = COLORS.map(function (c, i) {
       return {
         color: c,
-        r: Math.max(W, H) * rand(0.38, 0.62),
+        r: Math.max(W, H) * rand(0.38, 0.6),
         x: W * ([0.2, 0.75, 0.5, 0.85][i]),
         y: H * ([0.2, 0.3, 0.8, 0.75][i]),
-        // 明显可见的平移速度 (px/秒) —— 约 40~90 秒穿越一屏
-        vx: rand(-16, 16),
-        vy: rand(-12, 12),
+        // 明显平移速度 (px/秒)
+        vx: rand(-45, 45),
+        vy: rand(-35, 35),
         phase: rand(0, Math.PI * 2),
         breathe: rand(0.5, 1.0)
       };
@@ -59,18 +61,18 @@
   }
 
   function initStars() {
-    var n = Math.round((W * H) / 11000);
-    n = Math.max(50, Math.min(180, n));
+    var n = Math.round((W * H) / 9000);
+    n = Math.max(70, Math.min(220, n));
     stars = [];
     for (var i = 0; i < n; i++) {
       stars.push({
         x: Math.random() * W,
         y: Math.random() * H,
-        r: rand(0.5, 1.8),
-        vx: rand(-8, 8),
-        vy: rand(-14, -4),        // 缓缓上浮
-        a: rand(0.2, 0.85),       // 基础亮度
-        tw: rand(0.6, 2.4)        // 闪烁速度
+        r: rand(0.6, 2.6),
+        vx: rand(-12, 12),
+        vy: rand(-30, -10),       // 快速上浮
+        a: rand(0.3, 1.0),        // 更亮
+        tw: rand(0.8, 3.0)
       });
     }
   }
@@ -83,31 +85,41 @@
     ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = "screen";
 
-    // 色团:缓慢平移穿越 + 呼吸缩放
+    // ---- 1) 横扫光带:从左向右持续划过 ----
+    if (sweep) {
+      sweep.x += sweep.speed * dt;
+      if (sweep.x > W + sweep.w) sweep.x = -sweep.w;
+      var g = ctx.createLinearGradient(sweep.x - sweep.w / 2, 0, sweep.x + sweep.w / 2, 0);
+      g.addColorStop(0, "rgba(150,190,255,0)");
+      g.addColorStop(0.5, "rgba(190,210,255,0.22)");
+      g.addColorStop(1, "rgba(150,190,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // ---- 2) 色团:平移穿越 + 呼吸 ----
     for (var i = 0; i < orbs.length; i++) {
       var b = orbs[i];
       b.x += b.vx * dt;
       b.y += b.vy * dt;
-      // 环绕边界(从另一侧回来),保证持续动
       if (b.x < -b.r) b.x = W + b.r;
       if (b.x > W + b.r) b.x = -b.r;
       if (b.y < -b.r) b.y = H + b.r;
       if (b.y > H + b.r) b.y = -b.r;
-
       var breathe = 0.82 + 0.18 * Math.sin(t * 0.0006 * b.breathe + b.phase);
       var rr = b.r * breathe;
       var c = b.color;
-      var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, rr);
-      g.addColorStop(0, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.22)");
-      g.addColorStop(0.5, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.10)");
-      g.addColorStop(1, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0)");
-      ctx.fillStyle = g;
+      var g2 = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, rr);
+      g2.addColorStop(0, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.30)");
+      g2.addColorStop(0.5, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.13)");
+      g2.addColorStop(1, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0)");
+      ctx.fillStyle = g2;
       ctx.beginPath();
       ctx.arc(b.x, b.y, rr, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // 星点:上浮 + 闪烁(明显动感,几乎不挡文字)
+    // ---- 3) 星点:快速上浮 + 闪烁 ----
     for (var j = 0; j < stars.length; j++) {
       var s = stars[j];
       s.x += s.vx * dt;
@@ -133,8 +145,8 @@
       var b = orbs[i];
       var c = b.color;
       var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-      g.addColorStop(0, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.22)");
-      g.addColorStop(0.5, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.10)");
+      g.addColorStop(0, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.30)");
+      g.addColorStop(0.5, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0.13)");
       g.addColorStop(1, "rgba(" + c[0] + "," + c[1] + "," + c[2] + ",0)");
       ctx.fillStyle = g;
       ctx.beginPath();
