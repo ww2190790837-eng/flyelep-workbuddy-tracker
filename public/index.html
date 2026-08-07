@@ -62,7 +62,11 @@
   .nav-links a:hover{color:var(--primary)}
   .nav-cta{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
   .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
-  @media (max-width:720px){.nav-links{display:none}}
+  /* 登录/注册 —— 描边药丸(次级按钮),与渐变主按钮平衡 */
+  .nav-actions{display:flex;align-items:center;gap:10px}
+  .nav-auth{padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;color:var(--primary);background:rgba(255,255,255,.6);border:1px solid rgba(91,59,255,.25);box-shadow:0 2px 10px rgba(91,59,255,.06);transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center}
+  .nav-auth:hover{background:rgba(91,59,255,.08);border-color:rgba(91,59,255,.5);transform:translateY(-1px);box-shadow:0 6px 18px rgba(91,59,255,.15)}
+  @media (max-width:720px){.nav-links{display:none}.nav-auth,.nav-cta{padding:8px 14px;font-size:12px}}
 
   /* === Hero === */
   .hero{padding:100px 0 80px;text-align:center;position:relative}
@@ -272,13 +276,15 @@
       <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
     </div>
-    <a href="/login.html" id="navAuthLink" style="padding:9px 16px;font-size:13px;font-weight:600;color:var(--primary);border-radius:10px;transition:all .2s;display:none">登录 / 注册</a>
-    <a class="nav-cta" id="navTrialCta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
-    <div id="navUserBox" style="display:none;align-items:center;gap:10px">
+    <div class="nav-actions">
+      <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
+      <a class="nav-cta" id="navTrialCta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
+      <div id="navUserBox" style="display:none;align-items:center;gap:10px">
       <a href="/account.html" id="navUserPill" style="display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:99px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);transition:all .2s">
         <span id="navAvatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;background-size:cover;background-position:center;flex-shrink:0"></span>
         <span id="navName" style="white-space:nowrap"></span>
       </a>
+    </div>
     </div>
   </div>
 </nav>
