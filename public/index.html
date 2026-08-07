@@ -325,7 +325,7 @@
 
 <header class="hero">
   <div class="bg-stage">
-    <video class="hero-video" autoplay muted loop playsinline preload="auto">
+    <video class="hero-video" autoplay muted loop playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto" poster="/hero-poster.jpg">
       <source src="/hero-bg.mp4" type="video/mp4" />
     </video>
     <div class="hero-overlay"></div>
@@ -882,6 +882,25 @@
 })();
 </script>
 <script src="/bg-home.js"></script>
+<script>
+  /* 移动端/微信内联自动播放兜底:确保 muted + 主动 play() */
+  (function(){
+    var v = document.querySelector('.hero-video');
+    if(!v) return;
+    v.muted = true;
+    v.setAttribute('muted','');
+    var tryPlay = function(){ var p = v.play(); if(p && p.catch) p.catch(function(){}); };
+    tryPlay();
+    /* 部分浏览器首次需用户交互后才允许播放 */
+    ['touchstart','click'].forEach(function(ev){
+      document.addEventListener(ev, tryPlay, { once:true, passive:true });
+    });
+    /* 切回前台时恢复播放(防止后台被暂停后黑屏) */
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden) tryPlay();
+    });
+  })();
+</script>
 
 </body>
 </html>
