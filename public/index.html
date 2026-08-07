@@ -45,7 +45,7 @@
   /* 遮罩仅做轻微氛围,不遮挡视频文案 */
   .hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(6,6,18,.15) 0%,rgba(6,6,18,.22) 40%,rgba(8,10,28,.35) 75%,rgba(12,12,35,.55) 100%)}
   /* Canvas 流场粒子 (叠加在视频之上,微妙光晕) */
-  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.6;mix-blend-mode:screen}
+  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.14;mix-blend-mode:screen}
   /* 噪点纹理 */
   .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:normal}
   /* 移动网格 */
@@ -325,7 +325,7 @@
 
 <header class="hero">
   <div class="bg-stage">
-    <video class="hero-video" autoplay muted playsinline preload="auto">
+    <video class="hero-video" autoplay muted loop playsinline preload="auto">
       <source src="/hero-bg.mp4" type="video/mp4" />
     </video>
     <div class="hero-overlay"></div>
