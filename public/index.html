@@ -146,6 +146,75 @@
   .tool .t-name{position:relative;z-index:1;font-size:14px;font-weight:600;color:var(--text)}
   @media (max-width:720px){.tools-grid{grid-template-columns:repeat(2,1fr)}}
 
+  /* === SD 2.5 视频提示词生成器 === */
+  #prompt-gen{padding:90px 0 70px;position:relative;z-index:2}
+  .pg-card{background:rgba(17,21,36,.7);border:1px solid rgba(124,92,255,.18);border-radius:24px;padding:36px 36px 28px;position:relative;overflow:hidden;box-shadow:0 20px 60px -15px rgba(124,92,255,.12),inset 0 1px 0 rgba(255,255,255,.05)}
+  .pg-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary),var(--pink),var(--wb),transparent);opacity:.6}
+  /* 工具栏 */
+  .pg-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px}
+  .pg-duration{display:flex;gap:6px}
+  .pg-dur{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text-3);background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;transition:all .2s;font-family:inherit}
+  .pg-dur.active{color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary-2));border-color:var(--primary);box-shadow:0 4px 16px rgba(91,59,255,.3)}
+  .pg-modes{display:flex;gap:6px;flex-wrap:wrap}
+  .pg-mode{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text-3);background:rgba(255,255,255,.03);border:1px solid var(--border);cursor:pointer;transition:all .2s}
+  .pm-dot{width:7px;height:7px;border-radius:50%;background:var(--text-3);transition:background .2s}
+  .pg-mode.active{color:var(--text);border-color:rgba(124,92,255,.35);background:rgba(124,92,255,.08)}
+  .pg-mode.active .pm-dot{background:var(--primary)}
+  /* 表单 */
+  .pg-form{display:flex;flex-direction:column;gap:16px}
+  .pg-field{display:flex;flex-direction:column;gap:6px}
+  .pg-field.flex-1{flex:1;min-width:0}
+  .pg-row{display:flex;gap:16px}
+  @media(max-width:640px){.pg-row{flex-direction:column}}
+  .pg-label{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+  .pg-num{width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--primary),var(--pink));flex-shrink:0}
+  .pg-label small{color:var(--text-3);font-weight:400;font-size:11px}
+  .pg-field textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:12px;font-size:13.5px;font-family:inherit;background:rgba(255,255,255,.03);color:var(--text);resize:vertical;line-height:1.55;transition:all .2s}
+  .pg-field textarea:focus{outline:none;border-color:var(--primary);background:rgba(124,92,255,.06);box-shadow:0 0 0 3px rgba(124,92,255,.1)}
+  .pg-field textarea::placeholder{color:var(--text-3);opacity:.6}
+  /* 时间线行 */
+  .pg-timeline{display:flex;flex-direction:column;gap:8px}
+  .tl-row{display:flex;align-items:center;gap:8px}
+  .tl-time{width:64px;flex-shrink:0;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-size:12.5px;font-family:"JetBrains Mono",monospace;background:rgba(255,255,255,.03);color:var(--primary);text-align:center;transition:all .2s}
+  .tl-time:focus{outline:none;border-color:var(--primary);background:rgba(124,92,255,.06)}
+  .tl-desc{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;background:rgba(255,255,255,.03);color:var(--text);resize:none;line-height:1.5;transition:all .2s}
+  .tl-desc:focus{outline:none;border-color:var(--primary);background:rgba(124,92,255,.06)}
+  .tl-desc::placeholder{color:var(--text-3);opacity:.5}
+  .tl-add{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px dashed var(--border-2);background:rgba(255,255,255,.02);color:var(--text-3);font-size:17px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+  .tl-add:hover{border-color:var(--primary);color:var(--primary);background:rgba(124,92,255,.08)}
+  .tl-remove{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.05);color:#fca5a5;font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+  .tl-remove:hover{background:rgba(239,68,68,.12);border-color:#ef4444}
+  /* 操作按钮 */
+  .pg-actions{display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .pg-generate{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:13px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--primary) 0%,#ff5b9b 50%,var(--accent) 100%);background-size:200% 200%;border:none;cursor:pointer;transition:all .3s;box-shadow:0 8px 28px rgba(91,59,255,.35);letter-spacing:-.05px;animation:pg-glow 3s ease infinite}
+  .pg-generate:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(91,59,255,.5);background-position:100% 50%}
+  .pg-generate:active{transform:translateY(0)}
+  @keyframes pg-glow{0%,100%{box-shadow:0 8px 28px rgba(91,59,255,.35)}50%{box-shadow:0 8px 40px rgba(255,91,155,.4)}}
+  .pg-clear{padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text-3);background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;transition:all .2s}
+  .pg-clear:hover{color:var(--danger,#ef4444);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)}
+  .pg-template{padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;color:var(--primary);background:rgba(124,92,255,.06);border:1px solid rgba(124,92,255,.2);cursor:pointer;transition:all .2s}
+  .pg-template:hover{background:rgba(124,92,255,.12);border-color:var(--primary)}
+  /* 输出区 */
+  .pg-output{margin-top:20px;border:1px solid rgba(124,92,255,.2);border-radius:14px;overflow:hidden;background:rgba(10,12,26,.6)}
+  .pg-output-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(124,92,255,.07);border-bottom:1px solid rgba(124,92,255,.12)}
+  .pg-output-head span{font-size:13px;font-weight:600;color:var(--primary-2)}
+  .pg-copy{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(124,92,255,.1);border:1px solid rgba(124,92,255,.25);cursor:pointer;transition:all .2s}
+  .pg-copy:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .pg-copy.copied{background:var(--success,#22c55e);color:#fff;border-color:var(--success,#22c55e)}
+  #pgResult{margin:0;padding:18px 16px;font-size:13px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;font-family:"JetBrains Mono","SF Mono",Consolas,monospace;max-height:420px;overflow-y:auto}
+  #pgResult::-webkit-scrollbar{width:5px}
+  #pgResult::-webkit-scrollbar-track{background:transparent}
+  #pgResult::-webkit-scrollbar-thumb{background:rgba(124,92,255,.25);border-radius:3px}
+  /* 提示文字 */
+  .pg-hint{text-align:center;font-size:13px;color:var(--text-3);margin-top:18px}
+  @media(max-width:640px){
+    .pg-card{padding:24px 18px 20px;border-radius:18px}
+    .pg-bar{flex-direction:column;align-items:stretch}
+    .pg-modes{justify-content:center}
+    .pg-generate{width:100%;justify-content:center;padding:14px 24px}
+    .pg-actions{justify-content:center}
+  }
+
   /* === 技术栈 === */
   .tech-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px}
   .tech-chip{padding:8px 18px;background:rgba(91,59,255,.06);border:1px solid rgba(91,59,255,.15);border-radius:99px;font-size:13px;color:var(--primary);font-weight:500;font-family:"JetBrains Mono",monospace}
@@ -270,6 +339,7 @@
     <div class="nav-links">
       <a href="https://flyelep.cn#features" target="_blank" rel="noopener">核心功能</a>
       <a href="#tools">AI 工具</a>
+      <a href="#prompt-gen" style="color:var(--primary-2)">✨ 提示词</a>
       <a href="#partnership">腾讯合作</a>
       <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
@@ -452,6 +522,96 @@
       <div class="tool reveal d3"><div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M21 7l-7 7-3-3 7-7 3 3z"/><path d="M11 13L4 20l-1-1 7-7"/><path d="M14 6l3 3"/></svg></div><div class="t-name">商品替换</div></div>
       <div class="tool reveal"><div class="tool-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="9" r="2"/><circle cx="9" cy="15" r="2"/><circle cx="15" cy="15" r="2"/></svg></div><div class="t-name">商品换色</div></div>
     </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SD 2.5 / Seedance 视频提示词生成器
+     ============================================ -->
+<section id="prompt-gen">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal">/ AI 视频提示词</span>
+      <h2 class="section-title reveal"><em>Seedance 2.5</em> 视频提示词生成器</h2>
+      <p class="section-sub reveal">五段式结构 · 主体 + 风格 + 时间线 + BGM + 限制 · 一键生成专业提示词</p>
+    </div>
+
+    <div class="pg-card reveal">
+      <!-- 顶部工具栏 -->
+      <div class="pg-bar">
+        <div class="pg-duration">
+          <button class="pg-dur active" data-dur="15">15 秒</button>
+          <button class="pg-dur" data-dur="30">30 秒</button>
+        </div>
+        <div class="pg-modes">
+          <label class="pg-mode active" data-mode="create">
+            <span class="pm-dot"></span>从零生成
+          </label>
+          <label class="pg-mode" data-mode="reverse">
+            <span class="pm-dot"></span>原片反推
+          </label>
+          <label class="pg-mode" data-mode="extend">
+            <span class="pm-dot"></span>创意延伸
+          </label>
+        </div>
+      </div>
+
+      <!-- 五段式表单 -->
+      <div class="pg-form">
+        <div class="pg-field">
+          <label class="pg-label"><span class="pg-num">1</span>主体 <small>谁/什么/场景/核心事件</small></label>
+          <textarea id="pgSubject" rows="3" placeholder="例: 一个穿着黑色皮夹克的年轻女性站在赛博朋克风格的霓虹街道上,手中拿着发光的产品包装盒..."></textarea>
+        </div>
+        <div class="pg-row">
+          <div class="pg-field flex-1">
+            <label class="pg-label"><span class="pg-num">2</span>风格 <small>时长/画幅/光线/色彩/镜头</small></label>
+            <textarea id="pgStyle" rows="2" placeholder="例: 15秒,16:9竖屏,电影级写实,冷蓝霓虹光,慢速推镜..."></textarea>
+          </div>
+          <div class="pg-field flex-1">
+            <label class="pg-label"><span class="pg-num">4</span>BGM <small>音乐类型/BPM/乐器/情绪曲线</small></label>
+            <textarea id="pgBgm" rows="2" placeholder="例: 电子合成器,BPM 120,低沉贝斯开场,中段加入高频合成音..."></textarea>
+          </div>
+        </div>
+        <div class="pg-field">
+          <label class="pg-label"><span class="pg-num">3</span>时间线 <small>按时间写动作+运镜,覆盖完整时长</small></label>
+          <div id="pgTimeline" class="pg-timeline">
+            <div class="tl-row">
+              <input type="text" class="tl-time" value="0-3s" placeholder="0-3s" />
+              <textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea>
+              <button class="tl-add" title="添加时间段">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="pg-field">
+          <label class="pg-label"><span class="pg-num">5</span>限制 <small>3-8项最容易出错的地方</small></label>
+          <textarea id="pgConstraints" rows="2" placeholder="例: 禁止人物变脸;产品包装文字不可乱码;禁止额外字幕或水印;动作需符合物理规律..."></textarea>
+        </div>
+      </div>
+
+      <!-- 操作栏 -->
+      <div class="pg-actions">
+        <button class="pg-generate" id="pgGenerate">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          生成提示词
+        </button>
+        <button class="pg-clear" id="pgClear">清空</button>
+        <button class="pg-template" id="pgTemplate">填入示例</button>
+      </div>
+
+      <!-- 输出区域 -->
+      <div class="pg-output" id="pgOutput" style="display:none">
+        <div class="pg-output-head">
+          <span>✨ 生成的提示词</span>
+          <button class="pg-copy" id="pgCopy">
+            <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            复制
+          </button>
+        </div>
+        <pre id="pgResult"></pre>
+      </div>
+    </div>
+
+    <p class="pg-hint reveal d3">💡 提示: 描述越具体,生成的提示词越精准。支持中文/英文混合输入。</p>
   </div>
 </section>
 
@@ -900,6 +1060,139 @@
       if(!document.hidden) tryPlay();
     });
   })();
+</script>
+<script>
+/* ============================================
+   SD 2.5 / Seedance 视频提示词生成器
+   ============================================ */
+(function(){
+  var dur = 15; // 当前时长
+  var mode = 'create';
+
+  /* 时长切换 */
+  document.querySelectorAll('.pg-dur').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.pg-dur').forEach(function(b){b.classList.remove('active')});
+      this.classList.add('active');
+      dur = parseInt(this.dataset.dur);
+    });
+  });
+
+  /* 模式切换 */
+  document.querySelectorAll('.pg-mode').forEach(function(lbl){
+    lbl.addEventListener('click',function(){
+      document.querySelectorAll('.pg-mode').forEach(function(l){l.classList.remove('active')});
+      this.classList.add('active');
+      mode = this.dataset.mode;
+    });
+  });
+
+  /* 时间线行动态增删 */
+  var tlContainer = document.getElementById('pgTimeline');
+
+  function addTimelineRow(time,desc){
+    var row = document.createElement('div');
+    row.className='tl-row';
+    row.innerHTML =
+      '<input type="text" class="tl-time" value="'+(time||'')+'" placeholder="时间" />' +
+      '<textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态">'+(desc||'')+'</textarea>' +
+      '<button class="tl-remove" title="删除此段">×</button>';
+    row.querySelector('.tl-remove').addEventListener('click',function(){row.remove()});
+    tlContainer.appendChild(row);
+  }
+
+  // 初始的 + 按钮
+  tlContainer.querySelector('.tl-add').addEventListener('click',function(){
+    var rows = tlContainer.querySelectorAll('.tl-row');
+    var lastTime = '';
+    if(rows.length>0){
+      var prev = rows[rows.length-1].querySelector('.tl-time').value;
+      if(prev){ var m=prev.match(/(\d+)/); if(m)lastTime=m[1]+'s'; }
+    }
+    addTimelineRow(lastTime,'');
+  });
+
+  /* 填入示例 */
+  document.getElementById('pgTemplate').addEventListener('click',function(){
+    document.getElementById('pgSubject').value = '一个穿着黑色皮夹克的年轻女性站在赛博朋克风格的霓虹街道上,手中拿着发光的产品包装盒。全片同一人物、同一产品。';
+    document.getElementById('pgStyle').value = '15秒,16:9竖屏,电影级写实风格,冷蓝+品红霓虹灯光,高对比度色彩,慢速推镜配合轻微手持抖动感。';
+    document.getElementById('pgBgm').value = '赛博朋克电子合成器,BPM 128,低沉贝斯开场(0-3s),中段加入高频合成音与节奏鼓点(4-12s),尾奏渐弱收束(13-15s)。';
+    document.getElementById('pgConstraints').value = '1.禁止人物面部变形或变脸\n2.产品包装上的文字不可乱码或漂移\n3.禁止出现额外字幕或水印\n4.霓虹灯闪烁需符合实际电路逻辑\n5.人物动作需符合物理重力规律\n6.背景建筑不可突然消失或变形';
+    // 清空时间线重新填入
+    tlContainer.innerHTML = '';
+    var samples = [
+      {t:'0-3s',d:'黑屏渐亮 → 霓虹街道全景,慢速下摇 → 露出女性背影,远处广告牌闪烁'},
+      {t:'3-7s',d:'女性转身面向镜头 → 手持产品盒举至胸前 → 镜头缓慢推进,产品盒发出柔光'},
+      {t:'7-11s',d:'女性打开产品盒 → 产品悬浮升起并旋转展示 → 环绕镜头360度拍摄产品细节'},
+      {t:'11-15s',d:'产品光芒扩散充满画面 → 女性微笑看向远方 → 镜头拉远回到街道全景,淡出'}
+    ];
+    samples.forEach(function(s){ addTimelineRow(s.t,s.d); });
+  });
+
+  /* 清空 */
+  document.getElementById('pgClear').addEventListener('click',function(){
+    document.getElementById('pgSubject').value='';
+    document.getElementById('pgStyle').value='';
+    document.getElementById('pgBgm').value='';
+    document.getElementById('pgConstraints').value='';
+    tlContainer.innerHTML='<div class="tl-row"><input type="text" class="tl-time" value="0-3s" placeholder="0-3s" /><textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea><button class="tl-add" title="添加时间段">+</button></div>';
+    tlContainer.querySelector('.tl-add').addEventListener('click',function(){
+      var rows=tlContainer.querySelectorAll('.tl-row');
+      var lastTime='';
+      if(rows.length>0){var prev=rows[rows.length-1].querySelector('.tl-time').value;if(prev){var m=prev.match(/(\d+)/);if(m)lastTime=m[1]+'s';}}
+      addTimelineRow(lastTime,'');
+    });
+    document.getElementById('pgOutput').style.display='none';
+  });
+
+  /* 生成提示词 */
+  document.getElementById('pgGenerate').addEventListener('click',function(){
+    var subject = document.getElementById('pgSubject').value.trim();
+    var style = document.getElementById('pgStyle').value.trim();
+    var bgm = document.getElementById('pgBgm').value.trim();
+    var constraints = document.getElementById('pgConstraints').value.trim();
+
+    // 收集时间线
+    var tls=[];
+    tlContainer.querySelectorAll('.tl-row').forEach(function(row){
+      var t=row.querySelector('.tl-time').value.trim();
+      var d=row.querySelector('.tl-desc').value.trim();
+      if(d) tls.push('【'+t+'】'+d);
+    });
+
+    // 组装五段式
+    var lines=[];
+    lines.push('【主体】\n'+ (subject || '(未填写)'));
+    lines.push('\n【风格】\n'+ (style || '(未填写)'));
+    lines.push('\n【时间线】\n'+ (tls.join('\n') || '(未填写)'));
+    lines.push('\n【BGM】\n'+ (bgm || '(未填写)'));
+    lines.push('\n【限制】\n'+ (constraints || '(未填写)'));
+
+    // 模式前缀
+    var modeLabel={create:'从零生成',reverse:'原片反推',extend:'创意延伸'};
+    var output='# Seedance 2.5 / SD 2.5 视频提示词\n# 模式: '+modeLabel[mode]+' | 时长: '+dur+'s\n# '+new Date().toLocaleDateString('zh-CN')+'\n\n'+lines.join('\n');
+
+    // 显示结果
+    var out=document.getElementById('pgOutput');
+    var res=document.getElementById('pgResult');
+    res.textContent=output;
+    out.style.display='block';
+    out.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+
+  /* 复制 */
+  document.getElementById('pgCopy').addEventListener('click',function(){
+    var text=document.getElementById('pgResult').textContent;
+    navigator.clipboard.writeText(text).then(function(){
+      var btn=this;
+      btn.classList.add('copied');
+      btn.querySelector('svg')?null:null;
+      var orig=btn.innerHTML;
+      btn.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15"><polyline points="20 6 9 17 4 12"/></svg> 已复制';
+      setTimeout(function(){btn.innerHTML=orig;btn.classList.remove('copied');},2000);
+    }.bind(this)).catch(function(){/* fallback */});
+  });
+})();
 </script>
 
 </body>
