@@ -1552,8 +1552,9 @@
   fetch('/api/prompt-generate/status').then(function(r){return r.json();}).then(function(st){
     aiAvailable=st.available;
     var badge=document.getElementById('pgAiBadge');
+    var pname={openai:'智谱 GLM', gemini:'Gemini', deepseek:'DeepSeek', local:'本地'}[st.provider]||st.provider;
     if(aiAvailable){
-      badge.textContent='🤖 '+st.provider+' 就绪';
+      badge.textContent='🤖 '+pname+' 就绪'+(st.supportsImage?' · 支持图片':'');
       badge.className='pg-engine-badge ai-ok';
       // 默认选中 AI
       setEngine('ai');

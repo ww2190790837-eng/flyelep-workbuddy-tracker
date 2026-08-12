@@ -385,6 +385,8 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 const AI_PROVIDER = (process.env.AI_PROVIDER || "gemini").toLowerCase();
 const AI_API_KEY = process.env.AI_API_KEY || "";
 const AI_MODEL = process.env.AI_MODEL || "gemini-2.5-flash"; // 留空则用工况默认模型
+const AI_BASE_URL = process.env.AI_BASE_URL || ""; // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
+const AI_VISION_MODEL = process.env.AI_VISION_MODEL || ""; // 处理图片时使用的视觉模型(默认回落到 AI_MODEL)
 
 // Gemini API 调用
 async function callGemini(userMessage, imageBase64, duration) {
@@ -404,18 +406,19 @@ async function callGemini(userMessage, imageBase64, duration) {
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
-// OpenAI API 调用(支持 vision)
+// OpenAI 兼容 API 调用(支持 vision,支持自定义 base URL 如智谱/通义/DeepSeek)
 async function callOpenAI(userMessage, imageBase64, duration) {
-  const model = AI_MODEL || "gpt-4o-mini";
-  const url = "https://api.openai.com/v1/chat/completions";
+  // 有图时用视觉模型,无图用文本模型(两者可不同,均免费)
+  const model = imageBase64 ? (AI_VISION_MODEL || AI_MODEL || "gpt-4o-mini") : (AI_MODEL || "gpt-4o-mini");
+  const url = AI_BASE_URL ? `${AI_BASE_URL.replace(/\/$/, "")}/chat/completions` : "https://api.openai.com/v1/chat/completions";
   const content = [];
   if (imageBase64) {
     content.push({ type: "image_url", image_url: { url: imageBase64, detail: "auto" } });
   }
   content.push({ type: "text", text: userMessage });
-  const body = { model, messages: [{ role: "system", text: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: 4096 };
+  const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: 4096 };
   const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
-  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `OpenAI API ${r.status}`); }
+  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `AI API ${r.status}`); }
   const data = await r.json();
   return data.choices?.[0]?.message?.content || "";
 }
@@ -548,10 +551,13 @@ app.post("/api/prompt-generate", express.raw({ type: ["image/png", "image/jpeg",
 
 // AI 配置状态查询(前端用来判断是否可用)
 app.get("/api/prompt-generate/status", (req, res) => {
+  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : "deepseek-chat");
+  const visionModel = AI_VISION_MODEL || model;
   res.json({
     available: !!AI_API_KEY,
     provider: AI_PROVIDER,
-    model: AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : "deepseek-chat"),
+    model,
+    visionModel,
     supportsImage: AI_PROVIDER !== "deepseek" // deepseek 暂不支持图片输入
   });
 });
