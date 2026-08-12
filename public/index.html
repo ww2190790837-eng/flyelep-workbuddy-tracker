@@ -1262,30 +1262,97 @@
     '恐怖': '悬疑恐怖风格，低照明，冷蓝色调，不稳定镜头，jump scare节奏'
   };
 
-  /* 匹配风格关键词（返回最具体的匹配项） */
+  /* ── 通用风格同义词 → 通用风格主词 ── */
+  var GENERIC_ALIASES = {
+    '二次元':'动漫','卡通':'动漫','动画':'动漫','动漫风':'动漫',
+    '建模':'3D','渲染':'3D','三维':'3D',
+    '胶片感':'复古','港风':'复古','老电影':'复古','vintage':'复古',
+    '小清新':'清新','日系':'清新','ins':'清新','ins风':'清新',
+    '北欧':'极简','性冷淡':'极简','极简风':'极简',
+    '哥特':'暗黑','暗黑风':'暗黑','暗调':'暗黑',
+    '治愈系':'治愈','温柔':'治愈','唯美':'治愈',
+    '热血':'燃','炸裂':'燃','燃向':'燃',
+    '惊悚':'恐怖','悬疑':'恐怖','恐怖片':'恐怖'
+  };
+
+  /* 清洗用户输入: 去掉无用的前缀/后缀,保留核心主体 */
+  function cleanSubject(s){
+    s=(s||'').trim();
+    s=s.replace(/^(一段|一个|做个|做|我要|帮我|请|可以|想要|需要|生成|创作|写|拍|来个?|这是?)\s*/,'');
+    s=s.replace(/^(视频|短片|短视频|视频的?|宣传片|广告|素材|内容)\s*/,'');
+    var suffRe=/(视频|短片|短视频|宣传片|广告|素材|内容|氛围感|风格的?|感觉的?|样子的?|效果的?|一下|吧|的)$/;
+    var prev;
+    do { prev=s; s=s.replace(suffRe,''); } while(prev!==s);
+    return s.trim();
+  }
+
+  /* 通用电影级时间线弧线(任意风格/未识别风格均可套用,始终产出完整分镜) */
+  function buildUniversalTimeline(subject,dur){
+    var scale=dur/15;
+    var arc=[
+      {t:'0-3s',  d:'画面从氛围中渐亮，建立场景与基调，缓慢运镜交代空间环境，奠定整体情绪'},
+      {t:'3-7s',  d:'主体「'+subject+'」入画并呈现初始状态，镜头平稳推进至中景，引导视线聚焦主体'},
+      {t:'7-11s', d:'围绕主体展开细节与情绪高潮，特写或环绕展示最关键特征，光影与节奏同步加强'},
+      {t:'11-15s',d:'主体定格于最具张力的画面，镜头缓缓拉远/收束，氛围淡出干净收尾'}
+    ];
+    return arc.map(function(seg){
+      var p=seg.t.split('-');
+      var a=Math.round(parseFloat(p[0])*scale), b=Math.round(parseFloat(p[1])*scale);
+      return '【'+a+'-'+b+'s】'+seg.d;
+    });
+  }
+
+  /* 匹配风格关键词（返回最具体的匹配项; __generic__: 前缀表示通用风格） */
   function matchStyle(text){
     var lower = text.toLowerCase();
-    // 先精确匹配别名
+    // 1. Hero 风格别名
     for(var alias in STYLE_ALIASES){
       if(lower.indexOf(alias)>=0) return STYLE_ALIASES[alias];
     }
-    // 再精确匹配主词
+    // 2. Hero 风格主词
     for(var key in STYLE_EXPANSIONS){
       if(lower.indexOf(key.toLowerCase())>=0) return key;
     }
-    // 最后 fallback 到通用风格
+    // 3. 通用风格别名
+    for(var ga in GENERIC_ALIASES){
+      if(lower.indexOf(ga)>=0) return '__generic__:'+GENERIC_ALIASES[ga];
+    }
+    // 4. 通用风格主词
     for(var gk in GENERIC_STYLES){
       if(lower.indexOf(gk)>=0) return '__generic__:'+gk;
     }
     return null;
   }
 
-  /* 构建时间线: 优先模板 > 显式时间戳 > 连接词拆分 > 兜底 */
-  function buildTimeline(idea,dur,styleKey){
-    // 如果有对应模板,直接使用
+  /* 构建时间线: 显式时间戳 > 连接词拆分 > 风格模板 > 通用电影级兜底 */
+  function buildTimeline(idea,dur,styleKey,subject){
+    // 1. 显式时间戳(用户明确给了分段时间,优先尊重)
+    var tsRe=/(\d+)\s*[-~到至]\s*(\d+)\s*[秒sS]?/g, m, matches=[];
+    while((m=tsRe.exec(idea))){matches.push({a:parseInt(m[1]),b:parseInt(m[2]),idx:m.index,full:m[0]});}
+    if(matches.length){
+      var segs=[];
+      for(var i=0;i<matches.length;i++){
+        var s=matches[i];
+        var nextIdx=(i+1<matches.length)?matches[i+1].idx:idea.length;
+        var desc=idea.slice(s.idx+s.full.length,nextIdx).replace(/^[，,、:：\s]+/,'').replace(/[，,、:：\s]+$/,'').split(/[。.!?！？]/)[0].trim();
+        if(desc)segs.push('【'+s.a+'-'+s.b+'s】'+desc);
+      }
+      if(segs.length)return segs;
+    }
+    // 2. 连接词拆分(用户用"然后/最后"等描述了结构)
+    var markers=['开头','首先','起幅','开始','然后','接着','随后','之后','中间','中段','同时','再','最后','结尾','收尾','结束'];
+    var re2=new RegExp('('+markers.join('|')+')','g'), last=0, result=[], m2;
+    while((m2=re2.exec(idea))){var chunk=idea.slice(last,m2.index).trim();if(chunk)result.push(chunk);last=m2.index;}
+    var tail=idea.slice(last).trim();if(tail)result.push(tail);
+    result=result.map(function(c){return c.replace(new RegExp('^('+markers.join('|')+')[,，、:：\\s]*'),'').replace(/[,，、:：\s]+$/,'')}).filter(Boolean);
+    if(last > 0 && result.length){
+      var n=result.length,step=dur/n,segs2=[];
+      for(var j=0;j<n;j++){segs2.push('【'+Math.round(j*step)+'-'+Math.round((j+1)*step)+'s】'+result[j]);}
+      return segs2;
+    }
+    // 3. 风格模板(用户只给了风格词,用对应风格的专业分镜)
     if(styleKey && STYLE_EXPANSIONS[styleKey] && STYLE_EXPANSIONS[styleKey].timelineTmpl){
       var tmpl = STYLE_EXPANSIONS[styleKey].timelineTmpl;
-      // 按时长缩放时间戳
       var scale = dur / 15; // 模板按15秒设计
       return tmpl.map(function(seg){
         var parts = seg.t.split('-');
@@ -1294,38 +1361,8 @@
         return '【'+a+'-'+b+'s】'+seg.d;
       });
     }
-    // 显式时间戳
-    var tsRe=/(\d+)\s*[-~到至]\s*(\d+)\s*[秒sS]?/g, m, matches=[];
-    while((m=tsRe.exec(idea))){matches.push({a:parseInt(m[1]),b:parseInt(m[2]),idx:m.index,full:m[0]});}
-    if(matches.length){
-      var segs=[];
-      for(var i=0;i<matches.length;i++){
-        var s=matches[i];
-        var nextIdx=(i+1<matches.length)?matches[i+1].idx:idea.length;
-        var desc=idea.slice(s.idx+s.full.length,nextIdx).replace(/^[，,、:：\s]+/,'').split(/[。.!?！？]/)[0].trim();
-        if(desc)segs.push('【'+s.a+'-'+s.b+'s】'+desc);
-      }
-      if(segs.length)return segs;
-    }
-    // 连接词拆分
-    var markers=['开头','首先','起幅','开始','然后','接着','随后','之后','中间','中段','同时','再','最后','结尾','收尾','结束'];
-    var re2=new RegExp('('+markers.join('|')+')','g'), last=0, result=[], m2;
-    while((m2=re2.exec(idea))){var chunk=idea.slice(last,m2.index).trim();if(chunk)result.push(chunk);last=m2.index;}
-    var tail=idea.slice(last).trim();if(tail)result.push(tail);
-    result=result.map(function(c){return c.replace(new RegExp('^('+markers.join('|')+')[,，、:：\\s]*'),'').trim();}).filter(Boolean);
-    if(result.length){
-      var n=result.length,step=dur/n,segs=[];
-      for(var i=0;i<n;i++){segs.push('【'+Math.round(i*step)+'-'+Math.round((i+1)*step)+'s】'+result[i]);}
-      return segs;
-    }
-    // 兜底
-    var parts=idea.split(/[。.!?！？；;]/).map(function(s){return s.trim();}).filter(Boolean);
-    if(parts.length){
-      var n2=parts.length,step2=dur/n2,segs2=[];
-      for(var i=0;i<n2;i++){segs2.push('【'+Math.round(i*step2)+'-'+Math.round((i+1)*step2)+'s】'+parts[i]);}
-      return segs2;
-    }
-    return ['【0-'+dur+'s】'+idea.trim()];
+    // 4. 通用电影级兜底: 任意风格/未识别风格都产出完整分镜,绝不复读原句
+    return buildUniversalTimeline(subject && subject.trim() ? subject : cleanSubject(idea), dur);
   }
 
   /* 构建 BGM: 优先模板 > 关键词匹配 > 兜底 */
@@ -1338,17 +1375,18 @@
     if(/燃|热血|动感|快|炸/.test(idea))return '强节奏鼓点+电子贝斯+BPM 130-150，燃向推进，明显drop段落，'+dur+'秒强力收束。';
     if(/古风|中国风|汉服|古典/.test(idea))return '国风乐器（古筝/琵琶/笛子）+弦乐铺底，BPM 70-90，悠扬大气，'+dur+'秒内渐弱留韵。';
     if(/时尚|模特|穿搭|走秀/.test(idea))return '时尚电子/indie pop，BPM 100-120，有明确节奏律动，适合走卡点剪辑，'+dur+'秒收束。';
+    if(/动漫|二次元|卡通|动画/.test(idea))return '日系动画配乐，管弦乐与电子混合，BPM 100-128，旋律明快或抒情，'+dur+'秒随画面情绪起伏收束。';
+    if(/3d|建模|渲染|三维/.test(idea))return '现代大气电子/管弦，BPM 90-120，空间感与层次强，'+dur+'秒内层层推进收束。';
+    if(/复古|胶片|港风|老电影|vintage/.test(idea))return '复古爵士/老电影配乐，温暖模拟音色带轻微黑胶噪点，BPM 80-110，'+dur+'秒余韵收尾。';
+    if(/极简|性冷淡|北欧/.test(idea))return '极简环境氛围乐，少量钢琴与合成器pad，BPM 60-90，留白感强，'+dur+'秒安静收束。';
+    if(/暗黑|哥特|暗调/.test(idea))return '低音弦乐加不和谐音效，BPM 70-95，压抑神秘，'+dur+'秒渐强悬疑收束。';
+    if(/恐怖|惊悚|悬疑/.test(idea))return '悬疑低音脉冲加突兀音效，BPM 60-85，紧张不安，'+dur+'秒留白制造余惊。';
     return '电影感氛围配乐，节奏平稳但有情绪起伏，'+dur+'秒内随画面情绪起伏收尾。';
   }
 
   /* 丰富化主体描述: 不只是复读输入,而是扩展为专业主体段落 */
   function enrichSubject(idea,styleKey){
-    var s = idea.trim();
-    // 去掉常见的无用前缀
-    s = s.replace(/^(一段|一个|做个|做|我要|帮我|请|可以|想要|需要|生成|创作|写|拍|来个?|这是?)\s*/,'');
-    s = s.replace(/^(视频|短片|短视频|视频的?|宣传片|广告|素材|内容)\s*/,'');
-    s = s.replace(/(氛围感|风格的?|感觉的?|样子的?|效果的?)$/,'');
-    s = s.trim();
+    var s = cleanSubject(idea);
     if(!s) s = idea.trim(); // fallback
 
     // 如果有风格扩展,追加专业描述
@@ -1373,7 +1411,7 @@
       if(idea.indexOf(gk)>=0){gmatch=gk;break;}
     }
     if(gmatch) return dur+'秒，'+GENERIC_STYLES[gk]+'。';
-    // 纯关键词兜底
+    // 纯关键词兜底(未匹配到任何风格模板时)
     var sp=[dur+'秒'];
     if(/竖屏|9:16|短视频|手机/.test(idea))sp.push('9:16 竖屏');
     else if(/横屏|16:9|宽屏/.test(idea))sp.push('16:9 横屏');
@@ -1385,6 +1423,8 @@
     sp=sp.concat(lightKw.filter(function(k){return idea.indexOf(k)>=0}).map(function(x){return x+'光';}));
     var camKw=['推镜','拉镜','摇镜','移镜','环绕','俯拍','仰拍','特写','全景','航拍','手持','跟拍'];
     sp=sp.concat(camKw.filter(function(k){return idea.indexOf(k)>=0}));
+    var subj=cleanSubject(idea);
+    if(subj) sp.push('主体: '+subj);
     return sp.join('，')+'。';
   }
 
@@ -1401,7 +1441,7 @@
 
     var subject = enrichSubject(idea,styleKey);
     var style = buildStyle(idea,dur,styleKey);
-    var timeline = buildTimeline(idea,dur,styleKey);
+    var timeline = buildTimeline(idea,dur,styleKey,subject);
     var bgm = buildBgm(idea,dur,styleKey);
 
     // 限制: 优先模板 > 通用
