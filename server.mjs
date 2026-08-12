@@ -417,10 +417,18 @@ async function callOpenAI(userMessage, imageBase64, duration) {
   }
   content.push({ type: "text", text: userMessage });
   const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: 4096 };
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
-  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `AI API ${r.status}`); }
-  const data = await r.json();
-  return data.choices?.[0]?.message?.content || "";
+  // 免费模型共享算力,偶发 429 限流,自动重试
+  const maxRetry = 3;
+  let lastErr = "";
+  for (let attempt = 0; attempt < maxRetry; attempt++) {
+    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
+    if (r.ok) { const data = await r.json(); return data.choices?.[0]?.message?.content || ""; }
+    const err = await r.json().catch(() => ({}));
+    lastErr = err.error?.message || `AI API ${r.status}`;
+    if (r.status === 429 && attempt < maxRetry - 1) { await new Promise(s => setTimeout(s, 4000 * (attempt + 1))); continue; }
+    throw new Error(lastErr);
+  }
+  throw new Error(lastErr);
 }
 
 // DeepSeek API 调用
