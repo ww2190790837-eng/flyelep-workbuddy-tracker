@@ -220,6 +220,18 @@
   .pg-upload-zone.has-image .pg-upload-remove{opacity:1}
   .pg-upload-remove:hover{background:#ef4444}
   #pgImageInput{display:none}
+  /* 视频反推 */
+  .pg-video-row{margin-top:12px}
+  .pg-video-toggle{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text-3);background:rgba(124,92,255,.05);border:1px solid rgba(124,92,255,.2);cursor:pointer;transition:all .2s}
+  .pg-video-toggle:hover{color:var(--primary);border-color:var(--primary)}
+  .pg-video-toggle.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent}
+  .pg-video-zone{margin-top:10px}
+  .pg-video-zone .pg-upload-zone{min-height:auto;padding:18px 16px}
+  .pg-video-zone .pg-upload-zone.has-video .pg-upload-icon,.pg-video-zone .pg-upload-zone.has-video .pg-upload-text,.pg-video-zone .pg-upload-zone.has-video .pg-upload-hint{display:none}
+  .pg-video-preview{width:100%;max-height:240px;border-radius:10px;background:#000;margin-top:4px}
+  .pg-video-zone .pg-upload-zone.has-video .pg-video-preview{display:block}
+  .pg-video-info{margin-top:8px;font-size:12.5px;color:var(--text-3);text-align:center}
+  .pg-video-info b{color:var(--primary)}
   /* AI / 本地模式切换 */
   .pg-engine-bar{display:flex;align-items:center;gap:8px;margin-top:16px;padding:10px 14px;border-radius:11px;background:rgba(124,92,255,.05);border:1px solid rgba(124,92,255,.12)}
   .pg-engine-label{font-size:12px;font-weight:600;color:var(--text-3);white-space:nowrap}
@@ -618,6 +630,21 @@
             <img class="pg-upload-preview" id="pgUploadPreview" alt="预览" />
             <button class="pg-upload-remove" id="pgUploadRemove" title="移除图片">×</button>
             <input type="file" id="pgImageInput" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
+          </div>
+        </div>
+
+        <!-- 视频反推 -->
+        <div class="pg-video-row">
+          <button type="button" class="pg-video-toggle" id="pgVideoToggle">🎬 视频反推</button>
+          <div class="pg-video-zone" id="pgVideoZone" style="display:none">
+            <div class="pg-upload-zone" id="pgVideoUploadZone">
+              <div class="pg-upload-icon" style="font-size:22px">🎬</div>
+              <div class="pg-upload-text">点击或拖拽<strong>上传视频</strong><br><span class="pg-upload-hint">自动抽帧分析，反推五段式提示词（建议 ≤30s，支持 mp4/webm）</span></div>
+              <video class="pg-video-preview" id="pgVideoPreview" controls playsinline style="display:none"></video>
+              <button class="pg-upload-remove" id="pgVideoRemove" title="移除视频" style="display:none">×</button>
+              <input type="file" id="pgVideoInput" accept="video/mp4,video/webm,video/ogg,video/*" />
+            </div>
+            <div class="pg-video-info" id="pgVideoInfo"></div>
           </div>
         </div>
 
@@ -1535,6 +1562,14 @@
     zone.classList.remove('has-image');
     document.getElementById('pgUploadPreview').src='';
     document.getElementById('pgImageInput').value='';
+    // 清除视频
+    pgVideoFrames=[];
+    pgVideoDuration=15;
+    videoUploadZone.classList.remove('has-video');
+    videoPreview.style.display='none';videoPreview.src='';
+    videoRemove.style.display='none';
+    videoInfo.textContent='';
+    videoInput.value='';
   });
 
   /* ===== 引擎切换 & AI 状态检测 ===== */
@@ -1548,7 +1583,8 @@
     var badge=document.getElementById('pgAiBadge');
     var pname={openai:'智谱 GLM', gemini:'Gemini', deepseek:'DeepSeek', local:'本地'}[st.provider]||st.provider;
     if(aiAvailable){
-      badge.textContent='🤖 '+pname+' 就绪'+(st.supportsImage?' · 支持图片':'');
+      var caps=(st.supportsImage?' · 支持图片':'')+(st.supportsVideo?' · 支持视频反推':'');
+      badge.textContent='🤖 '+pname+' 就绪'+caps;
       badge.className='pg-engine-badge ai-ok';
       // 默认选中 AI
       setEngine('ai');
@@ -1622,6 +1658,93 @@
     reader.readAsDataURL(file);
   }
 
+  /* ===== 视频反推: 上传 + 抽帧 ===== */
+  var pgVideoFrames=[];      // 抽取的关键帧 base64 数组
+  var pgVideoDuration=15;    // 视频时长(秒,整数)
+  var videoToggle=document.getElementById('pgVideoToggle');
+  var videoZone=document.getElementById('pgVideoZone');
+  var videoUploadZone=document.getElementById('pgVideoUploadZone');
+  var videoInput=document.getElementById('pgVideoInput');
+  var videoPreview=document.getElementById('pgVideoPreview');
+  var videoRemove=document.getElementById('pgVideoRemove');
+  var videoInfo=document.getElementById('pgVideoInfo');
+
+  videoToggle.addEventListener('click',function(){
+    var open=videoZone.style.display!=='none';
+    videoZone.style.display=open?'none':'block';
+    videoToggle.classList.toggle('active',!open);
+  });
+
+  videoUploadZone.addEventListener('click',function(e){
+    if(e.target===videoRemove)return;
+    videoInput.click();
+  });
+  videoInput.addEventListener('change',function(e){
+    var file=e.target.files[0];
+    if(file)handleVideoFile(file);
+  });
+  videoUploadZone.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();this.classList.add('drag-over');});
+  videoUploadZone.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();this.classList.remove('drag-over');});
+  videoUploadZone.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();this.classList.remove('drag-over');
+    var file=e.dataTransfer.files[0];
+    if(file && file.type.startsWith('video/'))handleVideoFile(file);
+  });
+  videoRemove.addEventListener('click',function(e){
+    e.stopPropagation();
+    pgVideoFrames=[];pgVideoDuration=15;
+    videoUploadZone.classList.remove('has-video');
+    videoPreview.style.display='none';videoPreview.src='';
+    videoRemove.style.display='none';
+    videoInfo.textContent='';
+    videoInput.value='';
+  });
+
+  function handleVideoFile(file){
+    if(file.size>80*1024*1024){alert('视频过大，请控制在 80MB 以内');return;}
+    videoInfo.textContent='⏳ 正在抽帧分析…';
+    var video=document.createElement('video');
+    video.preload='metadata';video.muted=true;
+    var url=URL.createObjectURL(file);
+    video.src=url;
+    video.onloadedmetadata=function(){
+      var vdur=video.duration||15;
+      pgVideoDuration=Math.max(5,Math.min(60,Math.round(vdur)));
+      var n=Math.min(4,Math.max(3,Math.round(vdur/4))); // 3~4 帧(控制视觉模型 token 上限)
+      var frames=[];
+      var canvas=document.createElement('canvas');
+      var i=0;
+      function seekNext(){
+        if(i>=n){
+          pgVideoFrames=frames;
+          URL.revokeObjectURL(url);
+          videoUploadZone.classList.add('has-video');
+          videoPreview.src=url;videoPreview.style.display='block';
+          videoRemove.style.display='flex';
+          videoInfo.innerHTML='✅ 已抽取 <b>'+frames.length+'</b> 帧（视频 '+vdur.toFixed(1)+'s，将按原片反推）';
+          return;
+        }
+        var t=vdur*(i+0.5)/n;
+        video.currentTime=t;
+        video.onseeked=function(){
+          var w=video.videoWidth||1280, h=video.videoHeight||720;
+          var maxW=640, scale=Math.min(1,maxW/w);
+          canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+          var ctx=canvas.getContext('2d');
+          ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          try{frames.push(canvas.toDataURL('image/jpeg',0.6));}catch(err){}
+          i++;
+          setTimeout(seekNext,60);
+        };
+      }
+      seekNext();
+    };
+    video.onerror=function(){
+      URL.revokeObjectURL(url);
+      videoInfo.textContent='❌ 视频解析失败，请换一个格式（mp4/webm）';
+    };
+  }
+
   /* ===== 生成提示词(AI / 本地双模式) ===== */
   document.getElementById('pgGenerate').addEventListener('click',function(){
     var idea = document.getElementById('pgIdea').value.trim();
@@ -1630,10 +1753,10 @@
 
     if(currentEngine==='ai'){
       // ---- AI 模式: 调用后端 API ----
-      if(!idea && !pgImageData){
-        showError('请输入创意描述或上传参考图片');return;
+      if(!idea && !pgImageData && pgVideoFrames.length===0){
+        showError('请输入创意描述、上传参考图片或上传视频反推');return;
       }
-      generateAI(idea,dur);
+      generateAI(idea, pgVideoFrames.length?pgVideoDuration:dur);
     } else {
       // ---- 本地模式: 使用模板引擎(原有逻辑) ----
       generateLocal(idea);
@@ -1645,11 +1768,17 @@
     var btn=document.getElementById('pgGenerate');
     var origHTML=btn.innerHTML;
     btn.classList.add('loading');
-    btn.innerHTML='<span class="pg-spinner"></span> AI 正在思考…';
+    btn.innerHTML=pgVideoFrames.length?'<span class="pg-spinner"></span> 🎬 正在反推视频…':'<span class="pg-spinner"></span> AI 正在思考…';
 
     try{
       var body={idea:idea,duration:duration};
-      if(pgImageData)body.image=pgImageData;
+      // 视频反推: 发送多帧 + mode=reverse
+      if(pgVideoFrames.length){
+        body.images=pgVideoFrames;
+        body.mode='reverse';
+      } else if(pgImageData){
+        body.images=[pgImageData];
+      }
 
       var resp=await fetch('/api/prompt-generate',{
         method:'POST',

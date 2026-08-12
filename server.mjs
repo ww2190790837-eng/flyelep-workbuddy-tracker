@@ -182,7 +182,7 @@ function getUtm(q) {
 
 const app = express();
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "256kb" }));
+app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser(SESSION_SECRET));
 app.use(session({
   secret: SESSION_SECRET,
@@ -388,38 +388,11 @@ const AI_MODEL = process.env.AI_MODEL || "gemini-2.5-flash"; // 留空则用工�
 const AI_BASE_URL = process.env.AI_BASE_URL || ""; // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || ""; // 处理图片时使用的视觉模型(默认回落到 AI_MODEL)
 
-// Gemini API 调用
-async function callGemini(userMessage, imageBase64, duration) {
-  const model = AI_MODEL || "gemini-2.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AI_API_KEY}`;
-  const parts = [];
-  if (imageBase64) {
-    parts.push({ inlineData: { mimeType: imageBase64.match(/^data:(.*?);/)?.[1] || "image/png", data: imageBase64.replace(/^data:(.*?);base64,/, "") } });
-    parts.push({ text: userMessage });
-  } else {
-    parts.push({ text: userMessage });
-  }
-  const body = { contents: [{ role: "user", parts }], generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } };
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Gemini API ${r.status}`); }
-  const data = await r.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
-
-// OpenAI 兼容 API 调用(支持 vision,支持自定义 base URL 如智谱/通义/DeepSeek)
-async function callOpenAI(userMessage, imageBase64, duration) {
-  // 有图时用视觉模型,无图用文本模型(两者可不同,均免费)
-  const model = imageBase64 ? (AI_VISION_MODEL || AI_MODEL || "gpt-4o-mini") : (AI_MODEL || "gpt-4o-mini");
+// OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)
+// contentParts: [{type:"image_url",image_url:{url}}, {type:"text",text}]
+async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens) {
   const url = AI_BASE_URL ? `${AI_BASE_URL.replace(/\/$/, "")}/chat/completions` : "https://api.openai.com/v1/chat/completions";
-  const content = [];
-  if (imageBase64) {
-    content.push({ type: "image_url", image_url: { url: imageBase64, detail: "auto" } });
-  }
-  content.push({ type: "text", text: userMessage });
-  // 智谱免费视觉模型(glm-4v-flash 等)限制 max_tokens <= 1024,文本模型可用 4096
-  const isVisionFlash = /v-flash/.test(model);
-  const maxTokens = isVisionFlash ? 1024 : 4096;
-  const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: maxTokens };
+  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: contentParts }], temperature: 0.7, max_tokens: maxTokens };
   // 免费模型共享算力,偶发 429 限流,自动重试
   const maxRetry = 3;
   let lastErr = "";
@@ -434,13 +407,23 @@ async function callOpenAI(userMessage, imageBase64, duration) {
   throw new Error(lastErr);
 }
 
-// DeepSeek API 调用
-async function callDeepSeek(userMessage, imageBase64, duration) {
+// Gemini API 调用(支持多图,parts 为 inlineData/text 数组)
+async function callGemini(parts, systemText, maxTokens) {
+  const model = AI_MODEL || "gemini-2.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AI_API_KEY}`;
+  const contents = [{ role: "user", parts: [{ text: systemText }, ...parts] }];
+  const body = { contents, generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens } };
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Gemini API ${r.status}`); }
+  const data = await r.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+// DeepSeek API 调用(文本为主)
+async function callDeepSeek(text, systemPrompt, maxTokens) {
   const model = AI_MODEL || "deepseek-chat";
   const url = "https://api.deepseek.com/chat/completions";
-  // DeepSeek 目前主要支持文本;如有图片则提示中说明
-  const msgText = imageBase64 ? `[用户上传了一张参考图片，请结合图片内容分析]\n\n${userMessage}` : userMessage;
-  const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content: msgText }], temperature: 0.7, max_tokens: 4096 };
+  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: text }], temperature: 0.7, max_tokens: maxTokens };
   const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
   if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `DeepSeek API ${r.status}`); }
   const data = await r.json();
@@ -526,60 +509,138 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 【限制】
 ...`;
 
+// 视频反推: 视觉模型先逐帧描述的系统提示
+const VIDEO_VISION_SYS = `你是一名资深视频分析师。你会收到一段视频的若干关键帧（按时间先后顺序排好）。请逐帧分析，并输出一段详尽的中文描述，供后续工程师反推该视频的生成提示词。
+
+请按以下结构输出（用中文，尽量具体，不要省略细节）：
+1. 主体：人物/产品的外观特征（性别年龄衣着发型肤色，或产品外形材质颜色），场景与布景。
+2. 动作时序：按时间顺序，每个镜头写【起始状态 → 主体具体动作 → 运镜方式 → 结束状态/落点】，用逗号分隔。
+3. 光影色彩：光线方向、色调、质感、画幅比例、成片类型（真人/动画/CG）。
+4. 声音线索：BGM 类型/节奏/乐器，对白原文与情绪，关键音效。
+5. 整体风格与节奏：剪辑节奏、镜头语言、情绪基调。
+注意：只描述画面中真实可见的内容，不要编造不存在的元素。`;
+
+// 视频反推: 文本模型根据逐帧描述反推五段式提示词
+const REVERSE_SYSTEM_PROMPT = `你是专业的视频提示词工程师。现在有一段已生成的视频，下面是它的逐帧内容分析。你的任务是【原片反推】——还原出一份可直接用于重新生成该视频的 SD 2.5 / Seedance 2.5 五段式提示词。
+
+## 反推原则
+- 严格还原视频中的动作时序，时间线从 0 秒连续覆盖到结尾，不重叠、不留空
+- 每段写满：起始状态、具体动作过程、运镜方式、环境光影变化、结束状态，用逗号分隔
+- 人物/产品/场景全片同一，重复出现标注"全片同一"
+- 风格还原真实画幅、光线、色彩与镜头节奏
+- BGM 还原音乐类型与节拍、对白原文与情绪、关键音效
+- 限制写出本任务最容易出错的点（变脸/换装、产品变形、动作穿模、乱码/水印、声音边界）
+
+## 核心公式
+提示词 = 主体 + 风格 + 时间线 + BGM + 限制
+
+## 输出格式
+严格按以下五个标题输出，不要额外分析：
+【主体】
+...
+
+【风格】
+...
+
+【时间线】
+...
+
+【BGM】
+...
+
+【限制】
+...`;
+
 // 统一调度
-async function generatePrompt(idea, duration, imageBase64) {
+async function generatePrompt(idea, duration, images, mode) {
   const dur = Number(duration) || 15;
+  const isReverse = mode === "reverse";
+  const sys = isReverse ? REVERSE_SYSTEM_PROMPT : SD25_SYSTEM_PROMPT;
+  const imgList = Array.isArray(images) ? images.filter(Boolean).slice(0, 8) : (images ? [images] : []);
+
   const userMsg = `请根据以下创意生成${dur}秒的SD 2.5视频提示词（五段式）：
 
 ${idea}
 
-${imageBase64 ? "\n[注：用户已上传一张参考图片，请结合图片内容进行分析和提示词编写]" : ""}
+${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合画面内容进行分析和提示词编写]" : ""}
 
 【重要】时间线是核心，每段必须写满：起始状态、具体动作过程、运镜方式、环境光影变化、结束状态。动作要具体可拍摄（如"右手抓起竹筷挑起面条"而非"做面条"），写出质感细节（蒸汽/反光/飞溅/烟雾）。**格式要求：每段用逗号分隔要素，一行一个时间段，不要用分号或连续箭头。**请直接输出完整的五段式提示词，不需要额外解释。`;
 
   switch (AI_PROVIDER) {
-    case "openai": return await callOpenAI(userMsg, imageBase64, dur);
-    case "deepseek": return await callDeepSeek(userMsg, imageBase64, dur);
+    case "openai": {
+      const textModel = AI_MODEL || "gpt-4o-mini";
+      const visionModel = AI_VISION_MODEL || textModel;
+      // 视频反推: 多帧 → 视觉模型描述 → 文本模型写最终五段式(规避视觉 flash 1024 上限)
+      if (isReverse && imgList.length) {
+        const visPartsFor = (imgs) => [
+          ...imgs.map(src => ({ type: "image_url", image_url: { url: src, detail: "auto" } })),
+          { type: "text", text: "请按上述结构，对这段视频的逐帧画面做详尽分析。" }
+        ];
+        const isFlash = /v-flash/.test(visionModel);
+        const visMax = isFlash ? 1024 : 2048;
+        // 视觉模型总 token 有限(如 glm-4v-flash ≤16384),帧过多会超限,自动减帧重试
+        let desc = "", frames = imgList.slice();
+        while (frames.length >= 1) {
+          try {
+            desc = await callOpenAIChat(visionModel, VIDEO_VISION_SYS, visPartsFor(frames), visMax);
+            break;
+          } catch (e) {
+            if (/16384|token|长度|过长|exceed|inputs/i.test(e.message) && frames.length > 1) {
+              frames = frames.slice(0, Math.ceil(frames.length / 2)); // 减半重试
+              continue;
+            }
+            throw e;
+          }
+        }
+        if (!desc) throw new Error("视频帧分析失败");
+        const finalText = `以下是该视频的逐帧内容分析，请据此原片反推五段式提示词：\n\n${desc}\n\n${idea ? ("用户补充要求：" + idea) : ""}`;
+        return await callOpenAIChat(textModel, REVERSE_SYSTEM_PROMPT, [{ type: "text", text: finalText }], 4096);
+      }
+      // 普通生成(单图或纯文本)
+      const content = [];
+      if (imgList.length) imgList.forEach(src => content.push({ type: "image_url", image_url: { url: src, detail: "auto" } }));
+      content.push({ type: "text", text: userMsg });
+      const isFlash = /v-flash/.test(imgList.length ? visionModel : textModel);
+      return await callOpenAIChat(imgList.length ? visionModel : textModel, sys, content, isFlash ? 1024 : 4096);
+    }
+    case "deepseek": {
+      const note = imgList.length ? "\n[注：用户上传了视频帧图片，请结合画面内容分析]\n" : "";
+      return await callDeepSeek(note + userMsg, sys, 4096);
+    }
     case "gemini":
-    default: return await callGemini(userMsg, imageBase64, dur);
+    default: {
+      const parts = [];
+      if (imgList.length) imgList.forEach(src => parts.push({ inlineData: { mimeType: src.match(/^data:(.*?);/)?.[1] || "image/png", data: src.replace(/^data:(.*?);base64,/, "") } }));
+      parts.push({ text: userMsg });
+      return await callGemini(parts, sys, 4096);
+    }
   }
 }
 
-// 前端上传图片大小限制 5MB
-app.post("/api/prompt-generate", express.raw({ type: ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"], limit: "5mb" }), async (req, res) => {
+// 前端上传(图片/视频帧)大小限制 25MB(JSON base64)
+app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, res) => {
   try {
     // 检查 AI 是否配置
     if (!AI_API_KEY) return res.status(503).json({ ok: false, error: "AI 服务未配置，请联系管理员设置 API Key", needConfig: true });
 
-    let idea = "", duration = 15, imageBase64 = null;
+    let idea = "", duration = 15, images = [], mode = "create";
 
-    // 支持两种 Content-Type:
-    // 1) multipart/form-data (前端 FormData 上传图片)
-    // 2) application/json (纯文本)
     const ct = req.headers["content-type"] || "";
     if (ct.includes("multipart/form-data")) {
-      // 已被 express.raw 处理为 Buffer，需要手动解析或从 header 判断
-      // 实际上对于 multipart 我们改用 express.text() 或让前端用 base64 JSON
-      // 这里简化：如果检测到图片 content-type，转为 base64
-      if (req.body && req.body.length > 0) {
-        const mime = ct.match(/boundary=/) ? "image/*" : (ct.split(";")[0] || "image/png");
-        imageBase64 = `data:${mime};base64,${req.body.toString("base64")}`;
-        // multipart 的文本字段从 query 取
-        idea = req.body.idea || req.query.idea || "";
-        duration = Number(req.body.duration || req.query.duration) || 15;
-      }
-    } else {
-      // JSON 格式
-      const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
-      idea = body.idea || "";
-      duration = Number(body.duration) || 15;
-      imageBase64 = body.image || null; // base64 data URL
+      return res.status(400).json({ ok: false, error: "请使用 JSON 格式上传（前端已改为 base64 JSON）" });
     }
+    // JSON 格式(支持 images 数组:多张视频帧/参考图,以及 mode: create|reverse)
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    idea = body.idea || "";
+    duration = Number(body.duration) || 15;
+    mode = body.mode || "create";
+    if (Array.isArray(body.images)) images = body.images.filter(Boolean).slice(0, 8);
+    else if (body.image) images = [body.image]; // 兼容旧单图字段
 
-    if (!idea && !imageBase64) return res.status(400).json({ ok: false, error: "请输入创意描述或上传参考图片" });
+    if (!idea && images.length === 0) return res.status(400).json({ ok: false, error: "请输入创意描述或上传参考图片/视频" });
     if (idea.length > 5000) return res.status(400).json({ ok: false, error: "描述过长（限5000字）" });
 
-    const prompt = await generatePrompt(idea, duration, imageBase64);
+    const prompt = await generatePrompt(idea, duration, images, mode);
     if (!prompt || prompt.trim().length < 20) return res.status(502).json({ ok: false, error: "AI 返回结果异常，请重试" });
 
     res.json({ ok: true, prompt: prompt.trim(), provider: AI_PROVIDER });
@@ -598,7 +659,8 @@ app.get("/api/prompt-generate/status", (req, res) => {
     provider: AI_PROVIDER,
     model,
     visionModel,
-    supportsImage: AI_PROVIDER !== "deepseek" // deepseek 暂不支持图片输入
+    supportsImage: AI_PROVIDER !== "deepseek", // deepseek 暂不支持图片输入
+    supportsVideo: AI_PROVIDER !== "deepseek" // 视频抽帧后按多图处理,deepseek 暂不支持图片
   });
 });
 
