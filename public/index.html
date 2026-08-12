@@ -404,7 +404,8 @@
     <div class="nav-links">
       <a href="https://flyelep.cn#features" target="_blank" rel="noopener">核心功能</a>
       <a href="#tools">AI 工具</a>
-      <a href="#prompt-gen" style="color:var(--primary-2)">✨ 提示词</a>
+      <a href="#prompt-gen" style="color:var(--primary-2)">提示词</a>
+      <a href="#video-reverse">视频反推</a>
       <a href="#partnership">腾讯合作</a>
       <a href="https://flyelep.cn#pricing" target="_blank" rel="noopener">版本定价</a>
       <a href="#faq">常见问题</a>
@@ -1736,7 +1737,7 @@
     video.onloadedmetadata=function(){
       var vdur=video.duration||15;
       vrDuration=Math.max(5,Math.min(60,Math.round(vdur)));
-      var n=Math.min(4,Math.max(3,Math.round(vdur/4))); // 3~4 帧
+      var n=Math.min(8,Math.max(5,Math.round(vdur/1.5))); // 5~8 帧(更密集覆盖)
       var frames=[];
       var canvas=document.createElement('canvas');
       var i=0;
