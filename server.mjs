@@ -381,12 +381,189 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
+// ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
+const AI_PROVIDER = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+const AI_API_KEY = process.env.AI_API_KEY || "";
+const AI_MODEL = process.env.AI_MODEL || ""; // 留空则用默认模型
+
+// Gemini API 调用
+async function callGemini(userMessage, imageBase64, duration) {
+  const model = AI_MODEL || "gemini-2.0-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AI_API_KEY}`;
+  const parts = [];
+  if (imageBase64) {
+    parts.push({ inlineData: { mimeType: imageBase64.match(/^data:(.*?);/)?.[1] || "image/png", data: imageBase64.replace(/^data:(.*?);base64,/, "") } });
+    parts.push({ text: userMessage });
+  } else {
+    parts.push({ text: userMessage });
+  }
+  const body = { contents: [{ role: "user", parts }], generationConfig: { temperature: 0.7, maxOutputTokens: 4096 } };
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Gemini API ${r.status}`); }
+  const data = await r.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+// OpenAI API 调用(支持 vision)
+async function callOpenAI(userMessage, imageBase64, duration) {
+  const model = AI_MODEL || "gpt-4o-mini";
+  const url = "https://api.openai.com/v1/chat/completions";
+  const content = [];
+  if (imageBase64) {
+    content.push({ type: "image_url", image_url: { url: imageBase64, detail: "auto" } });
+  }
+  content.push({ type: "text", text: userMessage });
+  const body = { model, messages: [{ role: "system", text: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: 4096 };
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
+  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `OpenAI API ${r.status}`); }
+  const data = await r.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+// DeepSeek API 调用
+async function callDeepSeek(userMessage, imageBase64, duration) {
+  const model = AI_MODEL || "deepseek-chat";
+  const url = "https://api.deepseek.com/chat/completions";
+  // DeepSeek 目前主要支持文本;如有图片则提示中说明
+  const msgText = imageBase64 ? `[用户上传了一张参考图片，请结合图片内容分析]\n\n${userMessage}` : userMessage;
+  const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content: msgText }], temperature: 0.7, max_tokens: 4096 };
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
+  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `DeepSeek API ${r.status}`); }
+  const data = await r.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+// SD 2.5 五段式 System Prompt(来自 sd-2-5-prompt 技能)
+const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 Seedance 2.5 / SD 2.5 视频生成。你的任务是把用户的创意（文字描述或+参考图片）整理成可直接复制使用的五段式视频提示词。
+
+## 核心公式（必须严格遵守）
+提示词 = 主体 + 风格 + 时间线 + BGM + 限制
+
+## 五部分写法要求
+
+### 主体
+- 主角/产品是谁，什么场景，做什么核心事件
+- 如有参考图片：写明图片负责锁定什么（如"@图1锁定人物外观；不参考背景"）
+- 重复出现的人物/产品标注"全片同一"
+
+### 风格
+- 必须包含：时长、画幅、清晰度、成片形式（真人/动画/CG）、光线色彩、镜头节奏
+- 示例："15秒、16:9、4K、电影级广告；霓虹蓝紫色调；快速硬切与微距交替"
+
+### 时间线（最关键）
+- 从0秒连续覆盖到结尾，不重叠不留空
+- 每段格式：【开始—结束秒】起始状态 + 可见动作 + 镜头拍法 + 结束状态
+- 动作用可拍摄动词（抬手/转身/奔跑），不要"精彩地/酷炫地"
+- 15秒通常4-6段，30秒通常5-8段
+- 上一段结束状态=下一段起始状态
+
+### BGM
+- 音乐类型 + 速度/BPM + 核心乐器 + 情绪曲线 + 结尾方式
+- 如有对白/音效也写在这里
+- 无音乐时明确写"无BGM"
+
+### 限制
+- 只写3-8项最容易出错的问题
+- 优先：人物变脸/换装、产品变形、动作穿模、乱码/水印/字幕、声音边界
+
+## 输出格式
+严格按以下五个标题输出，不要额外分析：
+【主体】
+...
+
+【风格】
+...
+
+【时间线】
+...
+
+【BGM】
+...
+
+【限制】
+...`;
+
+// 统一调度
+async function generatePrompt(idea, duration, imageBase64) {
+  const dur = Number(duration) || 15;
+  const userMsg = `请根据以下创意生成${dur}秒的SD 2.5视频提示词（五段式）：
+
+${idea}
+
+${imageBase64 ? "\n[注：用户已上传一张参考图片，请结合图片内容进行分析和提示词编写]" : ""}
+
+请直接输出完整的五段式提示词，不需要额外解释。`;
+
+  switch (AI_PROVIDER) {
+    case "openai": return await callOpenAI(userMsg, imageBase64, dur);
+    case "deepseek": return await callDeepSeek(userMsg, imageBase64, dur);
+    case "gemini":
+    default: return await callGemini(userMsg, imageBase64, dur);
+  }
+}
+
+// 前端上传图片大小限制 5MB
+app.post("/api/prompt-generate", express.raw({ type: ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"], limit: "5mb" }), async (req, res) => {
+  try {
+    // 检查 AI 是否配置
+    if (!AI_API_KEY) return res.status(503).json({ ok: false, error: "AI 服务未配置，请联系管理员设置 API Key", needConfig: true });
+
+    let idea = "", duration = 15, imageBase64 = null;
+
+    // 支持两种 Content-Type:
+    // 1) multipart/form-data (前端 FormData 上传图片)
+    // 2) application/json (纯文本)
+    const ct = req.headers["content-type"] || "";
+    if (ct.includes("multipart/form-data")) {
+      // 已被 express.raw 处理为 Buffer，需要手动解析或从 header 判断
+      // 实际上对于 multipart 我们改用 express.text() 或让前端用 base64 JSON
+      // 这里简化：如果检测到图片 content-type，转为 base64
+      if (req.body && req.body.length > 0) {
+        const mime = ct.match(/boundary=/) ? "image/*" : (ct.split(";")[0] || "image/png");
+        imageBase64 = `data:${mime};base64,${req.body.toString("base64")}`;
+        // multipart 的文本字段从 query 取
+        idea = req.body.idea || req.query.idea || "";
+        duration = Number(req.body.duration || req.query.duration) || 15;
+      }
+    } else {
+      // JSON 格式
+      const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+      idea = body.idea || "";
+      duration = Number(body.duration) || 15;
+      imageBase64 = body.image || null; // base64 data URL
+    }
+
+    if (!idea && !imageBase64) return res.status(400).json({ ok: false, error: "请输入创意描述或上传参考图片" });
+    if (idea.length > 5000) return res.status(400).json({ ok: false, error: "描述过长（限5000字）" });
+
+    const prompt = await generatePrompt(idea, duration, imageBase64);
+    if (!prompt || prompt.trim().length < 20) return res.status(502).json({ ok: false, error: "AI 返回结果异常，请重试" });
+
+    res.json({ ok: true, prompt: prompt.trim(), provider: AI_PROVIDER });
+  } catch (e) {
+    console.error("[ai] generate error:", e.message);
+    res.status(500).json({ ok: false, error: "AI 生成失败: " + e.message });
+  }
+});
+
+// AI 配置状态查询(前端用来判断是否可用)
+app.get("/api/prompt-generate/status", (req, res) => {
+  res.json({
+    available: !!AI_API_KEY,
+    provider: AI_PROVIDER,
+    model: AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.0-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : "deepseek-chat"),
+    supportsImage: AI_PROVIDER !== "deepseek" // deepseek 暂不支持图片输入
+  });
+});
+
 app.get("/healthz", (req, res) => res.json({
   ok: true,
   ts: Date.now(),
   store: usingMongo ? "mongodb" : (usingGist ? "gist" : "json"),
   mongoConfigured: !!MONGODB_URI,
-  mongoConnected: mongoose.connection.readyState === 1
+  mongoConnected: mongoose.connection.readyState === 1,
+  aiAvailable: !!AI_API_KEY,
+  aiProvider: AI_PROVIDER
 }));
 
 await initUsersStore();

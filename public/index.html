@@ -203,6 +203,43 @@
   #pgResult::-webkit-scrollbar{width:5px}
   #pgResult::-webkit-scrollbar-track{background:transparent}
   #pgResult::-webkit-scrollbar-thumb{background:rgba(124,92,255,.25);border-radius:3px}
+  /* 图片上传区域 */
+  .pg-upload{margin-top:12px;position:relative}
+  .pg-upload-zone{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 16px;border:2px dashed rgba(124,92,255,.25);border-radius:14px;background:rgba(124,92,255,.03);cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+  .pg-upload-zone:hover,.pg-upload-zone.drag-over{border-color:var(--primary);background:rgba(124,92,255,.08)}
+  .pg-upload-zone.has-image{padding:12px;border-style:solid}
+  .pg-upload-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(124,92,255,.1);color:var(--primary);transition:all .2s}
+  .pg-upload-zone:hover .pg-upload-icon{background:var(--primary);color:#fff;transform:scale(1.08)}
+  .pg-upload-text{font-size:13px;color:var(--text-3);text-align:center;line-height:1.5}
+  .pg-upload-text strong{color:var(--primary);font-weight:600}
+  .pg-upload-hint{font-size:11px;color:var(--text-3);opacity:.6}
+  .pg-upload-preview{max-width:100%;max-height:180px;border-radius:10px;object-fit:contain;display:none}
+  .pg-upload-zone.has-image .pg-upload-preview{display:block}
+  .pg-upload-zone.has-image .pg-upload-icon,.pg-upload-zone.has-image .pg-upload-text,.pg-upload-zone.has-image .pg-upload-hint{display:none}
+  .pg-upload-remove{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.55);color:#fff;font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;transition:opacity .2s}
+  .pg-upload-zone.has-image .pg-upload-remove{opacity:1}
+  .pg-upload-remove:hover{background:#ef4444}
+  #pgImageInput{display:none}
+  /* AI / 本地模式切换 */
+  .pg-engine-bar{display:flex;align-items:center;gap:8px;margin-top:16px;padding:10px 14px;border-radius:11px;background:rgba(124,92,255,.05);border:1px solid rgba(124,92,255,.12)}
+  .pg-engine-label{font-size:12px;font-weight:600;color:var(--text-3);white-space:nowrap}
+  .pg-engine-switch{display:flex;gap:4px;background:rgba(0,0,0,.2);border-radius:9px;padding:3px}
+  .pg-engine-opt{padding:6px 14px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--text-3);background:transparent;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .pg-engine-opt.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 2px 10px rgba(91,59,255,.3)}
+  .pg-engine-opt:not(.active):hover{color:var(--text);background:rgba(255,255,255,.06)}
+  .pg-engine-badge{margin-left:auto;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap}
+  .pg-engine-badge.ai-ok{background:rgba(34,197,94,.12);color:#22c55e}
+  .pg-engine-badge.ai-no{background:rgba(239,68,68,.1);color:#f87171}
+  /* AI 加载状态 */
+  .pg-generate.loading{pointer-events:none;opacity:.8;position:relative}
+  .pg-generate.loading::after{content:'';position:absolute;inset:0;background:inherit;border-radius:inherit;opacity:.6}
+  .pg-generate .pg-spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:pg-spin .6s linear infinite}
+  .pg-generate.loading .pg-spinner{display:inline-block}
+  .pg-generate.loading svg{display:none}
+  @keyframes pg-spin{to{transform:rotate(360deg)}}
+  /* AI 错误提示 */
+  .pg-error{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:13px;color:#f87171;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);display:none;line-height:1.5}
+  .pg-error.show{display:block}
   /* 提示文字 */
   .pg-idea-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
   .pg-idea{width:100%;padding:16px 18px;border:1px solid rgba(124,92,255,.28);border-radius:14px;font-size:14px;font-family:inherit;background:rgba(124,92,255,.05);color:var(--text);resize:vertical;line-height:1.6;transition:all .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
@@ -574,8 +611,32 @@
 
       <!-- 智能生成(默认主入口) -->
       <div class="pg-idea-wrap">
-        <label class="pg-label"><span class="pg-num">✨</span>描述你的视频想法 <small>一句话或一段话都行,点生成自动写出五段式提示词</small></label>
+        <label class="pg-label"><span class="pg-num">✨</span>描述你的视频想法 <small>一句话或一段话都行,AI 将自动写出专业五段式提示词</small></label>
         <textarea id="pgIdea" rows="5" class="pg-idea" placeholder="例: 一个穿黑色皮夹克的女生站在赛博朋克霓虹街道上,手持发光的产品盒。电影级写实风,冷蓝品红霓虹光,慢推镜。开头全景下摇露出背影,然后她转身举盒、盒子发光,环绕360度展示产品,最后光芒扩散淡出。赛博朋克电子配乐,BPM128。"></textarea>
+
+        <!-- 图片上传 -->
+        <div class="pg-upload">
+          <div class="pg-upload-zone" id="pgUploadZone">
+            <div class="pg-upload-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="pg-upload-text">点击或拖拽<strong>上传参考图片</strong><br><span class="pg-upload-hint">支持 JPG / PNG / WebP，AI 将分析图片内容并融入提示词</span></div>
+            <img class="pg-upload-preview" id="pgUploadPreview" alt="预览" />
+            <button class="pg-upload-remove" id="pgUploadRemove" title="移除图片">×</button>
+            <input type="file" id="pgImageInput" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
+          </div>
+        </div>
+
+        <!-- 引擎切换: AI 智能生成 / 本地模板兜底 -->
+        <div class="pg-engine-bar" id="pgEngineBar">
+          <span class="pg-engine-label">引擎:</span>
+          <div class="pg-engine-switch">
+            <button class="pg-engine-opt active" data-engine="ai" id="pgEngineAI">🤖 AI 智能生成</button>
+            <button class="pg-engine-opt" data-engine="local" id="pgEngineLocal">📝 本地模板</button>
+          </div>
+          <span class="pg-engine-badge ai-no" id="pgAiBadge">检测中…</span>
+        </div>
+
         <div class="pg-idea-actions">
           <button class="pg-template" id="pgTemplate">填入示例</button>
           <button class="pg-manual-toggle" id="pgManualToggle">手动精修五要素 ›</button>
@@ -637,9 +698,11 @@
         </div>
         <pre id="pgResult"></pre>
       </div>
+      <!-- 错误提示 -->
+      <div class="pg-error" id="pgError"></div>
     </div>
 
-    <p class="pg-hint reveal d3">💡 贴一段话即可自动生成。生成后可在「手动精修」里微调,或点复制直接用于 Seedance 2.5 / SD 2.5。</p>
+    <p class="pg-hint reveal d3">💡 <strong>AI 模式</strong>：贴一段话（或+图片），AI 自动写出专业五段式提示词，和 WorkBuddy 里调用技能一样的效果。<strong>本地模板</strong>：离线可用，基于关键词模板快速生成。生成后可复制直接用于 Seedance 2.5 / SD 2.5。</p>
   </div>
 </section>
 
@@ -1471,61 +1534,210 @@
     tlContainer.innerHTML='<div class="tl-row"><input type="text" class="tl-time" value="0-3s" placeholder="0-3s" /><textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea><button class="tl-remove" title="删除此段">×</button></div>';
     tlContainer.querySelector('.tl-remove').addEventListener('click',function(){this.parentNode.remove();});
     document.getElementById('pgOutput').style.display='none';
+    document.getElementById('pgError').classList.remove('show');
+    // 清除图片
+    pgImageData=null;
+    var zone=document.getElementById('pgUploadZone');
+    zone.classList.remove('has-image');
+    document.getElementById('pgUploadPreview').src='';
+    document.getElementById('pgImageInput').value='';
   });
 
-  /* 生成提示词(优先智能解析一段话) */
+  /* ===== 引擎切换 & AI 状态检测 ===== */
+  var currentEngine='ai'; // 'ai' | 'local'
+  var pgImageData=null;   // base64 data URL of uploaded image
+  var aiAvailable=false;
+
+  // 检测 AI 是否可用
+  fetch('/api/prompt-generate/status').then(function(r){return r.json();}).then(function(st){
+    aiAvailable=st.available;
+    var badge=document.getElementById('pgAiBadge');
+    if(aiAvailable){
+      badge.textContent='🤖 '+st.provider+' 就绪';
+      badge.className='pg-engine-badge ai-ok';
+      // 默认选中 AI
+      setEngine('ai');
+    } else {
+      badge.textContent='⚠ 未配置';
+      badge.className='pg-engine-badge ai-no';
+      // AI 不可用,默认切到本地
+      setEngine('local');
+    }
+  }).catch(function(){
+    document.getElementById('pgAiBadge').textContent='❓ 检测失败';
+    document.getElementById('pgAiBadge').className='pg-engine-badge ai-no';
+    setEngine('local');
+  });
+
+  function setEngine(eng){
+    currentEngine=eng;
+    document.querySelectorAll('.pg-engine-opt').forEach(function(b){
+      b.classList.toggle('active',b.dataset.engine===eng);
+    });
+    var genBtn=document.getElementById('pgGenerate');
+    if(eng==='ai'){
+      genBtn.innerHTML='<span class="pg-spinner"></span><svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> 🤖 AI 智能生成';
+    } else {
+      genBtn.innerHTML='<span class="pg-spinner"></span><svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> ✨ 本地模板生成';
+    }
+  }
+
+  document.getElementById('pgEngineAI').addEventListener('click',function(){setEngine('ai');});
+  document.getElementById('pgEngineLocal').addEventListener('click',function(){setEngine('local');});
+
+  /* ===== 图片上传 ===== */
+  var uploadZone=document.getElementById('pgUploadZone');
+  var imageInput=document.getElementById('pgImageInput');
+  var uploadPreview=document.getElementById('pgUploadPreview');
+
+  uploadZone.addEventListener('click',function(e){
+    if(e.target.classList.contains('pg-upload-remove'))return;
+    imageInput.click();
+  });
+  imageInput.addEventListener('change',function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    handleImageFile(file);
+  });
+  // 拖拽上传
+  uploadZone.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();this.classList.add('drag-over');});
+  uploadZone.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();this.classList.remove('drag-over');});
+  uploadZone.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();this.classList.remove('drag-over');
+    var file=e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/'))handleImageFile(file);
+  });
+  // 移除图片
+  document.getElementById('pgUploadRemove').addEventListener('click',function(e){
+    e.stopPropagation();
+    pgImageData=null;
+    uploadZone.classList.remove('has-image');
+    uploadPreview.src='';
+    imageInput.value='';
+  });
+
+  function handleImageFile(file){
+    if(file.size>5*1024*1024){alert('图片过大，请控制在 5MB 以内');return;}
+    var reader=new FileReader();
+    reader.onload=function(e){
+      pgImageData=e.target.result; // base64 data URL
+      uploadPreview.src=pgImageData;
+      uploadZone.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ===== 生成提示词(AI / 本地双模式) ===== */
   document.getElementById('pgGenerate').addEventListener('click',function(){
     var idea = document.getElementById('pgIdea').value.trim();
+    var errEl=document.getElementById('pgError');
+    errEl.classList.remove('show');
+
+    if(currentEngine==='ai'){
+      // ---- AI 模式: 调用后端 API ----
+      if(!idea && !pgImageData){
+        showError('请输入创意描述或上传参考图片');return;
+      }
+      generateAI(idea,dur);
+    } else {
+      // ---- 本地模式: 使用模板引擎(原有逻辑) ----
+      generateLocal(idea);
+    }
+  });
+
+  /* AI 生成 */
+  async function generateAI(idea,duration){
+    var btn=document.getElementById('pgGenerate');
+    var origHTML=btn.innerHTML;
+    btn.classList.add('loading');
+    btn.innerHTML='<span class="pg-spinner"></span> AI 正在思考…';
+
+    try{
+      var body={idea:idea,duration:duration};
+      if(pgImageData)body.image=pgImageData;
+
+      var resp=await fetch('/api/prompt-generate',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      var result=await resp.json();
+
+      if(!result.ok){
+        if(result.needConfig){
+          showError('AI 服务未配置。管理员需设置 AI_API_KEY 环境变量。可切换到「本地模板」使用。');
+        }else{
+          showError(result.error||'AI 生成失败，请重试');
+        }
+        return;
+      }
+
+      showResult(result.prompt);
+    }catch(e){
+      showError('网络错误: '+e.message+'，请检查网络后重试，或切换到「本地模板」');
+    }finally{
+      btn.classList.remove('loading');
+      btn.innerHTML=origHTML;
+    }
+  }
+
+  /* 本地模板生成(保留原有引擎作为 fallback) */
+  function generateLocal(idea){
     var data;
     if(idea){
-      // 智能模式: 解析一段话
-      data = autoParse(idea, dur);
-      // 回填五要素,方便生成后微调
-      document.getElementById('pgSubject').value = data.subject;
-      document.getElementById('pgStyle').value = data.style;
-      document.getElementById('pgBgm').value = data.bgm;
-      document.getElementById('pgConstraints').value = data.constraints;
+      data=autoParse(idea,dur);
+      document.getElementById('pgSubject').value=data.subject;
+      document.getElementById('pgStyle').value=data.style;
+      document.getElementById('pgBgm').value=data.bgm;
+      document.getElementById('pgConstraints').value=data.constraints;
       tlContainer.innerHTML='';
       data.timeline.forEach(function(seg){
         var mm=seg.match(/【([^-]+)-(\d+)s】(.*)/);
-        if(mm) addTimelineRow(mm[1]+'-'+mm[2]+'s', mm[3]);
-        else addTimelineRow('', seg);
+        if(mm)addTimelineRow(mm[1]+'-'+mm[2]+'s',mm[3]);
+        else addTimelineRow('',seg);
       });
-    } else {
-      // 手动模式: 直接读取五要素
-      data = {
-        subject: document.getElementById('pgSubject').value.trim(),
-        style: document.getElementById('pgStyle').value.trim(),
-        bgm: document.getElementById('pgBgm').value.trim(),
-        constraints: document.getElementById('pgConstraints').value.trim(),
-        timeline: []
+    }else{
+      data={
+        subject:document.getElementById('pgSubject').value.trim(),
+        style:document.getElementById('pgStyle').value.trim(),
+        bgm:document.getElementById('pgBgm').value.trim(),
+        constraints:document.getElementById('pgConstraints').value.trim(),
+        timeline:[]
       };
       tlContainer.querySelectorAll('.tl-row').forEach(function(row){
         var t=row.querySelector('.tl-time').value.trim();
         var d=row.querySelector('.tl-desc').value.trim();
-        if(d) data.timeline.push('【'+t+'】'+d);
+        if(d)data.timeline.push('【'+t+'】'+d);
       });
     }
 
-    // 组装五段式
     var lines=[];
-    lines.push('【主体】\n'+ (data.subject || '(未填写)'));
-    lines.push('\n【风格】\n'+ (data.style || '(未填写)'));
-    lines.push('\n【时间线】\n'+ (data.timeline.join('\n') || '(未填写)'));
-    lines.push('\n【BGM】\n'+ (data.bgm || '(未填写)'));
-    lines.push('\n【限制】\n'+ (data.constraints || '(未填写)'));
+    lines.push('【主体】\n'+(data.subject||'(未填写)'));
+    lines.push('\n【风格】\n'+(data.style||'(未填写)'));
+    lines.push('\n【时间线】\n'+(data.timeline.join('\n')||'(未填写)'));
+    lines.push('\n【BGM】\n'+(data.bgm||'(未填写)'));
+    lines.push('\n【限制】\n'+(data.constraints||'(未填写)'));
 
-    // 模式前缀
     var modeLabel={create:'从零生成',reverse:'原片反推',extend:'创意延伸'};
-    var output='# Seedance 2.5 / SD 2.5 视频提示词\n# 模式: '+modeLabel[mode]+' | 时长: '+dur+'s\n# '+new Date().toLocaleDateString('zh-CN')+'\n\n'+lines.join('\n');
+    var output='# Seedance 2.5 / SD 2.5 视频提示词\n# 模式: '+modeLabel[mode]+' | 时长: '+dur+'s | 引擎: 本地模板\n# '+new Date().toLocaleDateString('zh-CN')+'\n\n'+lines.join('\n');
+    showResult(output);
+  }
 
-    // 显示结果
+  /* 显示结果 */
+  function showResult(text){
     var out=document.getElementById('pgOutput');
     var res=document.getElementById('pgResult');
-    res.textContent=output;
+    res.textContent=text;
     out.style.display='block';
     out.scrollIntoView({behavior:'smooth',block:'nearest'});
-  });
+  }
+
+  /* 显示错误 */
+  function showError(msg){
+    var el=document.getElementById('pgError');
+    el.textContent=msg;
+    el.classList.add('show');
+  }
 
   /* 复制 */
   document.getElementById('pgCopy').addEventListener('click',function(){
