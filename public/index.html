@@ -180,8 +180,6 @@
   .tl-desc{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;background:rgba(255,255,255,.03);color:var(--text);resize:none;line-height:1.5;transition:all .2s}
   .tl-desc:focus{outline:none;border-color:var(--primary);background:rgba(124,92,255,.06)}
   .tl-desc::placeholder{color:var(--text-3);opacity:.5}
-  .tl-add{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px dashed var(--border-2);background:rgba(255,255,255,.02);color:var(--text-3);font-size:17px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
-  .tl-add:hover{border-color:var(--primary);color:var(--primary);background:rgba(124,92,255,.08)}
   .tl-remove{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.05);color:#fca5a5;font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
   .tl-remove:hover{background:rgba(239,68,68,.12);border-color:#ef4444}
   /* 操作按钮 */
@@ -206,6 +204,24 @@
   #pgResult::-webkit-scrollbar-track{background:transparent}
   #pgResult::-webkit-scrollbar-thumb{background:rgba(124,92,255,.25);border-radius:3px}
   /* 提示文字 */
+  .pg-idea-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+  .pg-idea{width:100%;padding:16px 18px;border:1px solid rgba(124,92,255,.28);border-radius:14px;font-size:14px;font-family:inherit;background:rgba(124,92,255,.05);color:var(--text);resize:vertical;line-height:1.6;transition:all .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .pg-idea:focus{outline:none;border-color:var(--primary);background:rgba(124,92,255,.09);box-shadow:0 0 0 3px rgba(124,92,255,.12)}
+  .pg-idea::placeholder{color:var(--text-3);opacity:.65}
+  .pg-idea-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .pg-manual-toggle{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text-3);background:transparent;border:1px dashed var(--border);cursor:pointer;transition:all .2s}
+  .pg-manual-toggle:hover{color:var(--primary);border-color:rgba(124,92,255,.4)}
+  .pg-manual{margin-top:4px;padding-top:18px;border-top:1px dashed rgba(124,92,255,.18);display:flex;flex-direction:column;gap:16px}
+  .pg-manual .pg-form{display:flex;flex-direction:column;gap:16px}
+  .tl-row{display:flex;gap:8px;align-items:flex-start}
+  .tl-time{width:78px;flex-shrink:0;padding:11px 8px;border:1px solid var(--border);border-radius:10px;font-size:12.5px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.03);color:var(--text);text-align:center}
+  .tl-time:focus{outline:none;border-color:var(--primary)}
+  .tl-desc{flex:1;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:rgba(255,255,255,.03);color:var(--text);resize:vertical;line-height:1.5;min-height:42px}
+  .tl-desc:focus{outline:none;border-color:var(--primary);background:rgba(124,92,255,.06)}
+  .tl-remove{width:34px;height:34px;flex-shrink:0;border-radius:10px;font-size:18px;line-height:1;color:var(--text-3);background:rgba(255,255,255,.04);border:1px solid var(--border);cursor:pointer;transition:all .2s}
+  .tl-remove:hover{color:var(--danger,#ef4444);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)}
+  .tl-add-btn{margin-top:8px;align-self:flex-start;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;color:var(--primary);background:rgba(124,92,255,.06);border:1px solid rgba(124,92,255,.22);cursor:pointer;transition:all .2s}
+  .tl-add-btn:hover{background:rgba(124,92,255,.14);border-color:var(--primary)}
   .pg-hint{text-align:center;font-size:13px;color:var(--text-3);margin-top:18px}
   @media(max-width:640px){
     .pg-card{padding:24px 18px 20px;border-radius:18px}
@@ -556,35 +572,48 @@
         </div>
       </div>
 
-      <!-- 五段式表单 -->
-      <div class="pg-form">
-        <div class="pg-field">
-          <label class="pg-label"><span class="pg-num">1</span>主体 <small>谁/什么/场景/核心事件</small></label>
-          <textarea id="pgSubject" rows="3" placeholder="例: 一个穿着黑色皮夹克的年轻女性站在赛博朋克风格的霓虹街道上,手中拿着发光的产品包装盒..."></textarea>
+      <!-- 智能生成(默认主入口) -->
+      <div class="pg-idea-wrap">
+        <label class="pg-label"><span class="pg-num">✨</span>描述你的视频想法 <small>一句话或一段话都行,点生成自动写出五段式提示词</small></label>
+        <textarea id="pgIdea" rows="5" class="pg-idea" placeholder="例: 一个穿黑色皮夹克的女生站在赛博朋克霓虹街道上,手持发光的产品盒。电影级写实风,冷蓝品红霓虹光,慢推镜。开头全景下摇露出背影,然后她转身举盒、盒子发光,环绕360度展示产品,最后光芒扩散淡出。赛博朋克电子配乐,BPM128。"></textarea>
+        <div class="pg-idea-actions">
+          <button class="pg-template" id="pgTemplate">填入示例</button>
+          <button class="pg-manual-toggle" id="pgManualToggle">手动精修五要素 ›</button>
         </div>
-        <div class="pg-row">
-          <div class="pg-field flex-1">
-            <label class="pg-label"><span class="pg-num">2</span>风格 <small>时长/画幅/光线/色彩/镜头</small></label>
-            <textarea id="pgStyle" rows="2" placeholder="例: 15秒,16:9竖屏,电影级写实,冷蓝霓虹光,慢速推镜..."></textarea>
+      </div>
+
+      <!-- 五要素手动精修(可折叠) -->
+      <div class="pg-manual" id="pgManual" style="display:none">
+        <div class="pg-form">
+          <div class="pg-field">
+            <label class="pg-label"><span class="pg-num">1</span>主体 <small>谁/什么/场景/核心事件</small></label>
+            <textarea id="pgSubject" rows="3" placeholder="例: 一个穿着黑色皮夹克的年轻女性站在赛博朋克风格的霓虹街道上,手中拿着发光的产品包装盒..."></textarea>
           </div>
-          <div class="pg-field flex-1">
-            <label class="pg-label"><span class="pg-num">4</span>BGM <small>音乐类型/BPM/乐器/情绪曲线</small></label>
-            <textarea id="pgBgm" rows="2" placeholder="例: 电子合成器,BPM 120,低沉贝斯开场,中段加入高频合成音..."></textarea>
-          </div>
-        </div>
-        <div class="pg-field">
-          <label class="pg-label"><span class="pg-num">3</span>时间线 <small>按时间写动作+运镜,覆盖完整时长</small></label>
-          <div id="pgTimeline" class="pg-timeline">
-            <div class="tl-row">
-              <input type="text" class="tl-time" value="0-3s" placeholder="0-3s" />
-              <textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea>
-              <button class="tl-add" title="添加时间段">+</button>
+          <div class="pg-row">
+            <div class="pg-field flex-1">
+              <label class="pg-label"><span class="pg-num">2</span>风格 <small>时长/画幅/光线/色彩/镜头</small></label>
+              <textarea id="pgStyle" rows="2" placeholder="例: 15秒,16:9竖屏,电影级写实,冷蓝霓虹光,慢速推镜..."></textarea>
+            </div>
+            <div class="pg-field flex-1">
+              <label class="pg-label"><span class="pg-num">4</span>BGM <small>音乐类型/BPM/乐器/情绪曲线</small></label>
+              <textarea id="pgBgm" rows="2" placeholder="例: 电子合成器,BPM 120,低沉贝斯开场,中段加入高频合成音..."></textarea>
             </div>
           </div>
-        </div>
-        <div class="pg-field">
-          <label class="pg-label"><span class="pg-num">5</span>限制 <small>3-8项最容易出错的地方</small></label>
-          <textarea id="pgConstraints" rows="2" placeholder="例: 禁止人物变脸;产品包装文字不可乱码;禁止额外字幕或水印;动作需符合物理规律..."></textarea>
+          <div class="pg-field">
+            <label class="pg-label"><span class="pg-num">3</span>时间线 <small>按时间写动作+运镜,覆盖完整时长</small></label>
+            <div id="pgTimeline" class="pg-timeline">
+              <div class="tl-row">
+                <input type="text" class="tl-time" value="0-3s" placeholder="0-3s" />
+                <textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea>
+                <button class="tl-remove" title="删除此段">×</button>
+              </div>
+            </div>
+            <button id="pgAddTime" class="tl-add-btn">+ 添加时间段</button>
+          </div>
+          <div class="pg-field">
+            <label class="pg-label"><span class="pg-num">5</span>限制 <small>3-8项最容易出错的地方</small></label>
+            <textarea id="pgConstraints" rows="2" placeholder="例: 禁止人物变脸;产品包装文字不可乱码;禁止额外字幕或水印;动作需符合物理规律..."></textarea>
+          </div>
         </div>
       </div>
 
@@ -592,10 +621,9 @@
       <div class="pg-actions">
         <button class="pg-generate" id="pgGenerate">
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          生成提示词
+          ✨ 智能生成提示词
         </button>
         <button class="pg-clear" id="pgClear">清空</button>
-        <button class="pg-template" id="pgTemplate">填入示例</button>
       </div>
 
       <!-- 输出区域 -->
@@ -611,7 +639,7 @@
       </div>
     </div>
 
-    <p class="pg-hint reveal d3">💡 提示: 描述越具体,生成的提示词越精准。支持中文/英文混合输入。</p>
+    <p class="pg-hint reveal d3">💡 贴一段话即可自动生成。生成后可在「手动精修」里微调,或点复制直接用于 Seedance 2.5 / SD 2.5。</p>
   </div>
 </section>
 
@@ -1094,79 +1122,153 @@
     var row = document.createElement('div');
     row.className='tl-row';
     row.innerHTML =
-      '<input type="text" class="tl-time" value="'+(time||'')+'" placeholder="时间" />' +
+      '<input type="text" class="tl-time" value="'+(time||'')+'" placeholder="0-3s" />' +
       '<textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态">'+(desc||'')+'</textarea>' +
       '<button class="tl-remove" title="删除此段">×</button>';
     row.querySelector('.tl-remove').addEventListener('click',function(){row.remove()});
     tlContainer.appendChild(row);
   }
-
-  // 初始的 + 按钮
-  tlContainer.querySelector('.tl-add').addEventListener('click',function(){
+  document.getElementById('pgAddTime').addEventListener('click',function(){
     var rows = tlContainer.querySelectorAll('.tl-row');
-    var lastTime = '';
+    var lastTime='';
     if(rows.length>0){
-      var prev = rows[rows.length-1].querySelector('.tl-time').value;
-      if(prev){ var m=prev.match(/(\d+)/); if(m)lastTime=m[1]+'s'; }
+      var prev=rows[rows.length-1].querySelector('.tl-time').value;
+      if(prev){var m=prev.match(/(\d+)/);if(m)lastTime=m[1]+'s';}
     }
     addTimelineRow(lastTime,'');
   });
 
-  /* 填入示例 */
+  /* 手动精修折叠 */
+  document.getElementById('pgManualToggle').addEventListener('click',function(){
+    var box=document.getElementById('pgManual');
+    if(box.style.display==='none'){box.style.display='block';this.textContent='收起手动精修 ∧';}
+    else{box.style.display='none';this.textContent='手动精修五要素 ›';}
+  });
+
+  /* 智能解析: 一段话 → 五段式 */
+  function detect(list,text){var f=[];list.forEach(function(k){if(text.indexOf(k)>=0)f.push(k);});return f;}
+
+  function buildTimeline(idea,dur){
+    // 1) 显式时间戳 0-3秒 / 3-7s
+    var tsRe=/(\d+)\s*[-~到至]\s*(\d+)\s*[秒sS]?/g, m, matches=[];
+    while((m=tsRe.exec(idea))){matches.push({a:parseInt(m[1]),b:parseInt(m[2]),idx:m.index,full:m[0]});}
+    if(matches.length){
+      var segs=[];
+      for(var i=0;i<matches.length;i++){
+        var s=matches[i];
+        var nextIdx=(i+1<matches.length)?matches[i+1].idx:idea.length;
+        var desc=idea.slice(s.idx+s.full.length,nextIdx).replace(/^[，,、:：\s]+/,'').split(/[。.!?！？]/)[0].trim();
+        if(desc)segs.push('【'+s.a+'-'+s.b+'s】'+desc);
+      }
+      if(segs.length)return segs;
+    }
+    // 2) 顺序连接词拆分
+    var markers=['开头','首先','起幅','开始','然后','接着','随后','之后','中间','中段','同时','再','最后','结尾','收尾','结束'];
+    var re2=new RegExp('('+markers.join('|')+')','g'), last=0, result=[], m2;
+    while((m2=re2.exec(idea))){var chunk=idea.slice(last,m2.index).trim();if(chunk)result.push(chunk);last=m2.index;}
+    var tail=idea.slice(last).trim();if(tail)result.push(tail);
+    result=result.map(function(c){return c.replace(new RegExp('^('+markers.join('|')+')[,，、:：\\s]*'),'').trim();}).filter(Boolean);
+    if(result.length){
+      var n=result.length,step=dur/n,segs=[];
+      for(var i=0;i<n;i++){segs.push('【'+Math.round(i*step)+'-'+Math.round((i+1)*step)+'s】'+result[i]);}
+      return segs;
+    }
+    // 3) 兜底: 按标点切
+    var parts=idea.split(/[。.!?！？；;]/).map(function(s){return s.trim();}).filter(Boolean);
+    if(parts.length){
+      var n2=parts.length,step2=dur/n2,segs2=[];
+      for(var i=0;i<n2;i++){segs2.push('【'+Math.round(i*step2)+'-'+Math.round((i+1)*step2)+'s】'+parts[i]);}
+      return segs2;
+    }
+    return ['【0-'+dur+'s】'+idea.trim()];
+  }
+
+  function buildBgm(idea,dur){
+    var bgmKw=['赛博朋克','电子','钢琴','鼓点','鼓','贝斯','弦乐','吉他','合成器','氛围','轻快','治愈','燃','热血','抒情','嘻哈','hiphop','rap','古典','爵士','ambient','lofi','lo-fi','卡点'];
+    var bk=detect(bgmKw,idea);
+    if(bk.length)return bk.join('，')+'，贴合画面情绪曲线，'+dur+'秒内起伏收束。';
+    if(/治愈|清新|唯美|温柔|安静/.test(idea))return '轻柔钢琴+弦乐垫底，温暖治愈，'+dur+'秒渐弱收尾。';
+    if(/科技|赛博|未来|酷|机械/.test(idea))return '电子合成器+BPM 适中的节奏，冷峻科技感，'+dur+'秒内起伏。';
+    if(/燃|热血|动感|快|炸/.test(idea))return '强节奏鼓点+电子贝斯，燃向推进，'+dur+'秒收束。';
+    return '电影感氛围配乐，节奏平稳，'+dur+'秒内随画面情绪起伏收尾。';
+  }
+
+  function autoParse(idea,dur){
+    var subject=idea.trim();
+    var sp=[dur+'秒'];
+    if(/竖屏|9:16|短视频|手机/.test(idea))sp.push('9:16 竖屏');
+    else if(/横屏|16:9|宽屏/.test(idea))sp.push('16:9 横屏');
+    else if(/1:1|方形/.test(idea))sp.push('1:1 方形');
+    sp=sp.concat(detect(['电影级','电影感','写实','动漫','3D','二次元','赛博朋克','复古','极简','国潮','ins风','科技感','治愈','唯美','暗黑','清新','高对比','低饱和度','胶片','水彩','插画'],idea));
+    sp=sp.concat(detect(['霓虹','自然光','逆光','柔光','暖光','冷光','侧光','顶光','丁达尔','光斑'],idea).map(function(x){return x+'光';}));
+    sp=sp.concat(detect(['推镜','拉镜','摇镜','移镜','环绕','俯拍','仰拍','特写','全景','航拍','手持','运镜','跟拍','升镜','降镜'],idea));
+    sp=sp.concat(detect(['冷蓝','冷色调','暖色调','品红','青色','莫兰迪','马卡龙','黑金','金色'],idea));
+    var style=sp.join('，')+'。';
+    var timeline=buildTimeline(idea,dur);
+    var bgm=buildBgm(idea,dur);
+    var constraints='1. 人物面部保持同一张脸，禁止变脸或变形\n2. 产品包装/画面文字不可乱码、模糊或漂移\n3. 禁止出现额外字幕、水印或无关品牌 logo\n4. 人物动作符合物理重力规律，不穿模\n5. 同一人物与产品贯穿全片，保持主体一致性\n6. 画面稳定流畅，避免突兀变形或闪烁';
+    return {subject:subject,style:style,timeline:timeline,bgm:bgm,constraints:constraints};
+  }
+
+  /* 填入示例(贴入一段话) */
   document.getElementById('pgTemplate').addEventListener('click',function(){
-    document.getElementById('pgSubject').value = '一个穿着黑色皮夹克的年轻女性站在赛博朋克风格的霓虹街道上,手中拿着发光的产品包装盒。全片同一人物、同一产品。';
-    document.getElementById('pgStyle').value = '15秒,16:9竖屏,电影级写实风格,冷蓝+品红霓虹灯光,高对比度色彩,慢速推镜配合轻微手持抖动感。';
-    document.getElementById('pgBgm').value = '赛博朋克电子合成器,BPM 128,低沉贝斯开场(0-3s),中段加入高频合成音与节奏鼓点(4-12s),尾奏渐弱收束(13-15s)。';
-    document.getElementById('pgConstraints').value = '1.禁止人物面部变形或变脸\n2.产品包装上的文字不可乱码或漂移\n3.禁止出现额外字幕或水印\n4.霓虹灯闪烁需符合实际电路逻辑\n5.人物动作需符合物理重力规律\n6.背景建筑不可突然消失或变形';
-    // 清空时间线重新填入
-    tlContainer.innerHTML = '';
-    var samples = [
-      {t:'0-3s',d:'黑屏渐亮 → 霓虹街道全景,慢速下摇 → 露出女性背影,远处广告牌闪烁'},
-      {t:'3-7s',d:'女性转身面向镜头 → 手持产品盒举至胸前 → 镜头缓慢推进,产品盒发出柔光'},
-      {t:'7-11s',d:'女性打开产品盒 → 产品悬浮升起并旋转展示 → 环绕镜头360度拍摄产品细节'},
-      {t:'11-15s',d:'产品光芒扩散充满画面 → 女性微笑看向远方 → 镜头拉远回到街道全景,淡出'}
-    ];
-    samples.forEach(function(s){ addTimelineRow(s.t,s.d); });
+    document.getElementById('pgIdea').value='一个穿黑色皮夹克的女生站在赛博朋克霓虹街道上，手持发光的产品盒。电影级写实风，冷蓝品红霓虹光，慢推镜。开头全景下摇露出背影，然后她转身举盒、盒子发光，环绕360度展示产品，最后光芒扩散淡出。赛博朋克电子配乐，BPM128。';
+    document.getElementById('pgIdea').focus();
   });
 
   /* 清空 */
   document.getElementById('pgClear').addEventListener('click',function(){
+    document.getElementById('pgIdea').value='';
     document.getElementById('pgSubject').value='';
     document.getElementById('pgStyle').value='';
     document.getElementById('pgBgm').value='';
     document.getElementById('pgConstraints').value='';
-    tlContainer.innerHTML='<div class="tl-row"><input type="text" class="tl-time" value="0-3s" placeholder="0-3s" /><textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea><button class="tl-add" title="添加时间段">+</button></div>';
-    tlContainer.querySelector('.tl-add').addEventListener('click',function(){
-      var rows=tlContainer.querySelectorAll('.tl-row');
-      var lastTime='';
-      if(rows.length>0){var prev=rows[rows.length-1].querySelector('.tl-time').value;if(prev){var m=prev.match(/(\d+)/);if(m)lastTime=m[1]+'s';}}
-      addTimelineRow(lastTime,'');
-    });
+    tlContainer.innerHTML='<div class="tl-row"><input type="text" class="tl-time" value="0-3s" placeholder="0-3s" /><textarea class="tl-desc" rows="1" placeholder="起始状态 → 动作 → 运镜 → 结束状态"></textarea><button class="tl-remove" title="删除此段">×</button></div>';
+    tlContainer.querySelector('.tl-remove').addEventListener('click',function(){this.parentNode.remove();});
     document.getElementById('pgOutput').style.display='none';
   });
 
-  /* 生成提示词 */
+  /* 生成提示词(优先智能解析一段话) */
   document.getElementById('pgGenerate').addEventListener('click',function(){
-    var subject = document.getElementById('pgSubject').value.trim();
-    var style = document.getElementById('pgStyle').value.trim();
-    var bgm = document.getElementById('pgBgm').value.trim();
-    var constraints = document.getElementById('pgConstraints').value.trim();
-
-    // 收集时间线
-    var tls=[];
-    tlContainer.querySelectorAll('.tl-row').forEach(function(row){
-      var t=row.querySelector('.tl-time').value.trim();
-      var d=row.querySelector('.tl-desc').value.trim();
-      if(d) tls.push('【'+t+'】'+d);
-    });
+    var idea = document.getElementById('pgIdea').value.trim();
+    var data;
+    if(idea){
+      // 智能模式: 解析一段话
+      data = autoParse(idea, dur);
+      // 回填五要素,方便生成后微调
+      document.getElementById('pgSubject').value = data.subject;
+      document.getElementById('pgStyle').value = data.style;
+      document.getElementById('pgBgm').value = data.bgm;
+      document.getElementById('pgConstraints').value = data.constraints;
+      tlContainer.innerHTML='';
+      data.timeline.forEach(function(seg){
+        var mm=seg.match(/【([^-]+)-(\d+)s】(.*)/);
+        if(mm) addTimelineRow(mm[1]+'-'+mm[2]+'s', mm[3]);
+        else addTimelineRow('', seg);
+      });
+    } else {
+      // 手动模式: 直接读取五要素
+      data = {
+        subject: document.getElementById('pgSubject').value.trim(),
+        style: document.getElementById('pgStyle').value.trim(),
+        bgm: document.getElementById('pgBgm').value.trim(),
+        constraints: document.getElementById('pgConstraints').value.trim(),
+        timeline: []
+      };
+      tlContainer.querySelectorAll('.tl-row').forEach(function(row){
+        var t=row.querySelector('.tl-time').value.trim();
+        var d=row.querySelector('.tl-desc').value.trim();
+        if(d) data.timeline.push('【'+t+'】'+d);
+      });
+    }
 
     // 组装五段式
     var lines=[];
-    lines.push('【主体】\n'+ (subject || '(未填写)'));
-    lines.push('\n【风格】\n'+ (style || '(未填写)'));
-    lines.push('\n【时间线】\n'+ (tls.join('\n') || '(未填写)'));
-    lines.push('\n【BGM】\n'+ (bgm || '(未填写)'));
-    lines.push('\n【限制】\n'+ (constraints || '(未填写)'));
+    lines.push('【主体】\n'+ (data.subject || '(未填写)'));
+    lines.push('\n【风格】\n'+ (data.style || '(未填写)'));
+    lines.push('\n【时间线】\n'+ (data.timeline.join('\n') || '(未填写)'));
+    lines.push('\n【BGM】\n'+ (data.bgm || '(未填写)'));
+    lines.push('\n【限制】\n'+ (data.constraints || '(未填写)'));
 
     // 模式前缀
     var modeLabel={create:'从零生成',reverse:'原片反推',extend:'创意延伸'};
