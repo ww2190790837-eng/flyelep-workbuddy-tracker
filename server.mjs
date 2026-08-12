@@ -384,11 +384,11 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
 const AI_PROVIDER = (process.env.AI_PROVIDER || "gemini").toLowerCase();
 const AI_API_KEY = process.env.AI_API_KEY || "";
-const AI_MODEL = process.env.AI_MODEL || ""; // 留空则用默认模型
+const AI_MODEL = process.env.AI_MODEL || "gemini-2.5-flash"; // 留空则用工况默认模型
 
 // Gemini API 调用
 async function callGemini(userMessage, imageBase64, duration) {
-  const model = AI_MODEL || "gemini-2.0-flash";
+  const model = AI_MODEL || "gemini-2.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AI_API_KEY}`;
   const parts = [];
   if (imageBase64) {
@@ -551,7 +551,7 @@ app.get("/api/prompt-generate/status", (req, res) => {
   res.json({
     available: !!AI_API_KEY,
     provider: AI_PROVIDER,
-    model: AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.0-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : "deepseek-chat"),
+    model: AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : "deepseek-chat"),
     supportsImage: AI_PROVIDER !== "deepseek" // deepseek 暂不支持图片输入
   });
 });
