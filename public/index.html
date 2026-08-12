@@ -1737,7 +1737,7 @@
     video.onloadedmetadata=function(){
       var vdur=video.duration||15;
       vrDuration=Math.max(5,Math.min(60,Math.round(vdur)));
-      var n=Math.min(8,Math.max(5,Math.round(vdur/1.5))); // 5~8 帧(更密集覆盖)
+      var n=Math.min(24,Math.max(4,Math.round(vdur/1.0))); // 4~24 帧(长视频更密集覆盖,与后端上限一致)
       var frames=[];
       var canvas=document.createElement('canvas');
       var i=0;

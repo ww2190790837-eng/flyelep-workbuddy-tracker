@@ -562,7 +562,7 @@ async function generatePrompt(idea, duration, images, mode) {
   const dur = Number(duration) || 15;
   const isReverse = mode === "reverse";
   const sys = isReverse ? REVERSE_SYSTEM_PROMPT : SD25_SYSTEM_PROMPT;
-  const imgList = Array.isArray(images) ? images.filter(Boolean).slice(0, 8) : (images ? [images] : []);
+  const imgList = Array.isArray(images) ? images.filter(Boolean).slice(0, 24) : (images ? [images] : []);
 
   const userMsg = `请根据以下创意生成${dur}秒的SD 2.5视频提示词（五段式）：
 
@@ -579,7 +579,7 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
       // 视频反推: 逐帧分析(每帧独占视觉模型输出额度) → 合并描述 → 文本模型反推五段式
       if (isReverse && imgList.length) {
         const isFlash = /v-flash/.test(visionModel);
-        const visMax = isFlash ? 1024 : 2048;
+        const visMax = isFlash ? 1024 : (imgList.length > 12 ? 1536 : 2048); // 帧多时收紧单帧额度,避免聚合描述超出文本模型上下文
         // 逐帧单独调用视觉模型,每帧获得完整详细描述
         const frameDescs = [];
         for (let fi = 0; fi < imgList.length; fi++) {
@@ -637,7 +637,7 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
     idea = body.idea || "";
     duration = Number(body.duration) || 15;
     mode = body.mode || "create";
-    if (Array.isArray(body.images)) images = body.images.filter(Boolean).slice(0, 8);
+    if (Array.isArray(body.images)) images = body.images.filter(Boolean).slice(0, 24);
     else if (body.image) images = [body.image]; // 兼容旧单图字段
 
     if (!idea && images.length === 0) return res.status(400).json({ ok: false, error: "请输入创意描述或上传参考图片/视频" });
