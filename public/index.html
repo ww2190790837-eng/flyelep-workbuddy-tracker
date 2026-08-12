@@ -637,7 +637,7 @@
         <div class="pg-engine-bar" id="pgEngineBar">
           <span class="pg-engine-label">引擎:</span>
           <div class="pg-engine-switch">
-            <button class="pg-engine-opt active" data-engine="ai" id="pgEngineAI">🤖 AI 智能生成</button>
+            <button class="pg-engine-opt active" data-engine="ai" id="pgEngineAI">AI 智能生成</button>
             <button class="pg-engine-opt" data-engine="local" id="pgEngineLocal">📝 本地模板</button>
           </div>
           <span class="pg-engine-badge ai-no" id="pgAiBadge">检测中…</span>
@@ -687,7 +687,6 @@
       <!-- 操作栏 -->
       <div class="pg-actions">
         <button class="pg-generate" id="pgGenerate">
-          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           ✨ 智能生成提示词
         </button>
         <button class="pg-clear" id="pgClear">清空</button>
@@ -746,7 +745,6 @@
       <!-- 操作栏 -->
       <div class="pg-actions">
         <button class="pg-generate" id="vrGenerate" style="width:100%;justify-content:center;padding:14px 28px;font-size:15px">
-          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           🎬 开始反推
         </button>
         <button class="pg-clear" id="vrClear">清空</button>
@@ -1620,7 +1618,7 @@
     var pname={openai:'智谱 GLM', gemini:'Gemini', deepseek:'DeepSeek', local:'本地'}[st.provider]||st.provider;
     if(aiAvailable){
       var caps=(st.supportsImage?' · 支持图片':'')+(st.supportsVideo?' · 支持视频反推':'');
-      badge.textContent='🤖 '+pname+' 就绪'+caps;
+      badge.textContent=pname+' 就绪'+caps;
       badge.className='pg-engine-badge ai-ok';
       // 默认选中 AI
       setEngine('ai');
@@ -1643,9 +1641,9 @@
     });
     var genBtn=document.getElementById('pgGenerate');
     if(eng==='ai'){
-      genBtn.innerHTML='<span class="pg-spinner"></span><svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> 🤖 AI 智能生成';
+      genBtn.innerHTML='<span class="pg-spinner"></span> AI 智能生成';
     } else {
-      genBtn.innerHTML='<span class="pg-spinner"></span><svg viewBox="0 0 24 24" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> ✨ 本地模板生成';
+      genBtn.innerHTML='<span class="pg-spinner"></span> 本地模板生成';
     }
   }
 
@@ -1789,7 +1787,7 @@
     var btn=document.getElementById('vrGenerate');
     var origHTML=btn.innerHTML;
     btn.classList.add('loading');
-    btn.innerHTML='<span class="pg-spinner"></span> 🎬 AI 正在分析帧并反推…';
+    btn.innerHTML='<span class="pg-spinner"></span> AI 正在分析并反推…';
 
     try{
       var body={idea:idea,duration:vrDuration,images:vrFrames,mode:'reverse'};
