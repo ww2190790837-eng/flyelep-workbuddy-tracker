@@ -1616,7 +1616,7 @@
   fetch('/api/prompt-generate/status').then(function(r){return r.json();}).then(function(st){
     aiAvailable=st.available;
     var badge=document.getElementById('pgAiBadge');
-    var pname={openai:'智谱 GLM', gemini:'Gemini', deepseek:'DeepSeek', local:'本地'}[st.provider]||st.provider;
+    var pname=st.model?st.model.replace(/^qwen[- ]?/i,'千问 ').replace(/-/g,' '):({openai:'OpenAI 兼容', gemini:'Gemini', deepseek:'DeepSeek', local:'本地'}[st.provider]||st.provider);
     if(aiAvailable){
       var caps=(st.supportsImage?' · 支持图片':'')+(st.supportsVideo?' · 支持视频反推':'');
       badge.textContent=pname+' 就绪'+caps;
