@@ -416,7 +416,10 @@ async function callOpenAI(userMessage, imageBase64, duration) {
     content.push({ type: "image_url", image_url: { url: imageBase64, detail: "auto" } });
   }
   content.push({ type: "text", text: userMessage });
-  const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: 4096 };
+  // 智谱免费视觉模型(glm-4v-flash 等)限制 max_tokens <= 1024,文本模型可用 4096
+  const isVisionFlash = /v-flash/.test(model);
+  const maxTokens = isVisionFlash ? 1024 : 4096;
+  const body = { model, messages: [{ role: "system", content: SD25_SYSTEM_PROMPT }, { role: "user", content }], temperature: 0.7, max_tokens: maxTokens };
   // 免费模型共享算力,偶发 429 限流,自动重试
   const maxRetry = 3;
   let lastErr = "";
