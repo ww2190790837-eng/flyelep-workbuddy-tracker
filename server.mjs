@@ -584,7 +584,7 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
         const frameDescs = [];
         for (let fi = 0; fi < imgList.length; fi++) {
           const frameParts = [
-            { type: "image_url", image_url: { url: imgList[fi], detail: "high" } },
+            { type: "image_url", image_url: { url: imgList[fi], detail: "auto" } },
             { type: "text", text: `这是第${fi + 1}帧（共${imgList.length}帧，位于视频约${((fi + 0.5) / imgList.length * 100).toFixed(0)}%处）。请按系统提示格式对这一帧做极其详尽的分析。` }
           ];
           try {
