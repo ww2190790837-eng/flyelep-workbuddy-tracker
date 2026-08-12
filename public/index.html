@@ -1145,11 +1145,156 @@
     else{box.style.display='none';this.textContent='手动精修五要素 ›';}
   });
 
-  /* 智能解析: 一段话 → 五段式 */
-  function detect(list,text){var f=[];list.forEach(function(k){if(text.indexOf(k)>=0)f.push(k);});return f;}
+  /* ==========================================
+     智能解析引擎 v2 — 关键词→专业扩展库
+     输入一段话 → 自动展开为电影级五段式
+     ========================================== */
 
-  function buildTimeline(idea,dur){
-    // 1) 显式时间戳 0-3秒 / 3-7s
+  /* ── 风格扩展词典: 关键词 → 完整专业描述 ── */
+  var STYLE_EXPANSIONS = {
+    '赛博朋克': {
+      style: '电影级超写实赛博朋克风格，16:9竖屏，高对比度冷蓝+品红+电青霓虹灯光，全息投影与 holographic 广告牌，雨湿地面反射霓虹光斑，暗部保留细节，体积光穿透烟雾',
+      light: '多光源霓虹灯（粉/蓝/青），强烈明暗对比，丁达尔体积光效果，高光锐利',
+      color: '主色调: 电光蓝 #00D4FF + 霓虹品红 #FF0080 + 暗金 #FFB800，暗部偏深紫黑 #0A0015',
+      camera: '慢速推镜为主，配合轻微手持呼吸感，中段环绕镜头360度产品展示，特写镜头浅景深 f/1.8 虚化背景霓虹',
+      timelineTmpl: [
+        {t:'0-3s', d:'黑屏渐亮 → 霓虹城市高空俯拍，缓慢下摇 → 穿过全息广告牌雨幕 → 露出主角背影站在街道中央'},
+        {t:'3-7s', d:'主角转身面向镜头（或侧身）→ 手持/展示核心产品 → 产品发出柔和的霓虹辉光 → 镜头缓慢推进至胸部特写'},
+        {t:'7-11s', d:'产品光芒增强 → 周围环境产生数字化粒子特效 → 环绕镜头360度拍摄产品细节（发光纹理/悬浮UI元素）'},
+        {t:'11-15s', d:'产品光芒扩散充满画面 → 主角剪影融入城市天际线 → 镜头拉远至全景 → 光晕淡出'}
+      ],
+      bgm: '赛博朋克合成器电子乐，BPM 120-128。0-3s 低沉贝斯+氛围pad入场；3-7s 加入标志性合成器lead旋律；7-11s arpeggiator（琶音）推进+节奏鼓点加强；11-15s 尾奏保持主旋律并渐弱收束。',
+      constraints: '1. 人物面部保持同一张脸，禁止AI变脸或五官漂移\n2. 所有霓虹灯文字/产品包装文字清晰可读，不可乱码或模糊\n3. 全息投影和UI元素需与场景光影一致，不能浮空\n4. 雨滴和水面反射需符合物理规律\n5. 同一人物、同一产品贯穿全片\n6. 禁止出现字幕、水印或非品牌logo'
+    },
+    '2077': null, // 合并到赛博朋克处理
+    '古风': {
+      style: '东方美学古风写实，9:16竖屏，柔和水墨质感，暖金色晨光或月下清冷，丝绸与薄纱材质细节，背景山水/庭院/宫殿虚化处理，浅景深突出主体',
+      light: '自然柔和侧逆光（晨光金色/月光银白），边缘光勾勒轮廓，漫射柔光填充暗部，避免硬阴影',
+      color: '主色调: 暖金 #D4AF37 + 朱红 #C0392B + 青瓷 #6FA8DC，暗部偏墨色 #1A1A2E',
+      camera: '缓慢横移+轻微升降，配合人物动作的跟拍，特写使用85mm等效焦段虚化背景，远景大景深展现环境气势',
+      timelineTmpl: [
+        {t:'0-3s', d:'薄雾山水/庭院全景 → 缓慢横移穿过垂柳/窗棂 → 露出人物侧影，衣袂微飘'},
+        {t:'3-7s', d:'人物转身回眸（或缓缓抬头）→ 手持/展示物品（扇子/茶盏/饰品）→ 物品在光线下折射细腻光泽 → 推镜至手部特写'},
+        {t:'7-11s', d:'物品周围飘散花瓣/光尘粒子 → 升镜环绕展示物品全貌 → 背景虚实切换展现不同景深层次'},
+        {t:'11-15s', d:'人物微笑/远望 → 衣袖随风轻扬 → 镜头后拉融入山水意境 → 渐隐于云雾/花海'}
+      ],
+      bgm: '国风管弦+古筝/琵琶，BPM 70-85。0-3s 古筝泛音+弦乐长音铺底；3-7s 主旋律进入（笛子/箫）；7-11s 加鼓点推进；11-15s 弦乐渐弱留余韵。',
+      constraints: '1. 人物面部同一性，发饰服饰前后帧一致\n2. 书法/印章类文字需笔画清晰可辨\n3. 服装布料物理模拟真实（重力/飘动/褶皱）\n4. 花瓣/光尘粒子运动方向与气流一致\n5. 禁止现代元素混入（电线/塑料/现代建筑）\n6. 无字幕水印'
+    },
+    '产品': {
+      style: '商业广告级产品展示，9:16竖屏或1:1方形，影棚级布光，产品材质纹理极致还原（金属反光/玻璃透射/皮革纹理），纯色或渐变高级灰背景，专业级色彩管理',
+      light: '三点布光法：主光45°柔光箱（关键光），辅光对侧补光（1:2光比），轮廓光/发丝光分离主体，产品高光点精准控制',
+      color: '根据产品调性选择：科技=深蓝#0B1E3B+亮蓝#4FC3F7；奢华=黑金#000+#D4AF37；清新=白底+薄荷绿#26A69A；活力=橙红#FF5722+黄#FFC107',
+      camera: '产品旋转展示（8字轨迹），微距特写展示材质细节（表面纹理/Logo/接口），拉镜从特写→全景揭示完整形态，焦点切换引导视线',
+      timelineTmpl: [
+        {t:'0-3s', d:'纯色/渐变背景上产品以优雅方式入画（滑入/浮现/旋转出现）→ 慢速旋转展示整体轮廓'},
+        {t:'3-7s', d:'推镜至产品关键细节特写（Logo/屏幕/材质接缝）→ 焦点在不同部件间平滑切换 → 配合微妙的光线变化强调质感'},
+        {t:'7-11s', d:'产品开始功能性演示动画（展开/点亮/交互）→ 周围浮现功能标签/UI提示 → 360度环绕展示所有角度'},
+        {t:'11-15s', d:'产品定格在最完美角度 → 品牌 slogan 或 key feature 文字优雅浮现 → 背景光效收束 → 干净利落结束'}
+      ],
+      bgm: '现代商业配乐，BPM 90-110。0-3s 单音pad+微妙音效（如相机快门声）；3-7s 轻快节奏加入（pluck/soft keys）；7-11s 弦乐组+轻鼓推进；11-15s resolve和弦收尾。',
+      constraints: '1. 产品外观每一帧必须完全一致（颜色/形状/Logo位置）\n2. 产品表面文字/标签清晰不扭曲\n3. 材质反射率合理（金属不过曝、玻璃不透明）\n4. 功能演示动画需符合实际操作逻辑\n5. 背景干净无干扰元素\n6. 无第三方logo或水印'
+    },
+    '美食': {
+      style: '美食纪录片级摄影，1:1或9:16竖屏，暖色调食欲感布光，食物表面油光/水珠/蒸汽细节丰富，背景虚化（f/2.8等效），食材新鲜度视觉最大化',
+      light: '侧逆暖光（3200K-4000K色温），强调食物表面质感和蒸汽体积，暗角聚焦视线，避免冷色调破坏食欲',
+      color: '暖橙 #FF8C00 + 焦糖棕 #8B4513 + 奶油白 #FFFDD0 + 新鲜绿 #4CAF50，饱和度略高于自然',
+      camera: '微距特写（刀切/汤汁流淌/气泡升腾），升格拍摄（慢动作）强调动态美感，俯拍展示摆盘构图，快速剪辑节奏配合食物制作步骤',
+      timelineTmpl: [
+        {t:'0-3s', d:'新鲜食材特写（水珠滚动/色泽饱满）→ 刀落下的瞬间（可选慢动作）→ 食材在砧板上整齐排列的全景'},
+        {t:'3-7s', d:'烹饪过程（翻炒/淋汁/撒料）→ 蒸汽升腾的唯美慢动作 → 锅中食物色泽变化的特写 → 火光映照厨师专注表情'},
+        {t:'7-11s', d:'成品装盘的艺术摆盘过程 → 最后装饰（香草/酱汁画盘）→ 360度环绕展示成品的诱人光泽'},
+        {t:'11-15s', d:'成品最美角度定格 → 周围环境虚化烘托 → 一双筷子/勺子优雅入画夹起食物 → 满足感收尾'}
+      ],
+      bgm: '轻快治愈系配乐，BPM 80-100。木吉他/尤克里里主导，间奏加入轻快口哨或铃铛。温暖舒适，像美食Vlog的BGM感觉。',
+      constraints: '1. 食物颜色和形状前后帧一致（不会莫名变色变形）\n2. 蒸汽/水流方向符合物理规律\n3. 食材摆放符合烹饪逻辑\n4. 餐具和器皿干净无指纹\n5. 禁止出现非食品相关元素干扰画面\n6. 无字幕水印'
+    },
+    '时尚': {
+      style: '高端时尚大片质感，9:16竖屏，高级时装摄影布光，服装面料纹理清晰可见（丝绸光泽/羊毛绒感/皮革折痕），都市或极简背景，杂志封面级构图',
+      light: '时尚摄影经典布光：蝴蝶光（蝴蝶状阴影）或环形光（眼神光），轮廓光分离身体与背景，可加彩色gel营造情绪',
+      color: '根据主题：冷艳=黑白+单一彩色点缀；奢华=金银+深酒红；街头=高饱和撞色；极简=低饱和莫兰迪色系',
+      camera: '全身→半身→面部→细节（首饰/面料/鞋履）的叙事性运镜，模特走动的跟拍，镜子反射创意角度，慢动作甩发/转身',
+      timelineTmpl: [
+        {t:'0-3s', d:'环境建立（都市街角/简约室内/艺术空间）→ 模特从画面外走入或已在画面中静态亮相 → 第一个造型定格'},
+        {t:'3-7s', d:'模特开始移动（走/转/回头）→ 衣服随身体的动态飘逸 → 镜头跟随捕捉最佳姿态 → 局部特写（配饰/面料细节）'},
+        {t:'7-11s', d:'换造型或换场景（转场可用遮挡/光线变化）→ 第二套look的完整展示 → 更有张力的肢体语言和表情'},
+        {t:'11-15s', d:'最终pose定格（最具冲击力的画面）→ 缓慢zoom in到面部特写（自信眼神）→ 黑场或艺术化收尾'}
+      ],
+      bgm: '时尚秀场风格配乐，BPM 100-120。重低音bassline驱动，4/4拍house/techno节拍，或选带态度的indie electronic。有明确的drop和高潮段落。',
+      constraints: '1. 模特面部身份一致性（同一个人）\n2. 服装细节前后帧吻合（扣子/图案/长度）\n3. 头发物理模拟自然（甩动/飘动符合惯性）\n4. 鞋履配饰不消失或变化\n5. 背景中不要出现杂乱路人或干扰元素\n6. 无品牌水印（除非是 intentional placement）'
+    },
+    '旅行': {
+      style: '旅行Vlog电影感，16:9横屏或9:16竖屏，黄金时刻自然光（日出日落magic hour），广角风景+人文纪实结合，国家地理级画质',
+      light: '自然光为主：golden hour暖调（日出后1h/日落前1h），蓝天白云的高亮度日间，星空银河的长曝光感，城市夜景的车灯光轨',
+      color: '根据目的地定制：海滨=青蓝#0077BE+沙滩金#F5DEB3；山川=森林绿#228B22+岩石灰#808080；城市=冷暖对比；沙漠=暖橙#E97C30+天空蓝',
+      camera: '航拍大景建立空间感（无人机视角），第一人称POV行走镜头，延时摄影（云流/人流/日落），稳定器平滑跟随，隐藏式拍摄的自然感',
+      timelineTmpl: [
+        {t:'0-3s', d:'目的地的标志性的大全景（航拍/高点俯瞰）→ 太阳位置暗示时间（日出光辉/午后明亮/黄昏暖调）→ 标题文字优雅叠入'},
+        {t:'3-7s', d:'沉浸式体验镜头（第一人称走在街上/沙滩/山径）→ 当地特色细节特写（美食/建筑纹理/当地人笑脸）→ 自然过渡'},
+        {t:'7-11s', d:'活动体验的高潮片段（冲浪/登山/逛集市/看日落）→ 慢动作捕捉情感瞬间（大笑/惊叹/感动）→ 环境声画同步'},
+        {t:'11-15s', d:'回顾蒙太奇（快速剪辑旅程中的精彩瞬间3-5个）→ 最终画面回到最美的那个moment → 淡出或黑场结束'}
+      ],
+      bgm: '旅行Vlog风格，BPM 80-110。原声吉他/钢琴开场，逐渐加入弦乐铺底。情绪曲线：平静开始→轻快中间→感人高潮→余韵结尾。可加入环境音（海浪/鸟鸣/城市白噪音）。',
+      constraints: '1. 地标建筑/风景特征准确可识别\n2. 日照方向和时间一致（不会东边日出西边照）\n3. 人物穿着匹配当地气候和文化\n4. 人群密度和交通方向合理\n5. 季节植被和天气现象匹配\n6. 无字幕水印覆盖风景'
+    }
+  };
+
+  /* ── 通用风格关键词映射到扩展库 ── */
+  var STYLE_ALIASES = {
+    '2077': '赛博朋克', 'cyberpunk': '赛博朋克', '科幻': '赛博朋克',
+    '中国风': '古风', '汉服': '古风', '仙侠': '古风', '武侠': '古风', '水墨': '古风', '国风': '古风',
+    '商品': '产品', '带货': '产品', '电商': '产品', '主图': '产品', '详情页': '产品',
+    '食物': '美食', '料理': '美食', '烹饪': '美食', '蛋糕': '美食', '饮品': '美食',
+    '穿搭': '时尚', '模特': '时尚', '服装': '时尚', '美妆': '时尚', '彩妆': '时尚',
+    '旅游': '旅行', '景点': '旅行', 'vlog': '旅行', '风景': '旅行'
+  };
+
+  /* ── 通用风格关键词 fallback（无模板时用）── */
+  var GENERIC_STYLES = {
+    '动漫': '二次元动漫渲染风格，赛璐珞 shading，线条清晰，色彩鲜艳饱和度高，日系动画电影质感',
+    '3D': '高质量3D渲染，Octane/Redshift级别全局光照，PBR材质，环境光遮蔽，反射折射准确',
+    '复古': '复古胶片质感，颗粒噪点，轻微褪色，暖色调偏移，35mm film look',
+    '极简': '极简主义，大量留白，单色或双色配色，几何构图，无多余元素',
+    '暗黑': '暗黑哥特风格，低key布光，深色基调，戏剧性阴影，神秘压抑氛围',
+    '清新': '清新明亮风格，高调摄影，浅色背景，柔和漫射光，日系小清新',
+    '治愈': '治愈系温暖风格，柔光滤镜，低对比度暖色调，给人安心舒适感',
+    '燃': '热血动感风格，高对比度，动态模糊，速度线效果，冲击力强',
+    '恐怖': '悬疑恐怖风格，低照明，冷蓝色调，不稳定镜头，jump scare节奏'
+  };
+
+  /* 匹配风格关键词（返回最具体的匹配项） */
+  function matchStyle(text){
+    var lower = text.toLowerCase();
+    // 先精确匹配别名
+    for(var alias in STYLE_ALIASES){
+      if(lower.indexOf(alias)>=0) return STYLE_ALIASES[alias];
+    }
+    // 再精确匹配主词
+    for(var key in STYLE_EXPANSIONS){
+      if(lower.indexOf(key.toLowerCase())>=0) return key;
+    }
+    // 最后 fallback 到通用风格
+    for(var gk in GENERIC_STYLES){
+      if(lower.indexOf(gk)>=0) return '__generic__:'+gk;
+    }
+    return null;
+  }
+
+  /* 构建时间线: 优先模板 > 显式时间戳 > 连接词拆分 > 兜底 */
+  function buildTimeline(idea,dur,styleKey){
+    // 如果有对应模板,直接使用
+    if(styleKey && STYLE_EXPANSIONS[styleKey] && STYLE_EXPANSIONS[styleKey].timelineTmpl){
+      var tmpl = STYLE_EXPANSIONS[styleKey].timelineTmpl;
+      // 按时长缩放时间戳
+      var scale = dur / 15; // 模板按15秒设计
+      return tmpl.map(function(seg){
+        var parts = seg.t.split('-');
+        var a=Math.round(parseFloat(parts[0])*scale);
+        var b=Math.round(parseFloat(parts[1])*scale);
+        return '【'+a+'-'+b+'s】'+seg.d;
+      });
+    }
+    // 显式时间戳
     var tsRe=/(\d+)\s*[-~到至]\s*(\d+)\s*[秒sS]?/g, m, matches=[];
     while((m=tsRe.exec(idea))){matches.push({a:parseInt(m[1]),b:parseInt(m[2]),idx:m.index,full:m[0]});}
     if(matches.length){
@@ -1162,7 +1307,7 @@
       }
       if(segs.length)return segs;
     }
-    // 2) 顺序连接词拆分
+    // 连接词拆分
     var markers=['开头','首先','起幅','开始','然后','接着','随后','之后','中间','中段','同时','再','最后','结尾','收尾','结束'];
     var re2=new RegExp('('+markers.join('|')+')','g'), last=0, result=[], m2;
     while((m2=re2.exec(idea))){var chunk=idea.slice(last,m2.index).trim();if(chunk)result.push(chunk);last=m2.index;}
@@ -1173,7 +1318,7 @@
       for(var i=0;i<n;i++){segs.push('【'+Math.round(i*step)+'-'+Math.round((i+1)*step)+'s】'+result[i]);}
       return segs;
     }
-    // 3) 兜底: 按标点切
+    // 兜底
     var parts=idea.split(/[。.!?！？；;]/).map(function(s){return s.trim();}).filter(Boolean);
     if(parts.length){
       var n2=parts.length,step2=dur/n2,segs2=[];
@@ -1183,36 +1328,96 @@
     return ['【0-'+dur+'s】'+idea.trim()];
   }
 
-  function buildBgm(idea,dur){
-    var bgmKw=['赛博朋克','电子','钢琴','鼓点','鼓','贝斯','弦乐','吉他','合成器','氛围','轻快','治愈','燃','热血','抒情','嘻哈','hiphop','rap','古典','爵士','ambient','lofi','lo-fi','卡点'];
-    var bk=detect(bgmKw,idea);
-    if(bk.length)return bk.join('，')+'，贴合画面情绪曲线，'+dur+'秒内起伏收束。';
-    if(/治愈|清新|唯美|温柔|安静/.test(idea))return '轻柔钢琴+弦乐垫底，温暖治愈，'+dur+'秒渐弱收尾。';
-    if(/科技|赛博|未来|酷|机械/.test(idea))return '电子合成器+BPM 适中的节奏，冷峻科技感，'+dur+'秒内起伏。';
-    if(/燃|热血|动感|快|炸/.test(idea))return '强节奏鼓点+电子贝斯，燃向推进，'+dur+'秒收束。';
-    return '电影感氛围配乐，节奏平稳，'+dur+'秒内随画面情绪起伏收尾。';
+  /* 构建 BGM: 优先模板 > 关键词匹配 > 兜底 */
+  function buildBgm(idea,dur,styleKey){
+    if(styleKey && STYLE_EXPANSIONS[styleKey] && STYLE_EXPANSIONS[styleKey].bgm){
+      return STYLE_EXPANSIONS[styleKey].bgm;
+    }
+    if(/治愈|清新|唯美|温柔|安静/.test(idea))return '轻柔钢琴+弦乐垫底，BPM 60-80，温暖治愈，'+dur+'秒渐弱收尾。';
+    if(/科技|赛博|未来|酷|机械/.test(idea))return '电子合成器+BPM 115-130，冷峻科技感，arpeggiator推进，'+dur+'秒内起伏收束。';
+    if(/燃|热血|动感|快|炸/.test(idea))return '强节奏鼓点+电子贝斯+BPM 130-150，燃向推进，明显drop段落，'+dur+'秒强力收束。';
+    if(/古风|中国风|汉服|古典/.test(idea))return '国风乐器（古筝/琵琶/笛子）+弦乐铺底，BPM 70-90，悠扬大气，'+dur+'秒内渐弱留韵。';
+    if(/时尚|模特|穿搭|走秀/.test(idea))return '时尚电子/indie pop，BPM 100-120，有明确节奏律动，适合走卡点剪辑，'+dur+'秒收束。';
+    return '电影感氛围配乐，节奏平稳但有情绪起伏，'+dur+'秒内随画面情绪起伏收尾。';
   }
 
-  function autoParse(idea,dur){
-    var subject=idea.trim();
+  /* 丰富化主体描述: 不只是复读输入,而是扩展为专业主体段落 */
+  function enrichSubject(idea,styleKey){
+    var s = idea.trim();
+    // 去掉常见的无用前缀
+    s = s.replace(/^(一段|一个|做个|做|我要|帮我|请|可以|想要|需要|生成|创作|写|拍|来个?|这是?)\s*/,'');
+    s = s.replace(/^(视频|短片|短视频|视频的?|宣传片|广告|素材|内容)\s*/,'');
+    s = s.replace(/(氛围感|风格的?|感觉的?|样子的?|效果的?)$/,'');
+    s = s.trim();
+    if(!s) s = idea.trim(); // fallback
+
+    // 如果有风格扩展,追加专业描述
+    if(styleKey && STYLE_EXPANSIONS[styleKey]){
+      var exp = STYLE_EXPANSIONS[styleKey];
+      var extra = '';
+      if(exp.light) extra += '布光:'+exp.light+'。';
+      if(exp.color) extra += '配色:'+exp.color+'。';
+      if(extra) s += '\n（'+extra.trim()+')';
+    }
+    return s;
+  }
+
+  /* 构建风格段落: 优先模板 > 关键词拼接 */
+  function buildStyle(idea,dur,styleKey){
+    if(styleKey && STYLE_EXPANSIONS[styleKey]){
+      return STYLE_EXPANSIONS[styleKey].style;
+    }
+    // 通用风格 fallback
+    var gmatch = null;
+    for(var gk in GENERIC_STYLES){
+      if(idea.indexOf(gk)>=0){gmatch=gk;break;}
+    }
+    if(gmatch) return dur+'秒，'+GENERIC_STYLES[gk]+'。';
+    // 纯关键词兜底
     var sp=[dur+'秒'];
     if(/竖屏|9:16|短视频|手机/.test(idea))sp.push('9:16 竖屏');
     else if(/横屏|16:9|宽屏/.test(idea))sp.push('16:9 横屏');
     else if(/1:1|方形/.test(idea))sp.push('1:1 方形');
-    sp=sp.concat(detect(['电影级','电影感','写实','动漫','3D','二次元','赛博朋克','复古','极简','国潮','ins风','科技感','治愈','唯美','暗黑','清新','高对比','低饱和度','胶片','水彩','插画'],idea));
-    sp=sp.concat(detect(['霓虹','自然光','逆光','柔光','暖光','冷光','侧光','顶光','丁达尔','光斑'],idea).map(function(x){return x+'光';}));
-    sp=sp.concat(detect(['推镜','拉镜','摇镜','移镜','环绕','俯拍','仰拍','特写','全景','航拍','手持','运镜','跟拍','升镜','降镜'],idea));
-    sp=sp.concat(detect(['冷蓝','冷色调','暖色调','品红','青色','莫兰迪','马卡龙','黑金','金色'],idea));
-    var style=sp.join('，')+'。';
-    var timeline=buildTimeline(idea,dur);
-    var bgm=buildBgm(idea,dur);
-    var constraints='1. 人物面部保持同一张脸，禁止变脸或变形\n2. 产品包装/画面文字不可乱码、模糊或漂移\n3. 禁止出现额外字幕、水印或无关品牌 logo\n4. 人物动作符合物理重力规律，不穿模\n5. 同一人物与产品贯穿全片，保持主体一致性\n6. 画面稳定流畅，避免突兀变形或闪烁';
+    else sp.push('16:9 横屏'); // 默认
+    var styleKw=['电影级','电影感','写实','动漫','3D','二次元','赛博朋克','复古','极简','ins风','科技感','治愈','唯美','暗黑','清新','高对比','胶片'];
+    sp=sp.concat(styleKw.filter(function(k){return idea.indexOf(k)>=0}));
+    var lightKw=['霓虹','自然光','逆光','柔光','暖光','冷光','侧光','顶光'];
+    sp=sp.concat(lightKw.filter(function(k){return idea.indexOf(k)>=0}).map(function(x){return x+'光';}));
+    var camKw=['推镜','拉镜','摇镜','移镜','环绕','俯拍','仰拍','特写','全景','航拍','手持','跟拍'];
+    sp=sp.concat(camKw.filter(function(k){return idea.indexOf(k)>=0}));
+    return sp.join('，')+'。';
+  }
+
+  /* 主解析函数 */
+  function autoParse(idea,dur){
+    var styleKey = matchStyle(idea);
+
+    // 处理 __generic__: 前缀
+    var genericStyle = null;
+    if(styleKey && styleKey.indexOf('__generic__:')===0){
+      genericStyle = styleKey.split(':')[1];
+      styleKey = null;
+    }
+
+    var subject = enrichSubject(idea,styleKey);
+    var style = buildStyle(idea,dur,styleKey);
+    var timeline = buildTimeline(idea,dur,styleKey);
+    var bgm = buildBgm(idea,dur,styleKey);
+
+    // 限制: 优先模板 > 通用
+    var constraints;
+    if(styleKey && STYLE_EXPANSIONS[styleKey] && STYLE_EXPANSIONS[styleKey].constraints){
+      constraints = STYLE_EXPANSIONS[styleKey].constraints;
+    } else {
+      constraints = '1. 人物面部保持同一张脸，禁止变脸或变形\n2. 产品包装/画面文字不可乱码、模糊或漂移\n3. 禁止出现额外字幕、水印或无关品牌 logo\n4. 人物动作符合物理重力规律，不穿模\n5. 同一人物与产品贯穿全片，保持主体一致性\n6. 画面稳定流畅，避免突兀变形或闪烁';
+    }
+
     return {subject:subject,style:style,timeline:timeline,bgm:bgm,constraints:constraints};
   }
 
   /* 填入示例(贴入一段话) */
   document.getElementById('pgTemplate').addEventListener('click',function(){
-    document.getElementById('pgIdea').value='一个穿黑色皮夹克的女生站在赛博朋克霓虹街道上，手持发光的产品盒。电影级写实风，冷蓝品红霓虹光，慢推镜。开头全景下摇露出背影，然后她转身举盒、盒子发光，环绕360度展示产品，最后光芒扩散淡出。赛博朋克电子配乐，BPM128。';
+    document.getElementById('pgIdea').value='一段赛博朋克2077氛围感的视频';
     document.getElementById('pgIdea').focus();
   });
 
