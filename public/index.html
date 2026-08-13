@@ -483,10 +483,9 @@
   [data-theme="light"] #codeDisplay{color:#6c4ff7!important;font-weight:800;letter-spacing:3px}
   [data-theme="light"] .nav-cta[id="navCodeBtn"]{
     box-shadow:0 4px 16px rgba(245,158,11,.25)!important;
-    overflow:visible!important
   }
-  /* 积分按钮文字不截断 */
-  #navCodeBtn{overflow:visible!important}
+  /* 积分按钮文字不截断 —— 用 padding+nowrap 而非 overflow:visible(会破坏 ::before shimmer) */
+  #navCodeBtn{white-space:nowrap}
 </style>
 </head>
 <body>
