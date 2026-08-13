@@ -482,7 +482,7 @@ app.post("/api/auth/send-code", async (req, res) => {
   // 过期后自动清理
   setTimeout(() => { const o = otpStore.get(email); if (o && Date.now() > o.expiresAt) otpStore.delete(email); }, OTP_TTL_MS + 1000);
   const resp = { ok: true, dev: !EMAIL_ENABLED, message: EMAIL_ENABLED ? "验证码已发送到你的邮箱(10 分钟内有效)" : "开发模式:验证码已打印到服务器日志" };
-  // [临时诊断] 回显真实发信错误,便于排查 163 收不到邮件问题
+  // 如实回显真实发信结果(发信失败也返回 ok:true 让流程可继续,但带 mailOk:false 让前端提示失败)
   if (mailError) { resp.mailError = mailError; resp.mailOk = false; }
   // 仅开发模式(未配置真实邮件发送)回显验证码,便于自测;一旦配置 SMTP/Resend,dev=false,不再返回明文码
   if (!EMAIL_ENABLED) resp.devCode = code;
