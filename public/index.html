@@ -486,6 +486,16 @@
   }
   /* 积分按钮文字不截断 —— 用 padding+nowrap 而非 overflow:visible(会破坏 ::before shimmer) */
   #navCodeBtn{white-space:nowrap}
+  /* 版本更新通知 Modal —— 浅色适配 */
+  [data-theme="light"] #versionModal{background:rgba(0,0,0,.3);backdrop-filter:blur(8px)}
+  [data-theme="light"] #versionModal > div{background:#fff!important;border:1px solid rgba(108,79,247,.18)!important;box-shadow:0 20px 60px rgba(108,79,247,.18)!important}
+  [data-theme="light"] #versionModal #versionBadge{color:#fff!important}
+  [data-theme="light"] #versionModal h3{color:#1a1d26!important;font-weight:700}
+  [data-theme="light"] #versionModal p{color:#4a5068!important;line-height:1.7}
+  [data-theme="light"] #versionModal strong{color:#1a1d26!important;font-weight:700}
+  [data-theme="light"] #versionModal li{color:#4a5068!important}
+  [data-theme="light"] #versionModal button:not(#versionClose){background:var(--gradient)!important;color:#fff!important}
+  [data-theme="light"] #versionClose{color:#4a5068!important;border:1px solid rgba(108,79,247,.25)!important}
 </style>
 </head>
 <body>
@@ -579,6 +589,19 @@
     <button onclick="closeCodeModal()" id="codeClose" style="margin-top:14px;width:100%;padding:10px;background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">关闭</button>
   </div>
 </div>
+
+<!-- 版本更新通知 -->
+<div id="versionModal" style="display:none;position:fixed;inset:0;z-index:220;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeVersionModal()">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative">
+    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(91,59,255,.4)">v1.1.0</div>
+    <h3 id="versionTitle" style="margin:8px 0 6px;font-size:19px;font-weight:700;color:var(--text)">版本更新</h3>
+    <p style="margin:0 0 16px;font-size:13px;color:var(--text-2)">本次更新内容</p>
+    <ul id="versionItems" style="margin:0 0 22px;padding-left:20px;color:var(--text-2);font-size:14px;line-height:1.9"></ul>
+    <button onclick="closeVersionModal()" style="width:100%;padding:13px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">我知道了 ✓</button>
+    <button onclick="closeVersionModal()" id="versionClose" style="margin-top:12px;width:100%;padding:10px;background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">暂时跳过</button>
+  </div>
+</div>
+
 <header class="hero" id="heroSection">
   <div class="bg-stage">
     <div class="orb orb-1"></div>
@@ -1149,6 +1172,44 @@
   window.copyCode = copyCode;
   window.loadCodeStock = loadCodeStock;
 
+  // ===== 版本更新通知(进入网页自动检测,版本变化才弹) =====
+  var RELEASE = {
+    version: "1.1.0",
+    title: "🧠 提示词自进化训练上线",
+    items: [
+      "你生成的每一条提示词都会自动匿名收集，用于持续训练 AI 模型，越用越准",
+      "模型会参考历史优质示例，返回更贴合你需求的提示词与视频反推结果",
+      "训练数据独立存储，仅用于改进生成质量，不影响你的账户与隐私"
+    ]
+  };
+  function checkVersion(){
+    try {
+      var seen = localStorage.getItem("fleta_seen_version");
+      if (seen === RELEASE.version) return; // 已看过此版本,不弹
+      var badge = document.getElementById("versionBadge");
+      var title = document.getElementById("versionTitle");
+      var ul = document.getElementById("versionItems");
+      if (badge) badge.textContent = "v" + RELEASE.version;
+      if (title) title.textContent = RELEASE.title;
+      if (ul) {
+        ul.innerHTML = "";
+        RELEASE.items.forEach(function(t){
+          var li = document.createElement("li");
+          li.textContent = t;
+          ul.appendChild(li);
+        });
+      }
+      var m = document.getElementById("versionModal");
+      if (m) m.style.display = "flex";
+    } catch(e){}
+  }
+  function closeVersionModal(){
+    try { localStorage.setItem("fleta_seen_version", RELEASE.version); } catch(e){}
+    var m = document.getElementById("versionModal");
+    if (m) m.style.display = "none";
+  }
+  window.closeVersionModal = closeVersionModal;
+
   // 拉取并展示邀请码库存(导航角标 + 弹窗)
   function loadCodeStock(){
     fetch("/api/code-stock", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
@@ -1169,6 +1230,8 @@
   // 页面加载时拉一次
   refreshUser();
   loadCodeStock();
+  // 进入网页自动检测版本更新通知
+  checkVersion();
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选
