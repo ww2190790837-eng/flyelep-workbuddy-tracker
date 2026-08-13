@@ -14,4 +14,16 @@
         generateValue: true
       - key: PUBLIC_URL
         value: https://flyelep-wb-tracker.onrender.com
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        value: b55b38001@smtp-brevo.com
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: ww2190790837@gmail.com
     healthCheckPath: /healthz
