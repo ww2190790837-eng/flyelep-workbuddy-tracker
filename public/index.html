@@ -504,6 +504,7 @@
   [data-theme="light"] #messageBoard h3{color:#1a1d26!important}
   [data-theme="light"] #msgNameInput,[data-theme="light"] #msgContentInput{background:#f8f9fc!important;color:#1a1d26!important;border-color:rgba(108,79,247,.2)!important}
   [data-theme="light"] .msg-item{background:#f8f9fc!important;border-color:rgba(108,79,247,.12)!important}
+  [data-theme="light"] #msgLoadMoreBtn{background:rgba(108,79,247,.05)!important;color:#4a5068!important;border-color:rgba(108,79,247,.18)!important}
 </style>
 </head>
 <body>
@@ -656,6 +657,7 @@
         <div id="msgList" style="max-height:280px;overflow-y:auto;display:flex;flex-direction-column;gap:10px;padding-right:4px"></div>
         <div id="msgLoading" style="text-align:center;padding:16px;color:var(--text-3);font-size:13px">加载中...</div>
         <div id="msgEmpty" style="display:none;text-align:center;padding:20px;color:var(--text-3);font-size:13px">暂无留言，来说第一句吧 🎤</div>
+        <button id="msgLoadMoreBtn" onclick="loadMoreMessages()" style="display:none;width:100%;margin-top:10px;padding:9px;background:rgba(255,255,255,.04);color:var(--text-2);border:1px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;transition:all .2s">加载更多 ↓</button>
       </div>
     </div>
   </div>
@@ -1273,19 +1275,38 @@
   // 进入网页自动检测版本更新通知
   checkVersion();
 
-  // ===== 留言板(实时在线) =====
+  // ===== 留言板(实时在线,支持分页) =====
+  var msgPage = 1;
+  var msgTotal = 0;
+  var msgPageSize = 20;
   function loadMessages(){
-    fetch("/api/messages?pageSize=20", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+    msgPage = 1;
+    fetchMessages(1, true);
+  }
+  function loadMoreMessages(){
+    var btn = document.getElementById("msgLoadMoreBtn");
+    if (btn) { btn.disabled=true; btn.textContent="加载中..."; }
+    fetchMessages(msgPage + 1, false);
+  }
+  function fetchMessages(page, replace){
+    fetch("/api/messages?page=" + page + "&pageSize=" + msgPageSize, {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
       var list = document.getElementById("msgList");
       var loading = document.getElementById("msgLoading");
       var empty = document.getElementById("msgEmpty");
       var count = document.getElementById("msgCount");
+      var moreBtn = document.getElementById("msgLoadMoreBtn");
       if (loading) loading.style.display = "none";
+      msgTotal = d.total;
       if (count) count.textContent = d.total + " 条留言";
       if (!list) return;
-      list.innerHTML = "";
-      if (!d.items || !d.items.length) { if (empty) empty.style.display = "block"; return; }
+      if (replace) list.innerHTML = "";
+      if (!d.items || !d.items.length) {
+        if (replace && empty) empty.style.display = "block";
+        if (moreBtn) moreBtn.style.display = "none";
+        return;
+      }
       if (empty) empty.style.display = "none";
+      msgPage = d.page;
       d.items.forEach(function(m){
         var el = document.createElement("div");
         el.className = "msg-item";
@@ -1294,7 +1315,16 @@
         el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><strong style="font-size:13px;color:var(--primary-2)">' + escHtml(m.name) + '</strong><span style="font-size:11px;color:var(--text-3);flex-shrink:0">' + timeAgo + '</span></div><p style="margin:0;font-size:13px;color:var(--text-2);line-height:1.6;word-break:break-word">' + escHtml(m.content) + '</p>';
         list.appendChild(el);
       });
-    }).catch(function(){ var l=document.getElementById("msgLoading"); if(l) l.textContent="加载失败"; });
+      // 滚动到底部(追加模式)
+      if (!replace && list) list.scrollTop = list.scrollHeight;
+      // 加载更多按钮
+      if (moreBtn) {
+        var hasMore = (d.page * d.pageSize) < d.total;
+        moreBtn.style.display = hasMore ? "block" : "none";
+        moreBtn.disabled = false;
+        moreBtn.textContent = "加载更多 ↓ (" + Math.max(0, d.total - d.page * d.pageSize) + " 条剩余)";
+      }
+    }).catch(function(){ var l=document.getElementById("msgLoading"); if(l) l.textContent="加载失败"; var b=document.getElementById("msgLoadMoreBtn"); if(b){b.disabled=false;b.textContent="加载更多 ↓";} });
   }
   function postMessage(){
     var nameInput = document.getElementById("msgNameInput");
