@@ -90,7 +90,8 @@
 <p class="sub">
   飞象 × WorkBuddy 抖音落地页数据
   · 主机:<span id="host"></span>
-  · <a href="/admin/api/export.csv">导出 CSV</a>
+  · <a href="/admin/api/export.csv">导出访问 CSV</a>
+  · <a href="/admin/api/export-clicks.csv">导出点击 CSV(含地区)</a>
   · <a href="/admin/api/reset?confirm=yes" onclick="return confirm('确定清空所有数据?')">清空</a>
 </p>
 
@@ -100,6 +101,7 @@
   <div class="kpi"><div class="label">点击 CTA 次数</div><div class="num" id="kpi-clicks">—</div></div>
   <div class="kpi"><div class="label">点击转化率</div><div class="num" id="kpi-cvr">—</div></div>
   <div class="kpi"><div class="label">注册用户</div><div class="num" id="kpi-users">—</div></div>
+  <div class="kpi"><div class="label">覆盖地区</div><div class="num" id="kpi-regions">—</div></div>
 </div>
 
 <div class="builder">
@@ -148,6 +150,17 @@
   <div id="clicksByTarget"></div>
 </div>
 
+<div class="row">
+  <div class="panel">
+    <h2>访问按地区 (IP) <span class="pill" id="byRegionCount"></span></h2>
+    <div id="byRegion"></div>
+  </div>
+  <div class="panel">
+    <h2>点击按地区 (IP) <span class="pill" id="clicksByRegionCount"></span></h2>
+    <div id="clicksByRegion"></div>
+  </div>
+</div>
+
 <div class="panel">
   <h2>注册用户管理 <span class="pill" id="usersCount"></span></h2>
   <div style="overflow-x:auto">
@@ -159,13 +172,13 @@
   <div class="panel">
     <h2>最近 50 次访问</h2>
     <div style="overflow-x:auto">
-      <table id="t-visits"><thead><tr><th>时间</th><th>来源</th><th>活动</th><th>内容</th><th>UV</th><th>UA</th></tr></thead><tbody></tbody></table>
+      <table id="t-visits"><thead><tr><th>时间</th><th>来源</th><th>活动</th><th>内容</th><th>地区</th><th>UV</th><th>UA</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
   <div class="panel">
     <h2>最近 50 次点击</h2>
     <div style="overflow-x:auto">
-      <table id="t-clicks"><thead><tr><th>时间</th><th>来源</th><th>活动</th><th>目标</th><th>标签</th></tr></thead><tbody></tbody></table>
+      <table id="t-clicks"><thead><tr><th>时间</th><th>来源</th><th>活动</th><th>目标</th><th>标签</th><th>地区</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
 </div>
@@ -217,11 +230,14 @@
       $('kpi-clicks').textContent = d.clicks;
       $('kpi-cvr').textContent = d.cvr + '%';
       $('kpi-users').textContent = d.userCount || 0;
+      $('kpi-regions').textContent = d.regionCount || 0;
       renderBars('bySource', d.bySource, 'bySourceCount');
       renderBars('byMedium', d.byMedium, 'byMediumCount');
       renderBars('byCampaign', d.byCampaign, 'byCampaignCount');
       renderBars('byContent', d.byContent, 'byContentCount');
       renderBars('clicksByTarget', d.clicksByTarget, 'clicksByTargetCount');
+      renderBars('byRegion', d.byRegion, 'byRegionCount');
+      renderBars('clicksByRegion', d.clicksByRegion, 'clicksByRegionCount');
       // chart
       const ch = $('byDay');
       $('byDayCount').textContent = d.byDay.length + ' 天';
@@ -237,9 +253,10 @@
         <td>${esc(r.utm_source)||'(direct)'}</td>
         <td>${esc(r.utm_campaign)||'-'}</td>
         <td>${esc(r.utm_content)||'-'}</td>
+        <td>${esc(r.region)||'未知'}</td>
         <td>${r.unique?'✓':''}</td>
         <td title="${esc(r.ua)}">${esc((r.ua||'').slice(0,40))}</td>
-      </tr>`).join('') || '<tr><td colspan="6" class="empty">暂无访问</td></tr>';
+      </tr>`).join('') || '<tr><td colspan="7" class="empty">暂无访问</td></tr>';
       const tc = $('t-clicks').querySelector('tbody');
       tc.innerHTML = d.recentClicks.map(r => `<tr>
         <td>${esc(fmtTime(r.ts))}</td>
@@ -247,7 +264,8 @@
         <td>${esc(r.utm_campaign)||'-'}</td>
         <td>${esc(r.target)}</td>
         <td>${esc(r.label)}</td>
-      </tr>`).join('') || '<tr><td colspan="5" class="empty">暂无点击</td></tr>';
+        <td>${esc(r.region)||'未知'}</td>
+      </tr>`).join('') || '<tr><td colspan="6" class="empty">暂无点击</td></tr>';
     }catch(e){
       document.body.insertAdjacentHTML('afterbegin', '<div class="panel" style="border-color:var(--danger);color:#fca5a5">加载失败:'+esc(e.message)+'</div>');
     }

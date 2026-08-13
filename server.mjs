@@ -8,6 +8,7 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import crypto from "node:crypto";
+import IP2RegionPkg from "ip2region";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -173,6 +174,26 @@ async function deleteUserById(id) {
 
 function hash(s) { return crypto.createHash("sha256").update(s).digest("hex").slice(0, 16); }
 function getClientIp(req) { return (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress || ""; }
+
+// ===== IP 地区解析 (ip2region 离线库, 国内到省/市, 国外到国家) =====
+const IP2Region = IP2RegionPkg.default || IP2RegionPkg;
+let regionSearcher = null;
+try { regionSearcher = new IP2Region(); } catch (e) { console.warn("[geo] ip2region 初始化失败, 地区统计将不可用:", e.message); }
+function resolveRegion(ip) {
+  if (!ip || !regionSearcher) return "";
+  let v = ip.trim();
+  if (v.startsWith("::ffff:")) v = v.slice(7);
+  if (v === "::1" || v === "127.0.0.1" || v === "localhost") return "内网/本地";
+  try {
+    const r = regionSearcher.search(v);
+    const country = (r && r.country) || "";
+    const province = (r && r.province) || "";
+    const city = (r && r.city) || "";
+    if (country === "中国") return province || "中国";
+    if (country) return country;
+    return "未知";
+  } catch (e) { return "未知"; }
+}
 function getUtm(q) {
   return {
     utm_source: q.utm_source || "", utm_medium: q.utm_medium || "", utm_campaign: q.utm_campaign || "",
@@ -286,7 +307,7 @@ app.get("/t.gif", (req, res) => {
   const vid = (req.cookies && req.cookies.vid) || hash(ip + ua);
   const isUnique = !(req.cookies && req.cookies.vid);
   const userId = req.session.userId || null;
-  db.visits.push({ ts: Date.now(), ip, ua, referer: ref, path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
+  db.visits.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua, referer: ref, path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
   if (db.visits.length > 20000) db.visits = db.visits.slice(-20000);
   saveDB();
   if (isUnique) { res.cookie("vid", vid, { maxAge: 30 * 24 * 3600 * 1000, sameSite: "lax" }); }
@@ -303,7 +324,7 @@ app.post("/api/click", (req, res) => {
   const u = getUtm({ ...req.query, ...req.body });
   const { target, label } = req.body || {};
   const userId = req.session.userId || null;
-  db.clicks.push({ ts: Date.now(), vid, ...u, target: target || "", label: label || "", userId });
+  db.clicks.push({ ts: Date.now(), ip, region: resolveRegion(ip), vid, ...u, target: target || "", label: label || "", userId });
   if (db.clicks.length > 20000) db.clicks = db.clicks.slice(-20000);
   saveDB();
   res.json({ ok: true });
@@ -334,6 +355,9 @@ app.get("/admin/api/stats", requireAdmin, async (req, res) => {
     byCampaign: groupBy(db.visits, "utm_campaign", "(none)"),
     byContent: groupBy(db.visits, "utm_content", "(none)"),
     clicksByTarget: groupBy(db.clicks, "target", "(unknown)"),
+    byRegion: groupBy(db.visits, "region", "(未知/历史)"),
+    clicksByRegion: groupBy(db.clicks, "region", "(未知/历史)"),
+    regionCount: new Set([...db.visits, ...db.clicks].map(x => x.region).filter(x => x && x !== "未知" && x !== "内网/本地")).size,
     recent: db.visits.slice(-50).reverse(),
     recentClicks: db.clicks.slice(-50).reverse(),
     byDay: groupByDay(db.visits),
@@ -357,12 +381,22 @@ app.get("/admin/api/reset", requireAdmin, (req, res) => {
 });
 app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
   const v = db.visits;
-  const header = ["id", "time", "ip", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "path", "referer", "is_unique", "user_id"];
+  const header = ["id", "time", "ip", "region", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "path", "referer", "is_unique", "user_id"];
   const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
   const lines = [header.join(",")];
-  v.forEach((r, i) => { lines.push([i + 1, new Date(r.ts).toISOString(), r.ip, r.utm_source, r.utm_medium, r.utm_campaign, r.utm_content, r.utm_term, r.path, r.referer, r.unique, r.userId].map(esc).join(",")); });
+  v.forEach((r, i) => { lines.push([i + 1, new Date(r.ts).toISOString(), r.ip, r.region, r.utm_source, r.utm_medium, r.utm_campaign, r.utm_content, r.utm_term, r.path, r.referer, r.unique, r.userId].map(esc).join(",")); });
   res.set("Content-Type", "text/csv;charset=utf-8");
   res.set("Content-Disposition", "attachment; filename=visits.csv");
+  res.send("\uFEFF" + lines.join("\n"));
+});
+app.get("/admin/api/export-clicks.csv", requireAdmin, (req, res) => {
+  const c = db.clicks;
+  const header = ["id", "time", "ip", "region", "utm_source", "utm_medium", "utm_campaign", "utm_content", "target", "label", "user_id"];
+  const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
+  const lines = [header.join(",")];
+  c.forEach((r, i) => { lines.push([i + 1, new Date(r.ts).toISOString(), r.ip, r.region, r.utm_source, r.utm_medium, r.utm_campaign, r.utm_content, r.target, r.label, r.userId].map(esc).join(",")); });
+  res.set("Content-Type", "text/csv;charset=utf-8");
+  res.set("Content-Disposition", "attachment; filename=clicks.csv");
   res.send("\uFEFF" + lines.join("\n"));
 });
 
