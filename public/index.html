@@ -496,6 +496,14 @@
   [data-theme="light"] #versionModal li{color:#4a5068!important}
   [data-theme="light"] #versionModal button:not(#versionClose){background:var(--gradient)!important;color:#fff!important}
   [data-theme="light"] #versionClose{color:#4a5068!important;border:1px solid rgba(108,79,247,.25)!important}
+  /* 公告栏 + 留言板 浅色适配 */
+  [data-theme="light"] #announcementBar{background:linear-gradient(135deg,rgba(108,79,247,.08),rgba(232,58,130,.06))!important;border-color:rgba(108,79,247,.18)!important;box-shadow:0 4px 16px rgba(108,79,247,.06)!important}
+  [data-theme="light"] #announcementBar strong{color:#6c4ff7!important}
+  [data-theme="light"] #announcementBar p{color:#4a5068!important}
+  [data-theme="light"] #messageBoard > div{background:#fff!important;border-color:rgba(108,79,247,.15)!important;box-shadow:0 8px 32px rgba(108,79,247,.08)!important}
+  [data-theme="light"] #messageBoard h3{color:#1a1d26!important}
+  [data-theme="light"] #msgNameInput,[data-theme="light"] #msgContentInput{background:#f8f9fc!important;color:#1a1d26!important;border-color:rgba(108,79,247,.2)!important}
+  [data-theme="light"] .msg-item{background:#f8f9fc!important;border-color:rgba(108,79,247,.12)!important}
 </style>
 </head>
 <body>
@@ -620,6 +628,35 @@
     <div class="cta-row reveal d3">
       <a class="btn btn-primary" href="#prompt-gen">✨ 开始生成提示词</a>
       <a class="btn btn-ghost" href="#video-reverse">🎬 视频反推</a>
+    </div>
+
+    <!-- 公告栏 -->
+    <div id="announcementBar" class="reveal d4" style="margin-top:28px;max-width:560px;margin-left:auto;margin-right:auto;background:linear-gradient(135deg,rgba(108,79,247,.12),rgba(232,58,130,.10));border:1px solid rgba(108,79,247,.2);border-radius:12px;padding:14px 20px;display:flex;align-items:flex-start;gap:12px">
+      <span style="font-size:18px;line-height:1;flex-shrink:0">📢</span>
+      <div style="flex:1;min-width:0">
+        <strong style="font-size:13px;color:var(--primary-2);display:block;margin-bottom:3px">版本更新 · v1.1.0</strong>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0">提示词自进化训练已上线 — 你生成的每条提示词都会自动匿名收集，用于持续训练 AI 模型，越用越准 ✨</p>
+      </div>
+      <button onclick="this.parentElement.style.display='none'" style="flex-shrink:0;background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="关闭公告">×</button>
+    </div>
+
+    <!-- 留言板 -->
+    <div id="messageBoard" class="reveal d5" style="margin-top:22px;max-width:560px;margin-left:auto;margin-right:auto">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.15)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--text)">💬 在线留言板</h3>
+          <span id="msgCount" style="font-size:12px;color:var(--text-3)">-- 条留言</span>
+        </div>
+        <p style="margin:0 0 12px;font-size:12px;color:var(--text-3);line-height:1.5">欢迎反馈 Bug、提出新功能建议或随便聊聊 💡</p>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input id="msgNameInput" placeholder="昵称(选填)" maxlength="30" style="flex:0 0 110px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+          <input id="msgContentInput" placeholder="说点什么..." maxlength="300" style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')postMessage()">
+          <button onclick="postMessage()" id="msgSendBtn" style="padding:9px 16px;border-radius:9px;background:var(--gradient);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s">发送</button>
+        </div>
+        <div id="msgList" style="max-height:280px;overflow-y:auto;display:flex;flex-direction-column;gap:10px;padding-right:4px"></div>
+        <div id="msgLoading" style="text-align:center;padding:16px;color:var(--text-3);font-size:13px">加载中...</div>
+        <div id="msgEmpty" style="display:none;text-align:center;padding:20px;color:var(--text-3);font-size:13px">暂无留言，来说第一句吧 🎤</div>
+      </div>
     </div>
   </div>
 </header>
@@ -1235,6 +1272,62 @@
   loadCodeStock();
   // 进入网页自动检测版本更新通知
   checkVersion();
+
+  // ===== 留言板(实时在线) =====
+  function loadMessages(){
+    fetch("/api/messages?pageSize=20", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+      var list = document.getElementById("msgList");
+      var loading = document.getElementById("msgLoading");
+      var empty = document.getElementById("msgEmpty");
+      var count = document.getElementById("msgCount");
+      if (loading) loading.style.display = "none";
+      if (count) count.textContent = d.total + " 条留言";
+      if (!list) return;
+      list.innerHTML = "";
+      if (!d.items || !d.items.length) { if (empty) empty.style.display = "block"; return; }
+      if (empty) empty.style.display = "none";
+      d.items.forEach(function(m){
+        var el = document.createElement("div");
+        el.className = "msg-item";
+        el.style.cssText = "background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px";
+        var timeAgo = formatTimeAgo(m.ts);
+        el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><strong style="font-size:13px;color:var(--primary-2)">' + escHtml(m.name) + '</strong><span style="font-size:11px;color:var(--text-3);flex-shrink:0">' + timeAgo + '</span></div><p style="margin:0;font-size:13px;color:var(--text-2);line-height:1.6;word-break:break-word">' + escHtml(m.content) + '</p>';
+        list.appendChild(el);
+      });
+    }).catch(function(){ var l=document.getElementById("msgLoading"); if(l) l.textContent="加载失败"; });
+  }
+  function postMessage(){
+    var nameInput = document.getElementById("msgNameInput");
+    var contentInput = document.getElementById("msgContentInput");
+    var btn = document.getElementById("msgSendBtn");
+    var content = (contentInput ? contentInput.value : "").trim();
+    var name = (nameInput ? nameInput.value : "").trim();
+    if (!content || content.length < 2) { if(contentInput) contentInput.style.borderColor="#ef4444"; setTimeout(function(){ if(contentInput) contentInput.style.borderColor=""; },1500); return; }
+    if (btn) { btn.disabled=true; btn.textContent="发送中..."; }
+    fetch("/api/messages", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name:name,content:content})}).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) {
+        if (contentInput) contentInput.value = "";
+        loadMessages();
+      } else {
+        alert(d.error || "发送失败");
+      }
+    }).catch(function(){ alert("网络异常"); }).finally(function(){
+      if (btn) { btn.disabled=false; btn.textContent="发送"; }
+    });
+  }
+  // 工具:HTML 转义
+  function escHtml(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+  // 工具:相对时间
+  function formatTimeAgo(ts){
+    var diff = Date.now() - ts;
+    if (diff < 60000) return "刚刚";
+    if (diff < 3600000) return Math.floor(diff/60000) + " 分钟前";
+    if (diff < 86400000) return Math.floor(diff/3600000) + " 小时前";
+    if (diff < 604800000) return Math.floor(diff/86400000) + " 天前";
+    var dt=new Date(ts); return (dt.getMonth()+1)+"-"+dt.getDate()+" "+dt.getHours().toString().padStart(2,"0")+":"+dt.getMinutes().toString().padStart(2,"0");
+  }
+  window.postMessage = postMessage;
+  loadMessages();
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选

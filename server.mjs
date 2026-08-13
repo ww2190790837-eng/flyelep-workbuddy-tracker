@@ -89,6 +89,7 @@ const CODES_GIST_FILENAME = "flyelep_codes.json";
 const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
 const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
 const PROMPTS_GIST_FILENAME = "flyelep_prompts.json"; // 提示词训练语料(独立文件)
+const MESSAGES_GIST_FILENAME = "flyelep_messages.json"; // 留言板数据(独立文件)
 // 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
 const MAX_TRACK = 2500;
 let usingGist = false;
@@ -195,6 +196,26 @@ async function gistPushPrompts() {
     body: JSON.stringify({ files: { [PROMPTS_GIST_FILENAME]: { content: JSON.stringify(promptCache) } } })
   });
   if (!r.ok) throw new Error("gist push prompts " + r.status);
+}
+// ===== 留言板 Gist 持久化 =====
+let messages = []; // {id, name, content, ts, ip}
+const MAX_MESSAGES = 500;
+async function gistFetchMessages() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch messages " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[MESSAGES_GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : [];
+}
+async function gistPushMessages() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [MESSAGES_GIST_FILENAME]: { content: JSON.stringify(messages.slice(0, MAX_MESSAGES)) } } })
+  });
+  if (!r.ok) throw new Error("gist push messages " + r.status);
 }
 // 收集一条生成记录(自动去重:相同 idea+prompt 不重复存)
 function collectPrompt({ idea, duration, mode, imagesCount, prompt, userId }) {
@@ -436,6 +457,16 @@ async function initUsersStore() {
       } catch (e) {
         console.error("[prompts] Gist 读取失败,使用本地:", e.message);
         promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
+      }
+      // 留言板:优先读 Gist
+      try {
+        const gm = await gistFetchMessages();
+        if (gm && Array.isArray(gm)) {
+          messages = gm.slice(0, MAX_MESSAGES);
+          console.log(`[messages] 已从 Gist 恢复(${messages.length} 条)`);
+        }
+      } catch (e) {
+        console.error("[messages] Gist 读取失败:", e.message);
       }
       return;
     } catch (e) {
@@ -754,6 +785,35 @@ app.get("/t.gif", (req, res) => {
   res.set("Content-Type", "image/gif");
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.send(Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64"));
+});
+
+// ===== 留言板 API(公开,无需登录) =====
+app.get("/api/messages", (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const pageSize = Math.min(30, Math.max(5, parseInt(req.query.pageSize) || 20));
+  const start = (page - 1) * pageSize;
+  const sorted = [...messages].sort((a, b) => b.ts - a.ts);
+  const items = sorted.slice(start, start + pageSize);
+  res.json({ total: messages.length, page, pageSize, items });
+});
+app.post("/api/messages", express.json({ limit: "2kb" }), async (req, res) => {
+  const content = (req.body.content || "").trim().slice(0, 300);
+  const name = (req.body.name || "").trim().slice(0, 30);
+  if (!content) return res.status(400).json({ ok: false, error: "留言内容不能为空" });
+  if (content.length < 2) return res.status(400).json({ ok: false, error: "留言内容至少 2 个字" });
+  const msg = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name: name || "匿名用户",
+    content,
+    ts: Date.now(),
+    ip: getClientIp(req),
+  };
+  messages.push(msg);
+  // 超上限裁剪
+  if (messages.length > MAX_MESSAGES) messages = messages.slice(-MAX_MESSAGES);
+  // 异步落 Gist(不阻塞响应)
+  gistPushMessages().catch(e => console.error("[messages] Gist 落盘失败:", e.message));
+  res.json({ ok: true, msg: { id: msg.id, name: msg.name, content: msg.content, ts: msg.ts } });
 });
 
 app.post("/api/click", (req, res) => {
