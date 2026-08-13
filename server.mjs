@@ -521,8 +521,34 @@ app.get("/admin/api/reset", requireAdmin, async (req, res) => {
   } else saveJSON(DB_FILE, db);
   res.json({ ok: true });
 });
+// 强制用本地正确码表覆盖 Gist + 清除所有历史领取记录(码错时使用)
+app.get("/admin/api/resync-codes", requireAdmin, async (req, res) => {
+  if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
+  // 1) 从本地文件重新加载正确码表(修正 OCR 错误后)
+  const fresh = loadJSON(CODES_FILE, { pool: [] });
+  // 2) 清除所有领取记录(之前领的是错的码,不算)
+  fresh.pool.forEach(c => { c.claimedBy = null; c.claimedAt = null; });
+  codes = fresh;
+  if (usingGist) {
+    try {
+      await gistPushCodes(codes);
+      console.log(`[codes] 已强制同步 ${codes.pool.length} 个正确码到 Gist(全部未领)`);
+    } catch (e) { return res.status(500).json({ ok: false, error: "Gist 同步失败: " + e.message }); }
+  }
+  // 3) 清除所有已领用户的 claimedCode(让他们可以重新领正确的码)
+  let cleared = 0;
+  const allUsers = usingGist ? gistCache : loadJSON(USERS_FILE, []);
+  for (const u of allUsers) {
+    if (u.claimedCode) { u.claimedCode = null; cleared++; }
+  }
+  if (usingGist && cleared > 0) {
+    try { await gistPush(allUsers); } catch (e) { console.error("[users] 清除 claimedCode 失败:", e.message); }
+  } else if (!usingGist && cleared > 0) {
+    saveUsers(allUsers);
+  }
+  res.json({ ok: true, totalCodes: codes.pool.length, clearedUsers: cleared });
+});
 app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
-  const v = db.visits;
   const header = ["id", "time", "ip", "region", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "path", "referer", "is_unique", "user_id"];
   const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
   const lines = [header.join(",")];
