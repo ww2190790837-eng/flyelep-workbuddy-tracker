@@ -1,11 +1,11 @@
-﻿# Flyelep × WorkBuddy Tracker 启动脚本
+﻿# Fleta × WorkBuddy Tracker 启动脚本
 # 用法:右键以 PowerShell 运行,或者 .\start.ps1
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $root
 
-Write-Host "=== Flyelep × WorkBuddy Tracker ===" -ForegroundColor Cyan
+Write-Host "=== Fleta × WorkBuddy Tracker ===" -ForegroundColor Cyan
 Write-Host "工作目录: $root"
 
 # 检查 Node

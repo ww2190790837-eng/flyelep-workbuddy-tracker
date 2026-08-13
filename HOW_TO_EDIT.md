@@ -18,7 +18,7 @@
 
 ```
 顶部 banner  → 搜:抖音评论区专属入口
-品牌名      → 搜:Flyelep 飞象 / 腾讯 WorkBuddy
+品牌名      → 搜:Fleta / 腾讯 WorkBuddy
 主标题      → 搜:h1 (一个管"脸面"...)
 痛点板块    → 搜:pain-item
 平台徽章    → 搜:platforms
@@ -53,7 +53,7 @@ FAQ 问答    → 搜:faq-item
 ✅ push 成功
 (30s) 状态: live
 ✅ 新版本已上线!
-🌐 https://flyelep-wb-tracker.onrender.com
+🌐 https://fleta-ai.onrender.com
 ```
 
 ## 🛠 常用操作速查
@@ -80,7 +80,7 @@ FAQ 问答    → 搜:faq-item
 - publish
 
 ### 5. 看数据
-- 打开 [https://flyelep-wb-tracker.onrender.com/admin/?token=codex2026](https://flyelep-wb-tracker.onrender.com/admin/?token=codex2026)
+- 打开 [https://fleta-ai.onrender.com/admin/?token=codex2026](https://fleta-ai.onrender.com/admin/?token=codex2026)
 - 或访问 `/admin/api/export.csv?token=codex2026` 下载完整 CSV
 
 ## ⚠️ 不要改的地方
@@ -103,10 +103,10 @@ FAQ 问答    → 搜:faq-item
 
 | | 链接 |
 |---|---|
-| 落地页 | https://flyelep-wb-tracker.onrender.com |
-| 带 UTM 模板 | https://flyelep-wb-tracker.onrender.com/?utm_source=douyin&utm_medium=video&utm_campaign=flyelep_wb&utm_content=v1 |
-| 后台 | https://flyelep-wb-tracker.onrender.com/admin/?token=codex2026 |
-| 后台 API | https://flyelep-wb-tracker.onrender.com/admin/api/stats?token=codex2026 |
-| 健康检查 | https://flyelep-wb-tracker.onrender.com/healthz |
+| 落地页 | https://fleta-ai.onrender.com |
+| 带 UTM 模板 | https://fleta-ai.onrender.com/?utm_source=douyin&utm_medium=video&utm_campaign=fleta_ai&utm_content=v1 |
+| 后台 | https://fleta-ai.onrender.com/admin/?token=codex2026 |
+| 后台 API | https://fleta-ai.onrender.com/admin/api/stats?token=codex2026 |
+| 健康检查 | https://fleta-ai.onrender.com/healthz |
 | Render 控制台 | https://dashboard.render.com/web/srv-d9k5uvnavr4c73a97rrg |
 | GitHub 仓库 | https://github.com/ww2190790837-eng/flyelep-workbuddy-tracker |

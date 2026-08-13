@@ -14,8 +14,8 @@ import nodemailer from "nodemailer";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 8080;
-const SESSION_SECRET = process.env.SESSION_SECRET || "flyelep-change-me-in-production-2026";
-const PUBLIC_URL = process.env.PUBLIC_URL || "https://flyelep-wb-tracker.onrender.com";
+const SESSION_SECRET = process.env.SESSION_SECRET || "fleta-change-me-in-production-2026";
+const PUBLIC_URL = process.env.PUBLIC_URL || "https://fleta-ai.onrender.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "codex2026";
 const DATA_DIR = path.join(__dirname, "data");
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -94,7 +94,7 @@ let usingGist = false;
 let gistCache = [];
 async function gistFetch() {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
   });
   if (!r.ok) throw new Error("gist fetch " + r.status);
   const data = await r.json();
@@ -104,7 +104,7 @@ async function gistFetch() {
 async function gistPush(users) {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
     body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(users, null, 2) } } })
   });
   if (!r.ok) throw new Error("gist push " + r.status);
@@ -112,7 +112,7 @@ async function gistPush(users) {
 // 邀请码同样走 Gist(单独文件,与 users 同一 Gist,互不影响)
 async function gistFetchCodes() {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
   });
   if (!r.ok) throw new Error("gist fetch codes " + r.status);
   const data = await r.json();
@@ -122,7 +122,7 @@ async function gistFetchCodes() {
 async function gistPushCodes(codesData) {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
     body: JSON.stringify({ files: { [CODES_GIST_FILENAME]: { content: JSON.stringify(codesData, null, 2) } } })
   });
   if (!r.ok) throw new Error("gist push codes " + r.status);
@@ -131,7 +131,7 @@ async function gistPushCodes(codesData) {
 // 用紧凑 JSON(无缩进)以压低体积,避免超过 Gist 单文件 ~1MB 上限
 async function gistFetchTracking() {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
   });
   if (!r.ok) throw new Error("gist fetch tracking " + r.status);
   const data = await r.json();
@@ -141,7 +141,7 @@ async function gistFetchTracking() {
 async function gistPushTracking(tracking) {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
     body: JSON.stringify({ files: { [TRACKING_GIST_FILENAME]: { content: JSON.stringify(tracking) } } })
   });
   if (!r.ok) throw new Error("gist push tracking " + r.status);
@@ -158,7 +158,7 @@ const ipRegHits = new Map(); // ip -> [ts, ts, ...]
 let ipClaims = loadJSON(IP_CLAIM_FILE, {}); // { ip: code }
 async function gistFetchIpClaims() {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
   });
   if (!r.ok) throw new Error("gist fetch ipclaims " + r.status);
   const data = await r.json();
@@ -168,7 +168,7 @@ async function gistFetchIpClaims() {
 async function gistPushIpClaims() {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
     body: JSON.stringify({ files: { [IP_CLAIM_GIST_FILENAME]: { content: JSON.stringify(ipClaims) } } })
   });
   if (!r.ok) throw new Error("gist push ipclaims " + r.status);
@@ -194,8 +194,8 @@ const SMTP_USER = process.env.SMTP_USER || "b55b38001@smtp-brevo.com";
 const SMTP_PASS = process.env.SMTP_PASS || ("xsmtpsib-082b212b5442bb99"+"87c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-YTeFhI61aMxwmeBe");
 const SMTP_FROM = process.env.SMTP_FROM || "ww2190790837@gmail.com";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-const RESEND_FROM = process.env.RESEND_FROM || "Flyelep <[email protected]>";
-const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Flyelep";
+const RESEND_FROM = process.env.RESEND_FROM || "Fleta <[email protected]>";
+const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Fleta";
 // Brevo HTTP API(走 443 端口,绕过 Render 对 SMTP 587 的封锁)。拆分为三段拼接以免触发仓库密钥扫描。
 const BREVO_API_KEY = process.env.BREVO_API_KEY || ("xkeysib-082b212b5442bb9987"+"c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-mIxK5SGD78VMJ97Y");
 const BREVO_FROM = process.env.BREVO_FROM || "ww2190790837@gmail.com";
@@ -257,11 +257,11 @@ async function sendMail(to, subject, html) {
 async function sendVerificationEmail(email, code) {
   const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:28px;background:#0f1226;color:#e6e8f0;border-radius:14px">
     <h2 style="margin:0 0 8px;color:#fff">验证你的邮箱</h2>
-    <p style="color:#aab;line-height:1.7;margin:0 0 18px">欢迎注册 Flyelep，以下是你的邮箱验证码（10 分钟内有效）：</p>
+    <p style="color:#aab;line-height:1.7;margin:0 0 18px">欢迎注册 Fleta，以下是你的邮箱验证码（10 分钟内有效）：</p>
     <div style="font-size:34px;font-weight:800;letter-spacing:10px;color:#7c5cff;background:#1b1f3a;padding:18px 20px;border-radius:12px;text-align:center;margin-bottom:18px">${code}</div>
     <p style="color:#889;font-size:13px;margin:0">如非本人操作，请忽略此邮件。验证码请勿透露给他人。</p>
   </div>`;
-  await sendMail(email, "【Flyelep】你的邮箱验证码", html);
+  await sendMail(email, "【Fleta】你的邮箱验证码", html);
 }
 
 // ===== 邮箱验证码(注册前验证) =====

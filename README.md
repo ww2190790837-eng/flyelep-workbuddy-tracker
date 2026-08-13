@@ -1,4 +1,4 @@
-﻿# 飞象 × WorkBuddy 抖音落地页 + UTM 后台
+﻿# Fleta × WorkBuddy 抖音落地页 + UTM 后台
 
 ## 项目结构
 
@@ -71,14 +71,14 @@ docker run -d -p 8080:8080 \
 
 链接模板:
 ```
-https://你的域名/?utm_source=douyin&utm_medium=video&utm_campaign=flyelep_wb&utm_content=v1
+https://你的域名/?utm_source=douyin&utm_medium=video&utm_campaign=fleta_ai&utm_content=v1
 ```
 
 | 参数 | 含义 | 示例 |
 |---|---|---|
 | utm_source | 来源 | douyin / kuaishou / xiaohongshu |
 | utm_medium | 媒介 | video / live / bio / story |
-| utm_campaign | 活动 | flyelep_wb_v1 / q3_launch |
+| utm_campaign | 活动 | fleta_ai_v1 / q3_launch |
 | utm_content | 内容 | 60s_hero / 30s_lite |
 | utm_term | 关键词(选填) | amazon / tiktok |
 

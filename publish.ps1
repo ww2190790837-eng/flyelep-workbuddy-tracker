@@ -83,7 +83,7 @@ while ($elapsed -lt $WaitRenderSec) {
 
 # 6. 验证
 Write-Host ""
-$publicUrl = "https://flyelep-wb-tracker.onrender.com"
+$publicUrl = "https://fleta-ai.onrender.com"
 try {
   $r = Invoke-WebRequest -Uri "$publicUrl/healthz" -UseBasicParsing -TimeoutSec 60
   if ($r.StatusCode -eq 200) {

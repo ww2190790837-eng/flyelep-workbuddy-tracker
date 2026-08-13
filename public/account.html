@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#5b3bff" />
-<title>我的账户 · Flyelep</title>
-<link rel="icon" href="https://flyelep.cn/linkLogo.png" type="image/png" />
+<title>我的账户 · Fleta</title>
+<link rel="icon" href="/logo.svg" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -148,8 +148,8 @@
 <nav class="top-nav">
   <div class="wrap top-nav-inner">
     <a class="nav-logo" href="/">
-      <img src="/logo.png" alt="Flyelep" />
-      <span>Flyelep</span>
+      <img src="/logo.svg" alt="Fleta" />
+      <span>Fleta</span>
     </a>
     <a class="nav-back" href="/">← 返回首页</a>
   </div>
@@ -162,7 +162,7 @@
 </main>
 
 <footer>
-  <div class="wrap">© 2026 Flyelep · 跨境电商 AI 内容设计平台 · 与腾讯 WorkBuddy 战略合作</div>
+  <div class="wrap">© 2026 Fleta · 跨境电商 AI 内容设计平台 · 与腾讯 WorkBuddy 战略合作</div>
 </footer>
 
 <div class="modal" id="pwModal">
@@ -265,13 +265,13 @@ async function init(){
           <div class="member-ava" id="memberAva">${avatarHtml(u)}</div>
           <div class="member-info">
             <span class="member-tier">${plan.name}</span>
-            <div class="member-name" id="memberName">${u.name||"飞象用户"}</div>
+            <div class="member-name" id="memberName">${u.name||"Fleta用户"}</div>
             <div class="member-mail">${u.email}</div>
             <div class="member-meta">自 ${fmtDate(u.createdAt||Date.now())} 加入 · 会员 ${memberDays} 天</div>
           </div>
         </div>
         <div class="member-right">
-          <a class="btn-upgrade" href="https://flyelep.cn#pricing" target="_blank" rel="noopener">${plan.upgrade} →</a>
+          <a class="btn-upgrade" href="/" target="_blank" rel="noopener">${plan.upgrade} →</a>
         </div>
       </div>
       <div class="stats">
@@ -286,11 +286,11 @@ async function init(){
       <div class="section">
         <h3><span class="dot"></span>我的创作工具</h3>
         <div class="tools">
-          <a class="tool" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">
+          <a class="tool" href="/" target="_blank" rel="noopener">
             <div class="ti">🎨</div><h4>AI 海报生成</h4><p>1 分钟出高转化主图与海报</p></a>
-          <a class="tool" href="https://flyelep.cn/agent/detailPage" target="_blank" rel="noopener">
+          <a class="tool" href="/" target="_blank" rel="noopener">
             <div class="ti">📄</div><h4>详情页设计</h4><p>多平台规范自动适配</p></a>
-          <a class="tool" href="https://flyelep.cn/agent/inspiration" target="_blank" rel="noopener">
+          <a class="tool" href="/" target="_blank" rel="noopener">
             <div class="ti">💡</div><h4>灵感设计</h4><p>爆款素材库一键复用</p></a>
         </div>
       </div>
@@ -300,7 +300,7 @@ async function init(){
       <div class="section">
         <h3><span class="dot"></span>近期动态</h3>
         <div class="timeline">
-          <div class="tl-item"><div class="tl-title">账户注册成功</div><div class="tl-time">${fmtDate(u.createdAt||Date.now())} · 欢迎加入 Flyelep</div></div>
+          <div class="tl-item"><div class="tl-title">账户注册成功</div><div class="tl-time">${fmtDate(u.createdAt||Date.now())} · 欢迎加入 Fleta</div></div>
           <div class="tl-item"><div class="tl-title">最近登录</div><div class="tl-time">${rel(u.lastLoginAt||Date.now())} · IP 地区已记录</div></div>
           <div class="tl-item"><div class="tl-title">绑定邮箱 ${u.email}</div><div class="tl-time">可用于找回密码与接收通知</div></div>
         </div>
@@ -346,7 +346,7 @@ async function init(){
           <div class="set-val" style="font-family:'JetBrains Mono',monospace;font-size:12px">${u.id}</div>
         </div>
         <div style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap">
-          <a class="btn-ghost" href="https://flyelep.cn" target="_blank" rel="noopener">访问官网</a>
+          <a class="btn-ghost" href="/" target="_blank" rel="noopener">访问官网</a>
           <button class="btn-danger" id="logoutBtn">退出登录</button>
         </div>
       </div>
