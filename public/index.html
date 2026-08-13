@@ -410,11 +410,22 @@
   [data-theme="light"] #authClose,
   [data-theme="light"] #codeClose{
     background:rgba(0,0,0,.06)!important;
-    color:#8890a8!important;
+    color:#1a1d26!important;
     border-radius:50%
   }
   [data-theme="light"] #authClose:hover,
-  [data-theme="light"] #codeClose:hover{background:rgba(0,0,0,.12)!important;color:#4a5068!important}
+  [data-theme="light"] #codeClose:hover{background:rgba(0,0,0,.12)!important;color:#1a1d26!important}
+  /* 底部"关闭"文字按钮 - 浅色模式下确保可见 */
+  [data-theme="light"] #codeClose[style*="border-radius:10px"],
+  [data-theme="light"] #codeClose[style*="width:100%"]{
+    background:#f0f1f5!important;
+    color:#1a1d26!important;
+    border-color:var(--border-2)!important;
+    border-radius:10px!important
+  }
+  [data-theme="light"] #codeClose[style*="width:100%"]:hover{
+    background:#e4e5eb!important
+  }
   [data-theme="light"] #authModal input[type=email],
   [data-theme="light"] #authModal input[type=password],
   [data-theme="light"] #authModal input[type=text]{
@@ -537,7 +548,7 @@
       <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">70 张图片生成积分</strong>，每个账户限领一次。</p>
       <button onclick="closeCodeModal();document.getElementById('navAuthLink').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>
     </div>
-    <button onclick="closeCodeModal()" style="margin-top:14px;width:100%;padding:10px;background:transparent;color:var(--text-3);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">关闭</button>
+    <button onclick="closeCodeModal()" id="codeClose" style="margin-top:14px;width:100%;padding:10px;background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">关闭</button>
   </div>
 </div>
 <header class="hero" id="heroSection">
