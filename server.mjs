@@ -511,8 +511,14 @@ function groupByDay(arr) {
 app.get("/admin/api/reset", requireAdmin, async (req, res) => {
   if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
   db = { visits: [], clicks: [] };
-  if (usingGist) { try { await persistDBToGist(); } catch (e) { console.error("[tracking] reset 落盘失败:", e.message); } }
-  else saveJSON(DB_FILE, db);
+  if (usingGist) {
+    // 强制立即落盘:清掉 pending 的 debounce 定时器并直接写 Gist(绕过 persistDBToGist 的 dbSaving 锁),
+    // 确保清空一定写进 Gist,否则重启时旧 tracking 会从 Gist 复活。
+    try {
+      if (dbSaveTimer) { clearTimeout(dbSaveTimer); dbSaveTimer = null; }
+      await gistPushTracking(db);
+    } catch (e) { console.error("[tracking] reset 落盘失败:", e.message); }
+  } else saveJSON(DB_FILE, db);
   res.json({ ok: true });
 });
 app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
