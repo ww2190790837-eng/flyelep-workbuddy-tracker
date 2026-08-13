@@ -199,7 +199,13 @@ const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Flyelep";
 let mailer = null;
 if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   try {
-    mailer = nodemailer.createTransport({ host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE, auth: { user: SMTP_USER, pass: SMTP_PASS } });
+    mailer = nodemailer.createTransport({
+      host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: 10000,   // 连接超时 10 秒
+      socketTimeout: 15000,       // 发送超时 15 秒
+      pool: true, maxConnections: 5
+    });
     console.log("[mail] 已启用 SMTP 发送器");
   } catch (e) { console.error("[mail] SMTP 初始化失败:", e.message); }
 } else if (RESEND_API_KEY) {
@@ -460,9 +466,17 @@ app.post("/api/auth/send-code", async (req, res) => {
   const arr = otpSendIp.get(ip) || [];
   arr.push(Date.now());
   otpSendIp.set(ip, arr);
-  // 异步发信,失败只记日志(开发模式打印到日志)
-  try { await sendVerificationEmail(email, code); }
-  catch (e) { console.error("[mail] 发送验证码失败:", e.message); }
+  // 异步发信(带 15 秒超时保护,防止 SMTP 连接卡死导致请求挂起)
+  const MAIL_TIMEOUT_MS = 15000;
+  try {
+    await Promise.race([
+      sendVerificationEmail(email, code),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("邮件发送超时")), MAIL_TIMEOUT_MS))
+    ]);
+  } catch (e) {
+    console.error("[mail] 发送验证码失败:", e.message);
+    // 验证码已生成并存储,即使发信失败也不影响用户输入验证码(开发模式可从日志/回显获取)
+  }
   // 过期后自动清理
   setTimeout(() => { const o = otpStore.get(email); if (o && Date.now() > o.expiresAt) otpStore.delete(email); }, OTP_TTL_MS + 1000);
   const resp = { ok: true, dev: !EMAIL_ENABLED, message: EMAIL_ENABLED ? "验证码已发送到你的邮箱(10 分钟内有效)" : "开发模式:验证码已打印到服务器日志" };
