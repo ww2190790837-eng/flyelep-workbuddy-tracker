@@ -403,7 +403,7 @@
   [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
   .theme-toggle:hover{background:rgba(255,255,255,.12);color:var(--text);transform:rotate(15deg)}
   [data-theme="light"] .theme-toggle:hover{background:rgba(0,0,0,.08)}
-  .theme-menu{display:none;position:absolute;top:44px;right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:100}
+  .theme-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:100}
   [data-theme="light"] .theme-menu{box-shadow:0 12px 40px rgba(0,0,0,.10)}
   .theme-menu.show{display:block}
   .theme-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left}
@@ -524,11 +524,13 @@
       <a href="https://www.douyin.com/user/self?from_tab_name=main" target="_blank" rel="noopener">联系我</a>
     </div>
     <div class="nav-actions">
+      <div style="position:relative;display:inline-flex">
       <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">🌙</button>
       <div class="theme-menu" id="themeMenu">
         <button class="theme-opt active" data-theme-val="dark">🌙 深色模式<span class="tick">✓</span></button>
         <button class="theme-opt" data-theme-val="light">☀️ 浅色模式<span class="tick">✓</span></button>
         <button class="theme-opt" data-theme-val="auto">💻 跟随系统<span class="tick">✓</span></button>
+      </div>
       </div>
       <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
       <div style="position:relative;flex-shrink:0;display:inline-flex">
