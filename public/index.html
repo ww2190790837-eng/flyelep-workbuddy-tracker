@@ -1269,6 +1269,11 @@
 
   // 暴露给全局,这样其他代码可以调用
   window.flyelepAuth = { open: openModal, close: closeModal, refresh: refreshUser };
+  // 暴露邀请码相关函数给内联 onclick 使用(否则 IIFE 作用域不可见,点击无效)
+  window.openCodeModal = openCodeModal;
+  window.closeCodeModal = closeCodeModal;
+  window.doClaimCode = doClaimCode;
+  window.copyCode = copyCode;
 
   // 页面加载时拉一次
   refreshUser();

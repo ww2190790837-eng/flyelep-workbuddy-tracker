@@ -34,7 +34,12 @@ function saveJSON(file, data) { fs.writeFileSync(file, JSON.stringify(data, null
 let db = loadJSON(DB_FILE, { visits: [], clicks: [] });
 let codes = loadJSON(CODES_FILE, { pool: [] });
 function saveDB() { saveJSON(DB_FILE, db); }
-function saveCodes() { saveJSON(CODES_FILE, codes); }
+function saveCodes() {
+  if (usingGist) {
+    return gistPushCodes(codes).catch(e => console.error("[codes] Gist 持久化失败,回退本地:", e.message));
+  }
+  saveJSON(CODES_FILE, codes);
+}
 
 // users(仅 JSON 回退使用 saveUsers;其余读写走下方 MongoDB 存储层)
 function saveUsers(u) { saveJSON(USERS_FILE, u); }
@@ -51,6 +56,7 @@ let UserModel = null;
 const GIST_TOKEN = process.env.USERS_GIST_TOKEN || "";
 const GIST_ID = process.env.USERS_GIST_ID || "";
 const GIST_FILENAME = "flyelep_users.json";
+const CODES_GIST_FILENAME = "flyelep_codes.json";
 let usingGist = false;
 let gistCache = [];
 async function gistFetch() {
@@ -69,6 +75,24 @@ async function gistPush(users) {
     body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(users, null, 2) } } })
   });
   if (!r.ok) throw new Error("gist push " + r.status);
+}
+// 邀请码同样走 Gist(单独文件,与 users 同一 Gist,互不影响)
+async function gistFetchCodes() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch codes " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[CODES_GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : null;
+}
+async function gistPushCodes(codesData) {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [CODES_GIST_FILENAME]: { content: JSON.stringify(codesData, null, 2) } } })
+  });
+  if (!r.ok) throw new Error("gist push codes " + r.status);
 }
 
 async function initUsersStore() {
@@ -101,7 +125,18 @@ async function initUsersStore() {
     try {
       gistCache = await gistFetch();
       usingGist = true;
-      console.log(`[store] 已启用 GitHub Gist 持久化(用户数 ${gistCache.length})`);
+      // 邀请码:优先读 Gist;若 Gist 尚无该文件,则用仓库内 codes.json 播种一次
+      let gc = null;
+      try { gc = await gistFetchCodes(); } catch (e) { /* 忽略,走播种 */ }
+      if (gc && gc.pool && gc.pool.length) {
+        codes = gc;
+        const used = codes.pool.filter(c => c.claimedBy).length;
+        console.log(`[store] 已启用 GitHub Gist 持久化(用户数 ${gistCache.length},邀请码已用 ${used}/${codes.pool.length})`);
+      } else {
+        codes = loadJSON(CODES_FILE, { pool: [] });
+        await gistPushCodes(codes).catch(e => console.error("[codes] Gist 播种失败:", e.message));
+        console.log(`[store] 已启用 GitHub Gist 持久化,邀请码已播种(${codes.pool.length} 个)`);
+      }
       return;
     } catch (e) {
       console.error("[store] Gist 读取失败,回退本地 JSON 文件:", e.message);
@@ -324,7 +359,7 @@ app.post("/api/claim-code", async (req, res) => {
   if (!available) return res.json({ ok: false, error: "邀请码已发完，请联系客服" });
   available.claimedBy = u.id;
   available.claimedAt = new Date().toISOString();
-  saveCodes();
+  await saveCodes();
   res.json({ ok: true, code: available.code, message: "领取成功" });
 });
 
