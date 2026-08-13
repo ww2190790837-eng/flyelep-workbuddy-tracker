@@ -23,6 +23,7 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const EVENTS_FILE = path.join(DATA_DIR, "events.json");
 const DB_FILE = path.join(DATA_DIR, "db.json");
+const CODES_FILE = path.join(DATA_DIR, "codes.json");
 
 function loadJSON(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { return fallback; }
@@ -31,7 +32,9 @@ function saveJSON(file, data) { fs.writeFileSync(file, JSON.stringify(data, null
 
 // 加载现有 visits/clicks DB(兼容)
 let db = loadJSON(DB_FILE, { visits: [], clicks: [] });
+let codes = loadJSON(CODES_FILE, { pool: [] });
 function saveDB() { saveJSON(DB_FILE, db); }
+function saveCodes() { saveJSON(CODES_FILE, codes); }
 
 // users(仅 JSON 回退使用 saveUsers;其余读写走下方 MongoDB 存储层)
 function saveUsers(u) { saveJSON(USERS_FILE, u); }
@@ -296,6 +299,33 @@ app.post("/api/auth/profile", async (req, res) => {
   }
   await updateUser(u);
   res.json({ ok: true, user: publicUser(u) });
+});
+
+// ===== 邀请码领取 API =====
+// 查询当前用户的领取状态
+app.get("/api/my-code", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
+  if (!u) return res.json({ claimed: false, code: null });
+  // 在码池中查找该用户已领取的码
+  const entry = codes.pool.find(c => c.claimedBy === u.id);
+  if (entry) return res.json({ claimed: true, code: entry.code, claimedAt: entry.claimedAt });
+  res.json({ claimed: false, code: null });
+});
+
+// 领取邀请码（每个用户限领一次，每码限一人）
+app.post("/api/claim-code", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
+  if (!u) return res.status(401).json({ ok: false, error: "请先登录后再领取" });
+  // 检查是否已领取
+  const existing = codes.pool.find(c => c.claimedBy === u.id);
+  if (existing) return res.json({ ok: true, code: existing.code, message: "您已领取过邀请码" });
+  // 从池中分配一个未使用的码
+  const available = codes.pool.find(c => !c.claimedBy);
+  if (!available) return res.json({ ok: false, error: "邀请码已发完，请联系客服" });
+  available.claimedBy = u.id;
+  available.claimedAt = new Date().toISOString();
+  saveCodes();
+  res.json({ ok: true, code: available.code, message: "领取成功" });
 });
 
 // ===== 跟踪 API(原有)=====

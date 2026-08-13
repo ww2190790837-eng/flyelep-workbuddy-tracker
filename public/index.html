@@ -413,6 +413,7 @@
     <div class="nav-actions">
       <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
       <a class="nav-cta" id="navTrialCta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
+      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b">🎁 免费领算力</a>
       <div id="navUserBox" style="display:none;align-items:center;gap:10px">
       <a href="/account.html" id="navUserPill" style="display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:99px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);transition:all .2s">
         <span id="navAvatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;background-size:cover;background-position:center;flex-shrink:0"></span>
@@ -458,7 +459,17 @@
   </div>
 </div>
 
-
+<!-- 领取邀请码 Modal -->
+<div id="codeModal" style="display:none;position:fixed;inset:0;z-index:210;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeCodeModal()">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <h3 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text)">🎁 免费领取 Flyelep 算力</h3>
+    <div id="codeContent">
+      <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">Flyelep AI 算力邀请码</strong>，每个账户限领一次。</p>
+      <button onclick="closeCodeModal();document.getElementById('navAuthLink').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>
+    </div>
+    <button onclick="closeCodeModal()" style="margin-top:14px;width:100%;padding:10px;background:transparent;color:var(--text-3);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">关闭</button>
+  </div>
+</div>
 <header class="hero">
   <div class="bg-stage">
     <video class="hero-video" autoplay muted loop playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" x5-video-player-fullscreen="false" preload="auto" poster="/hero-poster.jpg">
@@ -1115,6 +1126,67 @@
     openModal(mode === "login" ? "register" : "login");
   });
 
+  // ===== 邀请码领取 =====
+  function openCodeModal(){
+    var m = document.getElementById('codeModal');
+    var c = document.getElementById('codeContent');
+    c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">正在检查领取状态...</p>';
+    m.style.display = 'flex';
+    fetch('/api/auth/me', {credentials:'include', cache:'no-store'}).then(function(r){ return r.json(); }).then(function(ud){
+      var u = ud && ud.user;
+      if (!u) {
+        c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">Flyelep AI 算力邀请码</strong>，每个账户限领一次。</p>'
+          + '<button onclick="closeCodeModal();document.getElementById(\'navAuthLink\').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>';
+        return;
+      }
+      // 已登录 → 检查是否已领取
+      fetch('/api/my-code', {credentials:'include', cache:'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+        if (d.claimed && d.code) {
+          showClaimedCode(c, d.code);
+        } else {
+          c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px"><strong style="color:#f59e0b">' + (u.name || '您') + '</strong>，点击下方按钮即可领取 Flyelep 算力邀请码（限领一次）</p>'
+            + '<button id="doClaimBtn" onclick="doClaimCode(this)" style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">🎁 立即领取邀请码</button>';
+        }
+      });
+    }).catch(function(){
+      c.innerHTML = '<p style="color:#fca5a5;font-size:14px;margin:0 0 20px">网络异常，请稍后重试</p>';
+    });
+  }
+  function closeCodeModal(){ document.getElementById('codeModal').style.display = 'none'; }
+  function doClaimCode(btn){
+    btn.disabled = true; btn.textContent = '⏳ 领取中...';
+    fetch('/api/claim-code', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include'}).then(function(r){ return r.json(); }).then(function(d){
+      var c = document.getElementById('codeContent');
+      if (d.ok && d.code) {
+        showClaimedCode(c, d.code);
+        refreshUser();
+      } else {
+        btn.disabled = false; btn.textContent = '🎁 立即领取邀请码';
+        c.innerHTML = '<p style="color:#fca5a5;font-size:14px;margin:0 0 12px">' + (d.error || '领取失败') + '</p>' + c.innerHTML;
+      }
+    }).catch(function(){
+      btn.disabled = false; btn.textContent = '🎁 立即领取邀请码';
+    });
+  }
+  function showClaimedCode(container, code){
+    container.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px">🎉 领取成功！您的 Flyelep 算力邀请码：</p>'
+      + '<div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.12));border:2px dashed #f59e0b;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px">'
+      + '<span id="codeDisplay" style="font-size:28px;font-weight:800;letter-spacing:4px;color:#f59e0b;font-family:monospace;user-select:all">' + code + '</span></div>'
+      + '<button onclick="copyCode()" style="width:100%;padding:12px;background:#f59e0b;color:#000;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">📋 一键复制邀请码</button>'
+      + '<p style="margin-top:12px;font-size:12px;color:var(--text-3);text-align:center">请前往 Flyelep 平台使用此码兑换算力</p>';
+  }
+  function copyCode(){
+    var cd = document.getElementById('codeDisplay');
+    if (!cd) return;
+    navigator.clipboard.writeText(cd.textContent).then(function(){
+      var b = event.target;
+      var t = b.textContent;
+      b.textContent = '✅ 已复制！';
+      b.style.background = '#22c55e';
+      setTimeout(function(){ b.textContent = t; b.style.background = '#f59e0b'; }, 2000);
+    });
+  }
+
   authForm.addEventListener("submit", async function(e){
     e.preventDefault();
     authError.style.display = "none";
@@ -1161,6 +1233,7 @@
       var navBox = document.getElementById("navUserBox");
       var authLink = document.getElementById("navAuthLink");
       var trialCta = document.getElementById("navTrialCta");
+      var codeBtn = document.getElementById("navCodeBtn");
       var navAvatar = document.getElementById("navAvatar");
       var navName = document.getElementById("navName");
       if (u) {
@@ -1169,10 +1242,18 @@
         if (navBox) navBox.style.display = "flex";
         if (authLink) authLink.style.display = "none";
         if (trialCta) trialCta.style.display = "none";
+        // 检查邀请码领取状态
+        if (codeBtn) {
+          fetch("/api/my-code", {credentials:"include", cache:"no-store"}).then(function(r2){ return r2.json(); }).then(function(cd){
+            if (cd.claimed) { codeBtn.textContent = "🎁 已领算力"; codeBtn.style.opacity = ".7"; }
+            else { codeBtn.textContent = "🎁 免费领算力"; codeBtn.style.opacity = "1"; }
+          }).catch(function(){});
+        }
       } else {
         if (navBox) navBox.style.display = "none";
         if (authLink) authLink.style.display = "inline-flex";
         if (trialCta) trialCta.style.display = "";
+        if (codeBtn) { codeBtn.textContent = "🎁 免费领算力"; codeBtn.style.opacity = "1"; }
       }
     } catch(e) { console.log("me check fail", e); }
   }
