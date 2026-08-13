@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#5b3bff" />
 <title>Fleta | 跨境电商 AI 内容设计平台 · 1分钟生成高转化主图详情页</title>
 <meta name="description" content="Fleta 是跨境电商专属 AI 智能设计平台,1 分钟生成高转化主图、详情页与爆款海报。支持 Amazon / Temu / Shopee / TikTok Shop 等多平台,多语言适配,让每个卖家都能做出专业级视觉。" />
-<meta name="keywords" content="Fleta,fleta-ai.onrender.com,跨境电商AI,亚马逊主图,Shopee详情页,Temu,AI设计,Fleta,WorkBuddy" />
+<meta name="keywords" content="Fleta,fleta-ai.onrender.com,AI设计,视频提示词,Seedance,SD2.5,跨境电商" />
 <meta property="og:title" content="Fleta | 跨境电商 AI 内容设计平台" />
 <meta property="og:description" content="1分钟生成高转化电商主图、详情页、海报。Fleta AI 智能设计,跨境电商卖家的视觉神器。" />
 <meta property="og:type" content="website" />
@@ -25,10 +25,8 @@
     --text:#eef1f8;--text-2:#a9afc4;--text-3:#727896;
     --primary:#7c5cff;--primary-2:#9b7cff;--primary-3:#bda4ff;
     --accent:#ff6b35;--accent-2:#ffa07a;--pink:#ff5b9b;
-    --wb:#1e88e5;--wb-2:#00bcd4;     /* WorkBuddy 蓝青色 */
     --success:#22c55e;
     --gradient:linear-gradient(135deg,#7c5cff 0%,#9b7cff 45%,#ff5b9b 100%);
-    --gradient-wb:linear-gradient(135deg,#22a0ff 0%,#00d4e0 100%);
   }
   html{scroll-behavior:smooth;background:var(--bg)}
   body{background:transparent;font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1100px 620px at 50% -8%,rgba(124,92,255,.18),transparent 60%),radial-gradient(900px 520px at 88% 4%,rgba(0,188,212,.10),transparent 60%),radial-gradient(800px 500px at 8% 12%,rgba(255,91,155,.07),transparent 55%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:"cv11","ss01"}
@@ -89,15 +87,6 @@
   .btn::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:left .6s}
   .btn:hover::after{left:150%}
 
-  /* === 客户 marquee === */
-  .trust-band{padding:36px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.04);backdrop-filter:blur(12px);margin-top:36px;overflow:hidden;position:relative;z-index:3}
-  .trust-band .label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.2em;text-align:center;margin-bottom:20px}
-  .trust-marquee{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
-  .trust-track{display:flex;gap:50px;animation:marquee 30s linear infinite;width:max-content}
-  @keyframes marquee{to{transform:translateX(-50%)}}
-  .trust-item{font-size:18px;font-weight:600;color:var(--text-2);white-space:nowrap;letter-spacing:-.3px;opacity:.7;transition:opacity .3s;flex-shrink:0}
-  .trust-item:hover{opacity:1}
-
   /* === Section 通用 === */
   section{padding:100px 0;position:relative;z-index:2}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
@@ -120,7 +109,7 @@
   /* === SD 2.5 视频提示词生成器 === */
   #prompt-gen{padding:90px 0 70px;position:relative;z-index:2}
   .pg-card{background:rgba(17,21,36,.7);border:1px solid rgba(124,92,255,.18);border-radius:24px;padding:36px 36px 28px;position:relative;overflow:hidden;box-shadow:0 20px 60px -15px rgba(124,92,255,.12),inset 0 1px 0 rgba(255,255,255,.05)}
-  .pg-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary),var(--pink),var(--wb),transparent);opacity:.6}
+  .pg-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary),var(--pink),#00bcd4,transparent);opacity:.6}
   /* 工具栏 */
   .pg-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:14px}
   .pg-duration{display:flex;gap:6px}
@@ -255,10 +244,7 @@
   .tech-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:24px}
   .tech-chip{padding:8px 18px;background:rgba(91,59,255,.06);border:1px solid rgba(91,59,255,.15);border-radius:99px;font-size:13px;color:var(--primary);font-weight:500;font-family:"JetBrains Mono",monospace}
 
-  /* === WorkBuddy 合作板块 === */
-  
-  
-  
+  /* === Footer === */
   .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px}
   @media (max-width:720px){.foot-grid{grid-template-columns:1fr 1fr}}
   .foot-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-weight:800;font-size:16px}
@@ -285,11 +271,9 @@
     --border:rgba(0,0,0,.08);--border-2:rgba(0,0,0,.14);
     --text:#1a1d26;--text-2:#555c72;--text-3:#8b92a8;
     --primary:#6c4ff7;--primary-2:#8b6cff;--primary-3:#a98bff;
-    --accent:#e85a20;--accent-2:#f08a50;--pink:#e83a82;
-    --wb:#1565c0;--wb-2:#0097a7;
+    --accent:#e85a20;--accent-2:#f08a50;    --pink:#e83a82;
     --success:#16a34a;
     --gradient:linear-gradient(135deg,#6c4ff7 0%,#8b6cff 45%,#e83a82 100%);
-    --gradient-wb:linear-gradient(135deg,#1976d2 0%,00acc1 100%);
   }
   [data-theme="light"] body{background:var(--bg);color:var(--text)}
   [data-theme="light"] html{background:var(--bg)}
@@ -309,8 +293,6 @@
   [data-theme="light"] .btn-ghost{background:rgba(108,79,247,.06);color:var(--primary);border-color:rgba(108,79,247,.2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
   [data-theme="light"] .btn-ghost:hover{background:rgba(108,79,247,.12);border-color:rgba(108,79,247,.35);color:var(--primary)}
   [data-theme="light"] .card{background:var(--surface);border-color:var(--border);box-shadow:0 4px 20px rgba(0,0,0,.04)}
-  [data-theme="light"] .card:hover{box-shadow:0 20px 40px -10px rgba(108,79,247,.12)}
-  [data-theme="light"] .trust-band{background:rgba(108,79,247,.03);border-top-color:var(--border);border-bottom-color:var(--border)}
   [data-theme="light"] .pg-card{background:rgba(255,255,255,.85);border-color:rgba(108,79,247,.14);box-shadow:0 20px 60px -15px rgba(108,79,247,.06),inset 0 1px 0 rgba(255,255,255,.8)}
   [data-theme="light"] .pg-field textarea{background:var(--bg);border-color:var(--border);color:var(--text)}
   [data-theme="light"] .pg-field textarea:focus{background:#fff;border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,79,247,.08)}
@@ -464,34 +446,6 @@
     </div>
   </div>
 </header>
-
-<div class="trust-band">
-  <div class="label">已被这些跨境卖家使用</div>
-  <div class="trust-marquee">
-    <div class="trust-track">
-      <span class="trust-item">Amazon 头部卖家</span>
-      <span class="trust-item">Temu 跨境</span>
-      <span class="trust-item">Shopee 优选</span>
-      <span class="trust-item">TikTok Shop 投手</span>
-      <span class="trust-item">AliExpress 商家</span>
-      <span class="trust-item">OZON 蓝海</span>
-      <span class="trust-item">独立站玩家</span>
-      <span class="trust-item">代运营公司</span>
-      <span class="trust-item">工厂出海</span>
-      <span class="trust-item">女装电商品牌</span>
-      <span class="trust-item">Amazon 头部卖家</span>
-      <span class="trust-item">Temu 跨境</span>
-      <span class="trust-item">Shopee 优选</span>
-      <span class="trust-item">TikTok Shop 投手</span>
-      <span class="trust-item">AliExpress 商家</span>
-      <span class="trust-item">OZON 蓝海</span>
-      <span class="trust-item">独立站玩家</span>
-      <span class="trust-item">代运营公司</span>
-      <span class="trust-item">工厂出海</span>
-      <span class="trust-item">女装电商品牌</span>
-    </div>
-  </div>
-</div>
 
 <section id="prompt-gen">
   <div class="wrap">
