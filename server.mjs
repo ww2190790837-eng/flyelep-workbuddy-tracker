@@ -86,6 +86,7 @@ const GIST_ID = process.env.USERS_GIST_ID || "";
 const GIST_FILENAME = "flyelep_users.json";
 const CODES_GIST_FILENAME = "flyelep_codes.json";
 const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
+const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
 // 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
 const MAX_TRACK = 2500;
 let usingGist = false;
@@ -145,6 +146,44 @@ async function gistPushTracking(tracking) {
   if (!r.ok) throw new Error("gist push tracking " + r.status);
 }
 
+// ===== 注册 / 领码 防刷限流层 (build-your-own-x: 限流器 Rate Limiter) =====
+// 目标:防止脚本批量注册 + 刷光邀请码。
+const IP_CLAIM_FILE = path.join(DATA_DIR, "ipclaims.json");
+// 1) IP 注册限流:滑动窗口,每 IP 10 分钟内最多注册 N 次(挡批量注册脚本;内存即可,重启清零可接受)
+const REG_WINDOW_MS = 10 * 60 * 1000;
+const REG_MAX_PER_IP = 5;
+const ipRegHits = new Map(); // ip -> [ts, ts, ...]
+// 2) IP 领码上限:同一 IP 只能成功领取 1 个邀请码(即使换账号也不行);持久化防重启后重复刷
+let ipClaims = loadJSON(IP_CLAIM_FILE, {}); // { ip: code }
+async function gistFetchIpClaims() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch ipclaims " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[IP_CLAIM_GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : null;
+}
+async function gistPushIpClaims() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [IP_CLAIM_GIST_FILENAME]: { content: JSON.stringify(ipClaims) } } })
+  });
+  if (!r.ok) throw new Error("gist push ipclaims " + r.status);
+}
+function regWindowCount(ip) {
+  const now = Date.now();
+  const arr = (ipRegHits.get(ip) || []).filter(t => now - t < REG_WINDOW_MS);
+  ipRegHits.set(ip, arr);
+  return arr.length;
+}
+function regHit(ip) {
+  const arr = ipRegHits.get(ip) || [];
+  arr.push(Date.now());
+  ipRegHits.set(ip, arr);
+}
+
 async function initUsersStore() {
   // 1) MongoDB 优先(联网持久化首选)
   if (MONGODB_URI) {
@@ -187,6 +226,13 @@ async function initUsersStore() {
         await gistPushCodes(codes).catch(e => console.error("[codes] Gist 播种失败:", e.message));
         console.log(`[store] 已启用 GitHub Gist 持久化,邀请码已播种(${codes.pool.length} 个)`);
       }
+      // IP 领码记录:优先读 Gist;无则本地 ipclaims.json,再播种一次
+      try {
+        const gi = await gistFetchIpClaims();
+        if (gi && typeof gi === "object") { ipClaims = gi; }
+        else { await gistPushIpClaims().catch(e => console.error("[ipclaims] Gist 播种失败:", e.message)); }
+        console.log(`[ipclaims] 已从 Gist 恢复(已领 IP ${Object.keys(ipClaims).length} 个)`);
+      } catch (e) { console.error("[ipclaims] 读取失败,使用本地:", e.message); }
       // 跟踪数据:优先读 Gist;若 Gist 尚无该文件,用本地 db.json 播种一次
       try {
         const gt = await gistFetchTracking();
@@ -331,12 +377,20 @@ app.use(express.static(path.join(__dirname, "public"), { index: "index.html", ex
 app.post("/api/auth/register", async (req, res) => {
   let { email, password, name } = req.body || {};
   email = String(email || "").trim().toLowerCase();
+  const ip = getClientIp(req);
+  // 防刷:同一 IP 10 分钟内注册次数超限,直接拒绝(挡批量注册脚本)
+  if (regWindowCount(ip) >= REG_MAX_PER_IP) {
+    return res.status(429).json({ ok: false, error: "注册过于频繁,请稍后再试或联系客服" });
+  }
   if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
-  if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(email)) return res.status(400).json({ ok: false, error: "邮箱格式不正确" });
-  if (password.length < 6) return res.status(400).json({ ok: false, error: "密码至少 6 位" });
+  // 邮箱强校验:拒绝明显乱填(无 @、无域名、TLD 过短等)
+  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) return res.status(400).json({ ok: false, error: "邮箱格式不正确" });
+  // 密码强度:至少 8 位,且需同时含字母和数字(挡弱密码批量注册)
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) return res.status(400).json({ ok: false, error: "密码至少 8 位,且需包含字母和数字" });
   if (password.length > 64) return res.status(400).json({ ok: false, error: "密码太长" });
   const existing = await findUserByEmail(email);
   if (existing) return res.status(409).json({ ok: false, error: "该邮箱已注册,请直接登录" });
+  regHit(ip); // 记录一次成功注册尝试(限制每 IP 账号数)
   const user = await createUser({ email, password, name });
   req.session.userId = user.id;
   res.json({ ok: true, user: publicUser(user) });
@@ -418,14 +472,23 @@ app.get("/api/my-code", async (req, res) => {
 app.post("/api/claim-code", async (req, res) => {
   const u = req.session.userId ? await findUserById(req.session.userId) : null;
   if (!u) return res.status(401).json({ ok: false, error: "请先登录后再领取" });
-  // 检查是否已领取
-  const existing = codes.pool.find(c => c.claimedBy === u.id);
-  if (existing) return res.json({ ok: true, code: existing.code, message: "您已领取过邀请码" });
+  const ip = getClientIp(req);
+  // 已领取用户直接返回其码(不受 IP 限制,方便换网络回看)
+  const mine = codes.pool.find(c => c.claimedBy === u.id);
+  if (mine) return res.json({ ok: true, code: mine.code, message: "您已领取过邀请码" });
+  // 防刷:同一 IP 只能领取一个邀请码(即使换账号也不行);持久化防重启后重刷
+  if (ipClaims[ip]) {
+    return res.status(409).json({ ok: false, error: "该网络环境已领取过邀请码(每 IP 限领 1 个),请勿重复领取", code: ipClaims[ip] });
+  }
   // 从池中分配一个未使用的码
   const available = codes.pool.find(c => !c.claimedBy);
   if (!available) return res.json({ ok: false, error: "邀请码已发完，请联系客服" });
   available.claimedBy = u.id;
   available.claimedAt = new Date().toISOString();
+  // 记录该 IP 已领(核心防刷)
+  ipClaims[ip] = available.code;
+  if (usingGist) { try { await gistPushIpClaims(); } catch (e) { console.error("[ipclaims] 落盘失败:", e.message); } }
+  else saveJSON(IP_CLAIM_FILE, ipClaims);
   await saveCodes();
   res.json({ ok: true, code: available.code, message: "领取成功" });
 });
@@ -546,7 +609,12 @@ app.get("/admin/api/resync-codes", requireAdmin, async (req, res) => {
   } else if (!usingGist && cleared > 0) {
     saveUsers(allUsers);
   }
-  res.json({ ok: true, totalCodes: codes.pool.length, clearedUsers: cleared });
+  // 4) 清除 IP 领码记录(之前领的是错的码,且让被正确码的用户能重新领)
+  const prevIpClaims = Object.keys(ipClaims).length;
+  ipClaims = {};
+  if (usingGist) { try { await gistPushIpClaims(); } catch (e) { console.error("[ipclaims] 清除失败:", e.message); } }
+  else saveJSON(IP_CLAIM_FILE, ipClaims);
+  res.json({ ok: true, totalCodes: codes.pool.length, clearedUsers: cleared, clearedIpClaims: prevIpClaims });
 });
 app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
   const header = ["id", "time", "ip", "region", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "path", "referer", "is_unique", "user_id"];
