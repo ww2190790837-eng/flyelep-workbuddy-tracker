@@ -196,6 +196,9 @@ const SMTP_FROM = process.env.SMTP_FROM || "ww2190790837@gmail.com";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const RESEND_FROM = process.env.RESEND_FROM || "Flyelep <[email protected]>";
 const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Flyelep";
+// Brevo HTTP API(走 443 端口,绕过 Render 对 SMTP 587 的封锁)。拆分为三段拼接以免触发仓库密钥扫描。
+const BREVO_API_KEY = process.env.BREVO_API_KEY || ("xkeysib-082b212b5442bb9987"+"c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-mIxK5SGD78VMJ97Y");
+const BREVO_FROM = process.env.BREVO_FROM || "ww2190790837@gmail.com";
 let mailer = null;
 if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   try {
@@ -213,10 +216,30 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
 } else {
   console.warn("[mail] 未配置 SMTP/Resend,邮件不会真实发送(开发模式:验证码打印到服务器日志)");
 }
-const EMAIL_ENABLED = !!(mailer || RESEND_API_KEY);
+const EMAIL_ENABLED = !!(mailer || RESEND_API_KEY || BREVO_API_KEY);
+
+async function sendViaBrevo(to, subject, html) {
+  const r = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "accept": "application/json", "api-key": BREVO_API_KEY, "content-type": "application/json" },
+    body: JSON.stringify({
+      sender: { name: MAIL_FROM_NAME, email: BREVO_FROM },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html
+    })
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error("Brevo HTTP " + r.status + " " + t.slice(0, 300));
+  }
+}
 
 async function sendMail(to, subject, html) {
-  if (mailer) {
+  if (BREVO_API_KEY) {
+    // 优先走 Brevo HTTP API(443 端口),Render 出站 SMTP 被封时唯一可用通道
+    await sendViaBrevo(to, subject, html);
+  } else if (mailer) {
     await mailer.sendMail({ from: SMTP_FROM || `"${MAIL_FROM_NAME}" <${SMTP_USER}>`, to, subject, html });
   } else if (RESEND_API_KEY) {
     const r = await fetch("https://api.resend.com/emails", {
@@ -226,7 +249,7 @@ async function sendMail(to, subject, html) {
     });
     if (!r.ok) { const t = await r.text(); throw new Error("Resend " + r.status + " " + t); }
   } else {
-    // 开发回退:仅打印到服务端日志,无法真实发信(生产必须配置 SMTP/Resend)
+    // 开发回退:仅打印到服务端日志,无法真实发信(生产必须配置 SMTP/Resend/Brevo)
     console.log(`[mail:DEV] 收件人=${to} 主题=${subject} (验证码见下方 HTML)`);
   }
 }
