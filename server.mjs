@@ -1047,5 +1047,17 @@ app.get("/healthz", (req, res) => res.json({
   aiProvider: AI_PROVIDER
 }));
 
+// TEMP: debug SMTP env (remove after Brevo is confirmed working)
+app.get("/debug-smtp", (req, res) => res.json({
+  SMTP_HOST: !!process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT || "(unset)",
+  SMTP_SECURE: process.env.SMTP_SECURE || "(unset)",
+  SMTP_USER: !!process.env.SMTP_USER,
+  SMTP_PASS_len: (process.env.SMTP_PASS || "").length,
+  SMTP_FROM: process.env.SMTP_FROM || "(unset)",
+  EMAIL_ENABLED,
+  mailerExists: !!mailer
+}));
+
 await initUsersStore();
 app.listen(PORT, "0.0.0.0", () => console.log("listening on " + PORT));
