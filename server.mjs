@@ -468,18 +468,22 @@ app.post("/api/auth/send-code", async (req, res) => {
   otpSendIp.set(ip, arr);
   // 异步发信(带 15 秒超时保护,防止 SMTP 连接卡死导致请求挂起)
   const MAIL_TIMEOUT_MS = 15000;
+  let mailError = null;
   try {
     await Promise.race([
       sendVerificationEmail(email, code),
       new Promise((_, rej) => setTimeout(() => rej(new Error("邮件发送超时")), MAIL_TIMEOUT_MS))
     ]);
   } catch (e) {
+    mailError = e.message;
     console.error("[mail] 发送验证码失败:", e.message);
     // 验证码已生成并存储,即使发信失败也不影响用户输入验证码(开发模式可从日志/回显获取)
   }
   // 过期后自动清理
   setTimeout(() => { const o = otpStore.get(email); if (o && Date.now() > o.expiresAt) otpStore.delete(email); }, OTP_TTL_MS + 1000);
   const resp = { ok: true, dev: !EMAIL_ENABLED, message: EMAIL_ENABLED ? "验证码已发送到你的邮箱(10 分钟内有效)" : "开发模式:验证码已打印到服务器日志" };
+  // [临时诊断] 回显真实发信错误,便于排查 163 收不到邮件问题
+  if (mailError) { resp.mailError = mailError; resp.mailOk = false; }
   // 仅开发模式(未配置真实邮件发送)回显验证码,便于自测;一旦配置 SMTP/Resend,dev=false,不再返回明文码
   if (!EMAIL_ENABLED) resp.devCode = code;
   res.json(resp);
