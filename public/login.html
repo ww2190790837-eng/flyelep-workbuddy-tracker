@@ -164,6 +164,15 @@
             </div>
           </div>
 
+          <div class="field" id="otpField" style="display:none">
+            <label>邮箱验证码</label>
+            <div style="display:flex;gap:10px">
+              <input class="input" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位验证码" style="flex:1;min-width:0;text-align:center;letter-spacing:3px" />
+              <button type="button" id="sendCodeBtn" style="flex:0 0 auto;white-space:nowrap;padding:0 18px;background:rgba(124,92,255,.12);color:var(--primary,#7c5cff);border:1px solid rgba(124,92,255,.4);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">获取验证码</button>
+            </div>
+            <p id="otpHint" style="display:none;margin-top:8px;font-size:12px;color:var(--text-3);line-height:1.6"></p>
+          </div>
+
           <div class="row" id="loginRow">
             <label class="remember"><input type="checkbox" name="remember" checked /> 记住我</label>
             <a class="forgot" href="#" id="forgot">忘记密码?</a>
@@ -218,6 +227,8 @@
       title.textContent = "创建账户";
       subtitle.textContent = "1 分钟开通,基础功能免费";
       nameField.style.display = "block";
+      document.getElementById("otpField").style.display = "block";
+      document.getElementById("otpHint").style.display = "none";
       loginRow.style.display = "none";
       terms.style.display = "flex";
       submitText.textContent = "注册并登录";
@@ -229,6 +240,8 @@
       title.textContent = "欢迎回来";
       subtitle.textContent = "登录以继续使用 Flyelep";
       nameField.style.display = "none";
+      document.getElementById("otpField").style.display = "none";
+      document.getElementById("otpHint").style.display = "none";
       loginRow.style.display = "flex";
       terms.style.display = "none";
       submitText.textContent = "登录";
@@ -276,6 +289,10 @@
     if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(email)){ showAlert("请输入有效的邮箱地址"); return; }
     if (password.length < 6){ showAlert("密码至少 6 位"); return; }
     if (mode === "register" && !fd.get("agree")){ showAlert("请先同意服务条款与隐私政策"); return; }
+    if (mode === "register") {
+      var codeVal = (fd.get("code")||"").trim();
+      if (!codeVal){ showAlert("请先获取并填写邮箱验证码"); return; }
+    }
 
     submit.disabled = true;
     submit.innerHTML = '<span class="spinner"></span><span>处理中...</span>';
@@ -283,6 +300,7 @@
     var endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
     var payload = { email: email, password: password };
     if (mode === "register" && name) payload.name = name;
+    if (mode === "register") payload.code = (fd.get("code")||"").trim();
 
     try {
       var resp = await fetch(endpoint, {
@@ -307,6 +325,56 @@
   });
 
   bindSwitch();
+
+  // ===== 邮箱验证码:获取 + 60s 冷却 =====
+  var sendCodeBtn = document.getElementById("sendCodeBtn");
+  var otpHint = document.getElementById("otpHint");
+  var sendCodeTimer = null;
+  function startSendCooldown(sec){
+    var left = sec;
+    sendCodeBtn.disabled = true;
+    sendCodeBtn.textContent = left + " 秒后重试";
+    if (sendCodeTimer) clearInterval(sendCodeTimer);
+    sendCodeTimer = setInterval(function(){
+      left--;
+      if (left <= 0){ clearInterval(sendCodeTimer); sendCodeBtn.disabled = false; sendCodeBtn.textContent = "重新获取"; }
+      else { sendCodeBtn.textContent = left + " 秒后重试"; }
+    }, 1000);
+  }
+  function sendCode(){
+    var emailVal = (form.querySelector("input[name=email]").value || "").trim();
+    if (!/^[^\s@]+@([^\s@.]+\.)+[^\s@.]+$/.test(emailVal)){
+      showAlert("请先填写正确的邮箱再获取验证码");
+      return;
+    }
+    clearAlert();
+    otpHint.style.display = "none";
+    sendCodeBtn.disabled = true;
+    sendCodeBtn.textContent = "发送中...";
+    fetch("/api/auth/send-code", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email: emailVal}), credentials:"include"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok){
+          showAlert(d.error || "验证码发送失败");
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.textContent = "获取验证码";
+          return;
+        }
+        otpHint.style.display = "block";
+        if (d.dev && d.devCode){
+          otpHint.innerHTML = "开发模式(未配置真实邮件):验证码已生成 → <b style=\"color:#f59e0b;letter-spacing:2px\">" + d.devCode + "</b><br>配置 SMTP/Resend 后将直接发送到邮箱";
+        } else {
+          otpHint.textContent = d.message || "验证码已发送,请查收邮箱(10 分钟内有效)";
+        }
+        startSendCooldown(60);
+      })
+      .catch(function(){
+        showAlert("网络异常,请稍后重试");
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = "获取验证码";
+      });
+  }
+  if (sendCodeBtn) sendCodeBtn.addEventListener("click", sendCode);
 })();
 </script>
 <script src="/bg-aurora.js"></script>

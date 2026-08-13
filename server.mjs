@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import crypto from "node:crypto";
 import IP2RegionPkg from "ip2region";
+import nodemailer from "nodemailer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -183,6 +184,71 @@ function regHit(ip) {
   arr.push(Date.now());
   ipRegHits.set(ip, arr);
 }
+
+// ===== 邮件发送(可插拔:SMTP / Resend / 开发回退) =====
+const SMTP_HOST = process.env.SMTP_HOST || "";
+const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465;
+const SMTP_SECURE = process.env.SMTP_SECURE !== "false";
+const SMTP_USER = process.env.SMTP_USER || "";
+const SMTP_PASS = process.env.SMTP_PASS || "";
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || "";
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+const RESEND_FROM = process.env.RESEND_FROM || "Flyelep <[email protected]>";
+const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Flyelep";
+let mailer = null;
+if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+  try {
+    mailer = nodemailer.createTransport({ host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE, auth: { user: SMTP_USER, pass: SMTP_PASS } });
+    console.log("[mail] 已启用 SMTP 发送器");
+  } catch (e) { console.error("[mail] SMTP 初始化失败:", e.message); }
+} else if (RESEND_API_KEY) {
+  console.log("[mail] 已启用 Resend 发送器");
+} else {
+  console.warn("[mail] 未配置 SMTP/Resend,邮件不会真实发送(开发模式:验证码打印到服务器日志)");
+}
+const EMAIL_ENABLED = !!(mailer || RESEND_API_KEY);
+
+async function sendMail(to, subject, html) {
+  if (mailer) {
+    await mailer.sendMail({ from: SMTP_FROM || `"${MAIL_FROM_NAME}" <${SMTP_USER}>`, to, subject, html });
+  } else if (RESEND_API_KEY) {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: RESEND_FROM, to: [to], subject, html })
+    });
+    if (!r.ok) { const t = await r.text(); throw new Error("Resend " + r.status + " " + t); }
+  } else {
+    // 开发回退:仅打印到服务端日志,无法真实发信(生产必须配置 SMTP/Resend)
+    console.log(`[mail:DEV] 收件人=${to} 主题=${subject} (验证码见下方 HTML)`);
+  }
+}
+
+async function sendVerificationEmail(email, code) {
+  const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:28px;background:#0f1226;color:#e6e8f0;border-radius:14px">
+    <h2 style="margin:0 0 8px;color:#fff">验证你的邮箱</h2>
+    <p style="color:#aab;line-height:1.7;margin:0 0 18px">欢迎注册 Flyelep，以下是你的邮箱验证码（10 分钟内有效）：</p>
+    <div style="font-size:34px;font-weight:800;letter-spacing:10px;color:#7c5cff;background:#1b1f3a;padding:18px 20px;border-radius:12px;text-align:center;margin-bottom:18px">${code}</div>
+    <p style="color:#889;font-size:13px;margin:0">如非本人操作，请忽略此邮件。验证码请勿透露给他人。</p>
+  </div>`;
+  await sendMail(email, "【Flyelep】你的邮箱验证码", html);
+}
+
+// ===== 邮箱验证码(注册前验证) =====
+const OTP_TTL_MS = 10 * 60 * 1000;        // 验证码 10 分钟有效
+const OTP_RESEND_MS = 60 * 1000;           // 同邮箱 60 秒内不可重发
+const OTP_MAX_ATTEMPTS = 5;               // 单邮箱最多试 5 次
+const OTP_SEND_MAX_PER_IP_HOUR = 10;      // 同 IP 每小时最多发 10 次(防脚本轰炸)
+const otpStore = new Map();               // email(小写) -> { code, expiresAt, attempts, lastSentAt }
+const otpSendIp = new Map();              // ip -> [ts,...]  发送频次记录
+
+function otpSendCount(ip) {
+  const now = Date.now();
+  const arr = (otpSendIp.get(ip) || []).filter(t => now - t < 3600 * 1000);
+  otpSendIp.set(ip, arr);
+  return arr.length;
+}
+function genCode() { return String(Math.floor(100000 + Math.random() * 900000)); }
 
 async function initUsersStore() {
   // 1) MongoDB 优先(联网持久化首选)
@@ -374,20 +440,57 @@ app.get("/admin", requireAdmin, (req, res) => {
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Auth 路由 =====
+app.post("/api/auth/send-code", async (req, res) => {
+  const email = String((req.body || {}).email || "").trim().toLowerCase();
+  const ip = getClientIp(req);
+  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email))
+    return res.status(400).json({ ok: false, error: "请填写正确的邮箱" });
+  // 同 IP 每小时发码上限(防脚本轰炸)
+  if (otpSendCount(ip) >= OTP_SEND_MAX_PER_IP_HOUR)
+    return res.status(429).json({ ok: false, error: "获取验证码过于频繁,请稍后再试" });
+  // 同邮箱 60 秒重发冷却
+  const prev = otpStore.get(email);
+  if (prev && Date.now() - prev.lastSentAt < OTP_RESEND_MS) {
+    const wait = Math.ceil((OTP_RESEND_MS - (Date.now() - prev.lastSentAt)) / 1000);
+    return res.status(429).json({ ok: false, error: "验证码已发送,请 " + wait + " 秒后重试" });
+  }
+  const code = genCode();
+  otpStore.set(email, { code, expiresAt: Date.now() + OTP_TTL_MS, attempts: 0, lastSentAt: Date.now() });
+  const arr = otpSendIp.get(ip) || [];
+  arr.push(Date.now());
+  otpSendIp.set(ip, arr);
+  // 异步发信,失败只记日志(开发模式打印到日志)
+  try { await sendVerificationEmail(email, code); }
+  catch (e) { console.error("[mail] 发送验证码失败:", e.message); }
+  // 过期后自动清理
+  setTimeout(() => { const o = otpStore.get(email); if (o && Date.now() > o.expiresAt) otpStore.delete(email); }, OTP_TTL_MS + 1000);
+  const resp = { ok: true, dev: !EMAIL_ENABLED, message: EMAIL_ENABLED ? "验证码已发送到你的邮箱(10 分钟内有效)" : "开发模式:验证码已打印到服务器日志" };
+  // 仅开发模式(未配置真实邮件发送)回显验证码,便于自测;一旦配置 SMTP/Resend,dev=false,不再返回明文码
+  if (!EMAIL_ENABLED) resp.devCode = code;
+  res.json(resp);
+});
+
 app.post("/api/auth/register", async (req, res) => {
-  let { email, password, name } = req.body || {};
+  let { email, password, name, code } = req.body || {};
   email = String(email || "").trim().toLowerCase();
   const ip = getClientIp(req);
-  // 防刷:同一 IP 10 分钟内注册次数超限,直接拒绝(挡批量注册脚本)
-  if (regWindowCount(ip) >= REG_MAX_PER_IP) {
-    return res.status(429).json({ ok: false, error: "注册过于频繁,请稍后再试或联系客服" });
-  }
   if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
   // 邮箱强校验:拒绝明显乱填(无 @、无域名、TLD 过短等)
   if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) return res.status(400).json({ ok: false, error: "邮箱格式不正确" });
   // 密码强度:至少 8 位,且需同时含字母和数字(挡弱密码批量注册)
   if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) return res.status(400).json({ ok: false, error: "密码至少 8 位,且需包含字母和数字" });
   if (password.length > 64) return res.status(400).json({ ok: false, error: "密码太长" });
+  // 防刷:同一 IP 10 分钟内注册次数超限,直接拒绝(挡批量注册脚本)
+  if (regWindowCount(ip) >= REG_MAX_PER_IP) {
+    return res.status(429).json({ ok: false, error: "注册过于频繁,请稍后再试或联系客服" });
+  }
+  // 邮箱验证码校验(必须先验证邮箱才能建号,挡随意填邮箱注册)
+  const otp = otpStore.get(email);
+  if (!otp) return res.status(400).json({ ok: false, error: "请先获取邮箱验证码" });
+  if (Date.now() > otp.expiresAt) { otpStore.delete(email); return res.status(400).json({ ok: false, error: "验证码已过期,请重新获取" }); }
+  if (otp.attempts >= OTP_MAX_ATTEMPTS) { otpStore.delete(email); return res.status(400).json({ ok: false, error: "验证码尝试次数过多,请重新获取" }); }
+  if (String(code || "") !== otp.code) { otp.attempts++; return res.status(400).json({ ok: false, error: "验证码错误" }); }
+  otpStore.delete(email); // 验证通过,立即作废,防复用
   const existing = await findUserByEmail(email);
   if (existing) return res.status(409).json({ ok: false, error: "该邮箱已注册,请直接登录" });
   regHit(ip); // 记录一次成功注册尝试(限制每 IP 账号数)

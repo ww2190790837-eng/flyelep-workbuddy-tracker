@@ -446,6 +446,14 @@
         <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500">密码</label>
         <input type="password" name="password" required minlength="6" placeholder="至少 6 位" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#161a28;color:var(--text);transition:all .2s" onfocus="this.style.borderColor='var(--primary)';this.style.background='#1d2233'" onblur="this.style.borderColor='var(--border)';this.style.background='#161a28'" />
       </div>
+      <div id="otpField" style="margin-bottom:14px;display:none">
+        <label style="display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500">邮箱验证码</label>
+        <div style="display:flex;gap:10px">
+          <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位验证码" style="flex:1;min-width:0;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#161a28;color:var(--text);letter-spacing:3px;text-align:center;transition:all .2s" onfocus="this.style.borderColor='var(--primary)';this.style.background='#1d2233'" onblur="this.style.borderColor='var(--border)';this.style.background='#161a28'" />
+          <button type="button" id="sendCodeBtn" style="white-space:nowrap;padding:0 16px;background:rgba(124,92,255,.12);color:var(--primary);border:1px solid rgba(124,92,255,.4);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">获取验证码</button>
+        </div>
+        <p id="otpHint" style="display:none;margin:8px 0 0;font-size:12px;color:var(--text-3);line-height:1.6"></p>
+      </div>
       <div id="authError" style="display:none;padding:10px 14px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:10px;color:#fca5a5;font-size:13px;margin-bottom:14px"></div>
       <button type="submit" id="authSubmit" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:-.1px">登录</button>
       <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--text-3)">
@@ -1090,6 +1098,9 @@
   var authToggle = document.getElementById("authToggle");
   var authToggleText = document.getElementById("authToggleText");
   var nameField = document.getElementById("nameField");
+  var otpField = document.getElementById("otpField");
+  var sendCodeBtn = document.getElementById("sendCodeBtn");
+  var otpHint = document.getElementById("otpHint");
   var mode = "login";
 
   function openModal(m){
@@ -1098,6 +1109,8 @@
       authTitle.textContent = "注册 Flyelep 账户";
       authSubtitle.textContent = "1 分钟开通,基础功能免费";
       nameField.style.display = "block";
+      otpField.style.display = "block";
+      otpHint.style.display = "none";
       authSubmit.textContent = "注册并登录";
       authToggleText.textContent = "已有账户?";
       authToggle.textContent = "立即登录";
@@ -1106,6 +1119,8 @@
       authTitle.textContent = "登录 Flyelep";
       authSubtitle.textContent = "使用你的邮箱继续";
       nameField.style.display = "none";
+      otpField.style.display = "none";
+      otpHint.style.display = "none";
       authSubmit.textContent = "登录";
       authToggleText.textContent = "还没有账户?";
       authToggle.textContent = "立即注册";
@@ -1193,6 +1208,17 @@
     var fd = new FormData(authForm);
     var payload = {email: fd.get("email"), password: fd.get("password")};
     if (mode === "register" && fd.get("name")) payload.name = fd.get("name");
+    if (mode === "register") {
+      var codeVal = (fd.get("code") || "").trim();
+      if (!codeVal) {
+        authError.textContent = "请先获取并填写邮箱验证码";
+        authError.style.display = "block";
+        authSubmit.disabled = false;
+        authSubmit.textContent = "注册并登录";
+        return;
+      }
+      payload.code = codeVal;
+    }
     var endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
     authSubmit.disabled = true;
     authSubmit.textContent = "处理中...";
@@ -1211,6 +1237,57 @@
       authSubmit.textContent = mode === "login" ? "登录" : "注册并登录";
     }
   });
+
+  // ===== 邮箱验证码:获取 + 60s 冷却 =====
+  var sendCodeTimer = null;
+  function startSendCooldown(sec){
+    var left = sec;
+    sendCodeBtn.disabled = true;
+    sendCodeBtn.textContent = left + " 秒后重试";
+    if (sendCodeTimer) clearInterval(sendCodeTimer);
+    sendCodeTimer = setInterval(function(){
+      left--;
+      if (left <= 0){ clearInterval(sendCodeTimer); sendCodeBtn.disabled = false; sendCodeBtn.textContent = "重新获取"; }
+      else { sendCodeBtn.textContent = left + " 秒后重试"; }
+    }, 1000);
+  }
+  function sendCode(){
+    var email = (new FormData(authForm).get("email") || "").trim();
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
+      authError.textContent = "请先填写正确的邮箱再获取验证码";
+      authError.style.display = "block";
+      return;
+    }
+    authError.style.display = "none";
+    otpHint.style.display = "none";
+    sendCodeBtn.disabled = true;
+    sendCodeBtn.textContent = "发送中...";
+    fetch("/api/auth/send-code", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email: email}), credentials:"include"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) {
+          authError.textContent = d.error || "验证码发送失败";
+          authError.style.display = "block";
+          sendCodeBtn.disabled = false;
+          sendCodeBtn.textContent = "获取验证码";
+          return;
+        }
+        otpHint.style.display = "block";
+        if (d.dev && d.devCode) {
+          otpHint.innerHTML = "开发模式(未配置真实邮件):验证码已生成 → <b style=\"color:#f59e0b;letter-spacing:2px\">" + d.devCode + "</b><br>配置 SMTP/Resend 后将直接发送到邮箱";
+        } else {
+          otpHint.textContent = d.message || "验证码已发送,请查收邮箱(10 分钟内有效)";
+        }
+        startSendCooldown(60);
+      })
+      .catch(function(){
+        authError.textContent = "网络异常,请稍后重试";
+        authError.style.display = "block";
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = "获取验证码";
+      });
+  }
+  if (sendCodeBtn) sendCodeBtn.addEventListener("click", sendCode);
 
   function setAvatar(el, u){
     if (!el) return;
