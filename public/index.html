@@ -485,7 +485,7 @@
     box-shadow:0 4px 16px rgba(245,158,11,.25)!important;
   }
   /* 积分按钮文字不截断 —— 用 padding+nowrap 而非 overflow:visible(会破坏 ::before shimmer) */
-  #navCodeBtn{white-space:nowrap}
+  #navCodeBtn{white-space:nowrap;flex-shrink:0}
   /* 版本更新通知 Modal —— 浅色适配 */
   [data-theme="light"] #versionModal{background:rgba(0,0,0,.3);backdrop-filter:blur(8px)}
   [data-theme="light"] #versionModal > div{background:#fff!important;border:1px solid rgba(108,79,247,.18)!important;box-shadow:0 20px 60px rgba(108,79,247,.18)!important}
