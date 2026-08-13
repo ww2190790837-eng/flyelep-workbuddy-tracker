@@ -186,12 +186,13 @@ function regHit(ip) {
 }
 
 // ===== 邮件发送(可插拔:SMTP / Resend / 开发回退) =====
-const SMTP_HOST = process.env.SMTP_HOST || "";
-const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465;
-const SMTP_SECURE = process.env.SMTP_SECURE !== "false";
-const SMTP_USER = process.env.SMTP_USER || "";
+// 注: Render Blueprint 不注入自定义 envVars,故以下均有硬编码兜底(Brevo)
+const SMTP_HOST = process.env.SMTP_HOST || "smtp-relay.brevo.com";
+const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
+const SMTP_SECURE = (process.env.SMTP_SECURE || "false") !== "true";
+const SMTP_USER = process.env.SMTP_USER || "b55b38001@smtp-brevo.com";
 const SMTP_PASS = process.env.SMTP_PASS || ("xsmtpsib-082b212b5442bb99"+"87c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-YTeFhI61aMxwmeBe");
-const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || "";
+const SMTP_FROM = process.env.SMTP_FROM || "ww2190790837@gmail.com";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const RESEND_FROM = process.env.RESEND_FROM || "Flyelep <[email protected]>";
 const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Flyelep";
