@@ -129,8 +129,8 @@
       <span>含参考图: <b id="corpusImg" style="color:var(--text)">0</b></span>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <a class="btn" href="/admin/api/prompts.csv">⬇ 导出 CSV</a>
-      <a class="btn danger" href="/admin/api/prompts/reset?confirm=yes" onclick="return confirm('确定清空全部语料库？此操作不可恢复')">🗑 清空</a>
+      <a class="btn" href="/admin/api/export-prompts.csv">⬇ 导出 CSV</a>
+      <button class="btn danger" onclick="clearCorpus()">🗑 清空</button>
     </div>
   </div>
 </div>
@@ -256,10 +256,10 @@
       try{
         const pr = await fetch('/admin/api/prompts',{cache:'no-store'});
         const pd = await pr.json();
-        $('corpusTotal').textContent = pd.total;
-        $('corpusCreate').textContent = pd.createCount;
-        $('corpusReverse').textContent = pd.reverseCount;
-        $('corpusImg').textContent = pd.withImageCount;
+        $('corpusTotal').textContent = pd.all || pd.total || 0;
+        $('corpusCreate').textContent = pd.createCount || 0;
+        $('corpusReverse').textContent = pd.reverseCount || 0;
+        $('corpusImg').textContent = pd.withImageCount || 0;
       }catch(e){ console.log('load corpus failed', e); }
 
       renderBars('bySource', d.bySource, 'bySourceCount');
@@ -311,6 +311,16 @@
     return '<span class="u-ava">'+esc(ch)+'</span>';
   }
   let currentUsers = [];
+  async function clearCorpus(){
+    if(!confirm('确定清空全部语料库？此操作不可恢复')) return;
+    try{
+      const r = await fetch('/admin/api/prompts',{method:'DELETE',cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const d = await r.json();
+      alert('已清空 '+ (d.cleared||0) +' 条语料');
+      load();
+    }catch(e){ alert('清空失败: '+e.message); }
+  }
   async function loadUsers(){
     try{
       const r = await fetch('/admin/api/users',{cache:'no-store'});

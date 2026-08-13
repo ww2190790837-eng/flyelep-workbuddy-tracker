@@ -822,7 +822,12 @@ app.get("/admin/api/prompts", requireAdmin, async (req, res) => {
     id: p.id, mode: p.mode, duration: p.duration, imagesCount: p.imagesCount, ts: p.ts,
     idea: (p.idea || "").slice(0, 140), promptPreview: (p.prompt || "").slice(0, 240)
   }));
-  res.json({ total, page, pageSize, items, all: promptCache.length });
+  res.json({
+    total, page, pageSize, items, all: promptCache.length,
+    createCount: promptCache.filter(p => p.mode !== "reverse").length,
+    reverseCount: promptCache.filter(p => p.mode === "reverse").length,
+    withImageCount: promptCache.filter(p => (p.imagesCount || 0) > 0).length
+  });
 });
 // 提示词语料库导出 CSV(后台)
 app.get("/admin/api/export-prompts.csv", requireAdmin, async (req, res) => {
@@ -932,42 +937,6 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
   const ok = await deleteUserById(req.params.id);
   if (!ok) return res.status(404).json({ ok: false, error: "用户不存在" });
   res.json({ ok: true });
-});
-
-// ===== 提示词自进化语料库(训练数据,独立存储) =====
-// 统计概览
-app.get("/admin/api/prompts", requireAdmin, (req, res) => {
-  const recs = promptCache;
-  res.json({
-    total: recs.length,
-    createCount: recs.filter(r => r.mode !== "reverse").length,
-    reverseCount: recs.filter(r => r.mode === "reverse").length,
-    withImageCount: recs.filter(r => (r.imagesCount || 0) > 0).length,
-    oldest: recs.length ? new Date(Math.min(...recs.map(r => r.ts))).toISOString() : null,
-    newest: recs.length ? new Date(Math.max(...recs.map(r => r.ts))).toISOString() : null,
-    recent: recs.slice(0, 50)
-  });
-});
-// 导出 CSV
-app.get("/admin/api/prompts.csv", requireAdmin, (req, res) => {
-  const header = ["id", "time", "mode", "duration", "imagesCount", "idea", "prompt", "userId"];
-  const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
-  const lines = [header.join(",")];
-  promptCache.forEach((r) => {
-    lines.push([r.id, new Date(r.ts).toISOString(), r.mode, r.duration, r.imagesCount, r.idea, r.prompt, r.userId].map(esc).join(","));
-  });
-  res.set("Content-Type", "text/csv;charset=utf-8");
-  res.set("Content-Disposition", "attachment; filename=prompts_corpus.csv");
-  res.send("﻿" + lines.join("\n"));
-});
-// 清空语料库(确认制)
-app.get("/admin/api/prompts/reset", requireAdmin, async (req, res) => {
-  if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
-  const n = promptCache.length;
-  promptCache = [];
-  if (usingGist) { try { await gistPushPrompts(); } catch (e) { console.error("[prompts] reset 落盘失败:", e.message); } }
-  else { try { fs.writeFileSync(PROMPTS_FILE, "[]"); } catch (e) {} }
-  res.json({ ok: true, cleared: n });
 });
 
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
