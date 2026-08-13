@@ -572,6 +572,14 @@ app.get("/api/my-code", async (req, res) => {
   res.json({ claimed: false, code: null });
 });
 
+// 公开库存接口:返回邀请码剩余数量(供前端展示)
+app.get("/api/code-stock", (req, res) => {
+  const total = codes.pool.length;
+  const claimed = codes.pool.filter(c => c.claimedBy).length;
+  const available = total - claimed;
+  res.json({ total, claimed, available });
+});
+
 // 领取邀请码（每个用户限领一次，每码限一人）
 app.post("/api/claim-code", async (req, res) => {
   const u = req.session.userId ? await findUserById(req.session.userId) : null;

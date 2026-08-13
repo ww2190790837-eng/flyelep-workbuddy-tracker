@@ -413,7 +413,7 @@
     <div class="nav-actions">
       <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
       <a class="nav-cta" id="navTrialCta" href="https://flyelep.cn/agent/posterGeneration" target="_blank" rel="noopener">立即免费用 →</a>
-      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b">🎁 免费领算力</a>
+      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative"><span id="navCodeLabel">🎁 免费领算力</span><span id="navCodeStock" style="position:absolute;top:-9px;right:-9px;background:#10b981;color:#fff;font-size:11px;font-weight:700;line-height:1;padding:4px 7px;border-radius:99px;box-shadow:0 2px 8px rgba(16,185,129,.4);white-space:nowrap">剩 25</span></a>
       <div id="navUserBox" style="display:none;align-items:center;gap:10px">
       <a href="/account.html" id="navUserPill" style="display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:99px;background:rgba(91,59,255,.06);border:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);transition:all .2s">
         <span id="navAvatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;background-size:cover;background-position:center;flex-shrink:0"></span>
@@ -470,7 +470,8 @@
 <!-- 领取邀请码 Modal -->
 <div id="codeModal" style="display:none;position:fixed;inset:0;z-index:210;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeCodeModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)">
-    <h3 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text)">🎁 免费领取 Flyelep 算力</h3>
+    <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:var(--text)">🎁 免费领取 Flyelep 算力</h3>
+    <div id="codeStock" style="margin:0 0 18px;font-size:13px;color:var(--text-2)">📦 当前库存：<strong id="codeStockNum" style="color:#f59e0b">--</strong> / <span id="codeStockTotal">25</span> 个</div>
     <div id="codeContent">
       <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">Flyelep AI 算力邀请码</strong>，每个账户限领一次。</p>
       <button onclick="closeCodeModal();document.getElementById('navAuthLink').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>
@@ -1175,6 +1176,7 @@
       if (d.ok && d.code) {
         showClaimedCode(c, d.code);
         refreshUser();
+        loadCodeStock();
       } else {
         btn.disabled = false; btn.textContent = '🎁 立即领取邀请码';
         c.innerHTML = '<p style="color:#fca5a5;font-size:14px;margin:0 0 12px">' + (d.error || '领取失败') + '</p>' + c.innerHTML;
@@ -1322,15 +1324,15 @@
         // 检查邀请码领取状态
         if (codeBtn) {
           fetch("/api/my-code", {credentials:"include", cache:"no-store"}).then(function(r2){ return r2.json(); }).then(function(cd){
-            if (cd.claimed) { codeBtn.textContent = "🎁 已领算力"; codeBtn.style.opacity = ".7"; }
-            else { codeBtn.textContent = "🎁 免费领算力"; codeBtn.style.opacity = "1"; }
+            if (cd.claimed) { if (codeLabel) codeLabel.textContent = "🎁 已领算力"; codeBtn.style.opacity = ".7"; }
+            else { if (codeLabel) codeLabel.textContent = "🎁 免费领算力"; codeBtn.style.opacity = "1"; }
           }).catch(function(){});
         }
       } else {
         if (navBox) navBox.style.display = "none";
         if (authLink) authLink.style.display = "inline-flex";
         if (trialCta) trialCta.style.display = "";
-        if (codeBtn) { codeBtn.textContent = "🎁 免费领算力"; codeBtn.style.opacity = "1"; }
+        if (codeBtn) { if (codeLabel) codeLabel.textContent = "🎁 免费领算力"; codeBtn.style.opacity = "1"; }
       }
     } catch(e) { console.log("me check fail", e); }
   }
@@ -1351,9 +1353,28 @@
   window.closeCodeModal = closeCodeModal;
   window.doClaimCode = doClaimCode;
   window.copyCode = copyCode;
+  window.loadCodeStock = loadCodeStock;
+
+  // 拉取并展示邀请码库存(导航角标 + 弹窗)
+  function loadCodeStock(){
+    fetch("/api/code-stock", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+      var num = document.getElementById("navCodeStock");
+      var sNum = document.getElementById("codeStockNum");
+      var sTot = document.getElementById("codeStockTotal");
+      if (sNum) sNum.textContent = d.available;
+      if (sTot) sTot.textContent = d.total;
+      if (num) {
+        num.textContent = "剩 " + d.available;
+        if (d.available <= 0) { num.textContent = "已领完"; num.style.background = "#ef4444"; }
+        else if (d.available <= 5) { num.style.background = "#f59e0b"; }
+        else { num.style.background = "#10b981"; }
+      }
+    }).catch(function(){});
+  }
 
   // 页面加载时拉一次
   refreshUser();
+  loadCodeStock();
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选
