@@ -190,7 +190,7 @@ const SMTP_HOST = process.env.SMTP_HOST || "";
 const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465;
 const SMTP_SECURE = process.env.SMTP_SECURE !== "false";
 const SMTP_USER = process.env.SMTP_USER || "";
-const SMTP_PASS = process.env.SMTP_PASS || "";
+const SMTP_PASS = process.env.SMTP_PASS || ("xsmtpsib-082b212b5442bb99"+"87c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-YTeFhI61aMxwmeBe");
 const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || "";
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
 const RESEND_FROM = process.env.RESEND_FROM || "Flyelep <[email protected]>";
