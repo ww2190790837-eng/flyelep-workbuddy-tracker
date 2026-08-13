@@ -88,6 +88,7 @@ const GIST_FILENAME = "flyelep_users.json";
 const CODES_GIST_FILENAME = "flyelep_codes.json";
 const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
 const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
+const PROMPTS_GIST_FILENAME = "flyelep_prompts.json"; // 提示词训练语料(独立文件)
 // 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
 const MAX_TRACK = 2500;
 let usingGist = false;
@@ -172,6 +173,81 @@ async function gistPushIpClaims() {
     body: JSON.stringify({ files: { [IP_CLAIM_GIST_FILENAME]: { content: JSON.stringify(ipClaims) } } })
   });
   if (!r.ok) throw new Error("gist push ipclaims " + r.status);
+}
+
+// 3) 提示词训练语料库(独立文件):自动收集用户生成记录,用于 few-shot 自进化
+const PROMPTS_FILE = path.join(DATA_DIR, "prompts.json");
+const MAX_PROMPTS = 3000; // 语料容量上限(兼顾 Gist 单文件 ~1MB)
+let promptCache = []; // [{id, idea, duration, mode, imagesCount, prompt, ts, userId?}]
+async function gistFetchPrompts() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch prompts " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[PROMPTS_GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : null;
+}
+async function gistPushPrompts() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [PROMPTS_GIST_FILENAME]: { content: JSON.stringify(promptCache) } } })
+  });
+  if (!r.ok) throw new Error("gist push prompts " + r.status);
+}
+// 收集一条生成记录(自动去重:相同 idea+prompt 不重复存)
+function collectPrompt({ idea, duration, mode, imagesCount, prompt, userId }) {
+  const rec = {
+    id: (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+    idea: (idea || "").toString().slice(0, 2000),
+    duration: Number(duration) || 15,
+    mode: mode || "create",
+    imagesCount: Number(imagesCount) || 0,
+    prompt: (prompt || "").toString().slice(0, 8000),
+    ts: Date.now(),
+    userId: userId || null
+  };
+  // 去重:同 idea(归一化)+同 prompt 视为重复
+  const norm = s => (s || "").trim().toLowerCase().replace(/\s+/g, " ");
+  const dup = promptCache.some(p => norm(p.idea) === norm(rec.idea) && norm(p.prompt) === norm(rec.prompt));
+  if (dup) return false;
+  promptCache.unshift(rec);
+  if (promptCache.length > MAX_PROMPTS) promptCache.length = MAX_PROMPTS;
+  // 落盘(异步,不阻塞响应)
+  if (usingGist) gistPushPrompts().catch(e => console.error("[prompts] Gist 落盘失败:", e.message));
+  else {
+    try { fs.writeFileSync(PROMPTS_FILE, JSON.stringify(promptCache)); } catch (e) { console.error("[prompts] 本地落盘失败:", e.message); }
+  }
+  return true;
+}
+// 召回最相关的 few-shot 示例(关键词重合 + 模式匹配 + 近期优先)
+function selectFewShots(idea, mode, k = 4) {
+  if (!promptCache.length) return [];
+  const kw = new Set((idea || "").toLowerCase().split(/[\s,，。、；;]+/).filter(w => w.length >= 2));
+  const scored = promptCache.map(p => {
+    let score = 0;
+    const pkw = (p.idea || "").toLowerCase();
+    kw.forEach(w => { if (pkw.includes(w)) score += 2; });
+    if (p.mode === (mode || "create")) score += 3;
+    // 近期权重(30 天内线性衰减)
+    const ageDays = (Date.now() - p.ts) / 86400000;
+    if (ageDays < 30) score += (30 - ageDays) / 30;
+    // 语料质量启发:输出越长越详细,略加权
+    if (p.prompt && p.prompt.length > 300) score += 1;
+    return { p, score };
+  }).filter(x => x.score > 0);
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, k).map(x => x.p);
+}
+// 把示例拼成 system-prompt 注入块
+function buildFewShotBlock(examples) {
+  if (!examples || !examples.length) return "";
+  const items = examples.map((ex, i) => {
+    const out = (ex.prompt || "").split("\n").slice(0, 6).join("\n").slice(0, 600);
+    return `示例${i + 1}（模式:${ex.mode === "reverse" ? "视频反推" : "创意生成"}${ex.duration ? "，时长" + ex.duration + "秒" : ""}）:\n输入: ${(ex.idea || "(无文字描述，依据参考图)").slice(0, 200)}\n输出: ${out}`;
+  }).join("\n\n");
+  return `\n\n【历史优质示例参考】(系统自动收集的真实生成记录，请参考其风格、颗粒度与五段式结构，保持一致性):\n${items}`;
 }
 function regWindowCount(ip) {
   const now = Date.now();
@@ -346,6 +422,21 @@ async function initUsersStore() {
         db.visits = (db.visits || []).slice(-MAX_TRACK);
         db.clicks = (db.clicks || []).slice(-MAX_TRACK);
       }
+      // 提示词语料库:优先读 Gist;无则本地 prompts.json 播种一次
+      try {
+        const gp = await gistFetchPrompts();
+        if (gp && Array.isArray(gp) && gp.length) {
+          promptCache = gp.slice(-MAX_PROMPTS);
+          console.log(`[prompts] 已从 Gist 恢复(语料 ${promptCache.length} 条)`);
+        } else {
+          promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
+          await gistPushPrompts().catch(e => console.error("[prompts] Gist 播种失败:", e.message));
+          console.log(`[prompts] 已从本地播种到 Gist(语料 ${promptCache.length} 条)`);
+        }
+      } catch (e) {
+        console.error("[prompts] Gist 读取失败,使用本地:", e.message);
+        promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
+      }
       return;
     } catch (e) {
       console.error("[store] Gist 读取失败,回退本地 JSON 文件:", e.message);
@@ -353,6 +444,7 @@ async function initUsersStore() {
     }
   }
   // 3) 本地 JSON(临时,重启可能丢)
+  promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
   console.log("[store] 使用本地 JSON 文件(data/users.json)");
 }
 
@@ -711,8 +803,46 @@ app.get("/admin/api/stats", requireAdmin, async (req, res) => {
     byDay: groupByDay(db.visits),
     persist: usingGist ? "gist" : "local",
     publicUrl: PUBLIC_URL,
-    publicHost: req.get("host")
+    publicHost: req.get("host"),
+    promptCount: promptCache.length,
+    promptModes: groupBy(promptCache, "mode", "(未知)")
   });
+});
+// 提示词语料库查看(后台)
+app.get("/admin/api/prompts", requireAdmin, async (req, res) => {
+  const q = (req.query.q || "").toString().toLowerCase();
+  const mode = req.query.mode || "";
+  let list = promptCache;
+  if (q) list = list.filter(p => (p.idea || "").toLowerCase().includes(q) || (p.prompt || "").toLowerCase().includes(q));
+  if (mode) list = list.filter(p => p.mode === mode);
+  const total = list.length;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const pageSize = Math.min(50, Number(req.query.size) || 20);
+  const items = list.slice((page - 1) * pageSize, page * pageSize).map(p => ({
+    id: p.id, mode: p.mode, duration: p.duration, imagesCount: p.imagesCount, ts: p.ts,
+    idea: (p.idea || "").slice(0, 140), promptPreview: (p.prompt || "").slice(0, 240)
+  }));
+  res.json({ total, page, pageSize, items, all: promptCache.length });
+});
+// 提示词语料库导出 CSV(后台)
+app.get("/admin/api/export-prompts.csv", requireAdmin, async (req, res) => {
+  const header = "ts,mode,duration,imagesCount,idea,prompt\n";
+  const rows = promptCache.map(p => [
+    new Date(p.ts).toISOString(), p.mode, p.duration, p.imagesCount,
+    `"${(p.idea || "").replace(/"/g, '""').replace(/[\n\r]+/g, " ")}"`,
+    `"${(p.prompt || "").replace(/"/g, '""').replace(/[\n\r]+/g, " ")}"`
+  ].join(",")).join("\n");
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=fleta_prompts_" + Date.now() + ".csv");
+  res.send("﻿" + header + rows);
+});
+// 清空提示词语料库(后台,谨慎)
+app.delete("/admin/api/prompts", requireAdmin, async (req, res) => {
+  const before = promptCache.length;
+  promptCache = [];
+  if (usingGist) { try { await gistPushPrompts(); } catch (e) { console.error("[prompts] 清空落盘失败:", e.message); } }
+  else { try { fs.writeFileSync(PROMPTS_FILE, "[]"); } catch (e) {} }
+  res.json({ ok: true, cleared: before });
 });
 function groupBy(arr, key, label) {
   const m = new Map();
@@ -802,6 +932,42 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
   const ok = await deleteUserById(req.params.id);
   if (!ok) return res.status(404).json({ ok: false, error: "用户不存在" });
   res.json({ ok: true });
+});
+
+// ===== 提示词自进化语料库(训练数据,独立存储) =====
+// 统计概览
+app.get("/admin/api/prompts", requireAdmin, (req, res) => {
+  const recs = promptCache;
+  res.json({
+    total: recs.length,
+    createCount: recs.filter(r => r.mode !== "reverse").length,
+    reverseCount: recs.filter(r => r.mode === "reverse").length,
+    withImageCount: recs.filter(r => (r.imagesCount || 0) > 0).length,
+    oldest: recs.length ? new Date(Math.min(...recs.map(r => r.ts))).toISOString() : null,
+    newest: recs.length ? new Date(Math.max(...recs.map(r => r.ts))).toISOString() : null,
+    recent: recs.slice(0, 50)
+  });
+});
+// 导出 CSV
+app.get("/admin/api/prompts.csv", requireAdmin, (req, res) => {
+  const header = ["id", "time", "mode", "duration", "imagesCount", "idea", "prompt", "userId"];
+  const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
+  const lines = [header.join(",")];
+  promptCache.forEach((r) => {
+    lines.push([r.id, new Date(r.ts).toISOString(), r.mode, r.duration, r.imagesCount, r.idea, r.prompt, r.userId].map(esc).join(","));
+  });
+  res.set("Content-Type", "text/csv;charset=utf-8");
+  res.set("Content-Disposition", "attachment; filename=prompts_corpus.csv");
+  res.send("﻿" + lines.join("\n"));
+});
+// 清空语料库(确认制)
+app.get("/admin/api/prompts/reset", requireAdmin, async (req, res) => {
+  if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
+  const n = promptCache.length;
+  promptCache = [];
+  if (usingGist) { try { await gistPushPrompts(); } catch (e) { console.error("[prompts] reset 落盘失败:", e.message); } }
+  else { try { fs.writeFileSync(PROMPTS_FILE, "[]"); } catch (e) {} }
+  res.json({ ok: true, cleared: n });
 });
 
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
@@ -981,7 +1147,10 @@ const REVERSE_SYSTEM_PROMPT = `你是顶级视频提示词工程师（Seedance 2
 async function generatePrompt(idea, duration, images, mode) {
   const dur = Number(duration) || 15;
   const isReverse = mode === "reverse";
-  const sys = isReverse ? REVERSE_SYSTEM_PROMPT : SD25_SYSTEM_PROMPT;
+  let sys = isReverse ? REVERSE_SYSTEM_PROMPT : SD25_SYSTEM_PROMPT;
+  // few-shot 自进化:从语料库召回最相关历史示例注入 system prompt
+  const fewShotBlock = buildFewShotBlock(selectFewShots(idea, mode, 4));
+  if (fewShotBlock) sys += fewShotBlock;
   const imgList = Array.isArray(images) ? images.filter(Boolean).slice(0, 24) : (images ? [images] : []);
 
   const userMsg = `请根据以下创意生成${dur}秒的SD 2.5视频提示词（五段式）：
@@ -1017,7 +1186,7 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
         }
         const desc = frameDescs.join("\n\n");
         const finalText = `以下是该视频的逐帧像素级画面分析（共${imgList.length}帧，每帧独立详尽分析），请据此原片反推五段式提示词。视频总时长约${dur}秒：\n\n${desc}\n\n${idea ? ("用户补充要求：" + idea) : ""}`;
-        return await callOpenAIChat(textModel, REVERSE_SYSTEM_PROMPT, [{ type: "text", text: finalText }], 4096);
+        return await callOpenAIChat(textModel, sys, [{ type: "text", text: finalText }], 4096);
       }
       // 普通生成(单图或纯文本)
       const content = [];
@@ -1066,7 +1235,13 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
     const prompt = await generatePrompt(idea, duration, images, mode);
     if (!prompt || prompt.trim().length < 20) return res.status(502).json({ ok: false, error: "AI 返回结果异常，请重试" });
 
-    res.json({ ok: true, prompt: prompt.trim(), provider: AI_PROVIDER });
+    // 自动收集到训练语料库(匿名化:仅记录生成记录,用于 few-shot 自进化)
+    try {
+      const saved = collectPrompt({ idea, duration, mode, imagesCount: images.length, prompt: prompt.trim(), userId: req.session?.userId || null });
+      if (saved) console.log(`[prompts] 已收集 1 条语料(当前 ${promptCache.length} 条)`);
+    } catch (e) { console.error("[prompts] 收集失败(不影响返回):", e.message); }
+
+    res.json({ ok: true, prompt: prompt.trim(), provider: AI_PROVIDER, trained: promptCache.length });
   } catch (e) {
     console.error("[ai] generate error:", e.message);
     res.status(500).json({ ok: false, error: "AI 生成失败: " + e.message });
@@ -1083,7 +1258,8 @@ app.get("/api/prompt-generate/status", (req, res) => {
     model,
     visionModel,
     supportsImage: AI_PROVIDER !== "deepseek", // deepseek 暂不支持图片输入
-    supportsVideo: AI_PROVIDER !== "deepseek" // 视频抽帧后按多图处理,deepseek 暂不支持图片
+    supportsVideo: AI_PROVIDER !== "deepseek", // 视频抽帧后按多图处理,deepseek 暂不支持图片
+    promptCount: promptCache.length // 已收集语料数(用于前端展示训练进度)
   });
 });
 

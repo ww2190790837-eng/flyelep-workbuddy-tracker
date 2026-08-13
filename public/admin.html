@@ -119,6 +119,22 @@
   <div class="out" id="b-out">生成的链接会显示在这里</div>
 </div>
 
+<div class="builder" id="corpusPanel">
+  <h2>🧠 提示词自进化语料库 <span class="pill" id="corpusTotal">0</span></h2>
+  <p style="color:var(--muted);font-size:13px;margin:6px 0 12px">每次生成自动收集用户提示词（匿名），注入后续生成的 system prompt 实现 few-shot 自进化，越用越准。训练数据单独保存在独立 Gist 文件 <code>flyelep_prompts.json</code>。</p>
+  <div class="row" style="align-items:center">
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)">
+      <span>从零生成: <b id="corpusCreate" style="color:var(--text)">0</b></span>
+      <span>视频反推: <b id="corpusReverse" style="color:var(--text)">0</b></span>
+      <span>含参考图: <b id="corpusImg" style="color:var(--text)">0</b></span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <a class="btn" href="/admin/api/prompts.csv">⬇ 导出 CSV</a>
+      <a class="btn danger" href="/admin/api/prompts/reset?confirm=yes" onclick="return confirm('确定清空全部语料库？此操作不可恢复')">🗑 清空</a>
+    </div>
+  </div>
+</div>
+
 <div class="row">
   <div class="panel">
     <h2>按来源 (utm_source) <span class="pill" id="bySourceCount"></span></h2>
@@ -236,6 +252,16 @@
       $('kpi-cvr').textContent = d.cvr + '%';
       $('kpi-users').textContent = d.userCount || 0;
       $('kpi-regions').textContent = d.regionCount || 0;
+      // 语料库(自进化训练数据)
+      try{
+        const pr = await fetch('/admin/api/prompts',{cache:'no-store'});
+        const pd = await pr.json();
+        $('corpusTotal').textContent = pd.total;
+        $('corpusCreate').textContent = pd.createCount;
+        $('corpusReverse').textContent = pd.reverseCount;
+        $('corpusImg').textContent = pd.withImageCount;
+      }catch(e){ console.log('load corpus failed', e); }
+
       renderBars('bySource', d.bySource, 'bySourceCount');
       renderBars('byMedium', d.byMedium, 'byMediumCount');
       renderBars('byCampaign', d.byCampaign, 'byCampaignCount');

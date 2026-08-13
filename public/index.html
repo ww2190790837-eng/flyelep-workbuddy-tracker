@@ -605,6 +605,7 @@
       <span class="section-eyebrow reveal">/ AI 视频提示词</span>
       <h2 class="section-title reveal"><em>Seedance 2.5</em> 视频提示词生成器</h2>
       <p class="section-sub reveal">五段式结构 · 主体 + 风格 + 时间线 + BGM + 限制 · 一键生成专业提示词</p>
+      <p class="section-note reveal" style="margin-top:10px;font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px;justify-content:center"><span style="font-size:13px">🧠</span>每次生成都会匿名收集，用于持续训练、越用越准（已收集 <strong id="pgTrainCount" style="color:var(--primary-2)">--</strong> 条）</p>
     </div>
 
     <div class="pg-card reveal">
@@ -1646,6 +1647,7 @@
   // 检测 AI 是否可用
   fetch('/api/prompt-generate/status').then(function(r){return r.json();}).then(function(st){
     aiAvailable=st.available;
+    if(st.promptCount!=null){ var tc=document.getElementById('pgTrainCount'); if(tc) tc.textContent=st.promptCount; }
     var badge=document.getElementById('pgAiBadge');
     var pname=st.model?st.model.replace(/^qwen[- ]?/i,'千问 ').replace(/-/g,' '):({openai:'OpenAI 兼容', gemini:'Gemini', deepseek:'DeepSeek', local:'本地'}[st.provider]||st.provider);
     if(aiAvailable){
@@ -1835,6 +1837,7 @@
       }
 
       showVRResult(result.prompt);
+      if(result.trained!=null) document.getElementById('pgTrainCount').textContent=result.trained;
     }catch(e){
       showErrorVR('网络错误: '+e.message);
     }finally{
@@ -1919,6 +1922,7 @@
       }
 
       showResult(result.prompt);
+      if(result.trained!=null) document.getElementById('pgTrainCount').textContent=result.trained;
     }catch(e){
       showError('网络错误: '+e.message+'，请检查网络后重试，或切换到「本地模板」');
     }finally{
