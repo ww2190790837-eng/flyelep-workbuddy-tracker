@@ -37,7 +37,7 @@
   /* === 全屏背景层 === */
   .bg-stage{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   /* Canvas 流场粒子 (微妙光晕) */
-  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.14;mix-blend-mode:screen}
+  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.28;mix-blend-mode:screen}
   /* 噪点纹理 */
   .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:normal}
   /* 移动网格 */
@@ -318,7 +318,7 @@
   [data-theme="light"] .nav-auth:hover{background:rgba(108,79,247,.08);border-color:rgba(108,79,247,.4)}
   [data-theme="light"] .nav-user-pill{background:rgba(108,79,247,.04)!important;border-color:var(--border)!important;color:var(--text)!important}
   [data-theme="light"] .bg-stage{background:linear-gradient(180deg,#eeeef8 0%,#f8f9fc 60%,#fff 100%)}
-  [data-theme="light"] .bg-canvas{opacity:.08;mix-blend-mode:normal}
+  [data-theme="light"] .bg-canvas{opacity:.18;mix-blend-mode:normal}
   [data-theme="light"] .bg-grid{background-image:linear-gradient(to right,rgba(108,79,247,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(108,79,247,.05) 1px,transparent 1px);mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 25%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 25%,transparent 80%)}
   [data-theme="light"] section{background:transparent}
   [data-theme="light"] footer{background:var(--bg-2);border-top:1px solid var(--border)}
@@ -337,6 +337,28 @@
   .theme-opt.active{color:var(--primary);font-weight:600}
   .theme-opt .tick{margin-left:auto;width:16px;height:16px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;opacity:0;transition:opacity .15s}
   .theme-opt.active .tick{opacity:1}
+
+  /* ===== 浅色模式: 弹窗/Modal 适配 ===== */
+  [data-theme="light"] #authModal,
+  [data-theme="light"] #codeModal{background:rgba(0,0,0,.25)}
+  [data-theme="light"] #authModal > div,
+  [data-theme="light"] #codeModal > div{background:#fff!important;border-color:rgba(108,79,247,.12)!important;box-shadow:0 30px 80px -20px rgba(0,0,0,.15),0 0 0 1px rgba(108,79,247,.06)!important;color:var(--text)}
+  [data-theme="light"] #authModal h2,
+  [data-theme="light"] #codeModal h3{color:var(--text)!important}
+  [data-theme="light"] #authModal p,
+  [data-theme="light"] #codeModal p{color:var(--text-2)!important}
+  [data-theme="light"] #authModal strong,
+  [data-theme="light"] #codeModal strong{color:var(--text)!important}
+  [data-theme="light"] #authClose,
+  [data-theme="light"] #codeClose{background:rgba(0,0,0,.05)!important;color:var(--text-3)!important}
+  [data-theme="light"] #authModal input[type=email],
+  [data-theme="light"] #authModal input[type=password],
+  [data-theme="light"] #authModal input[type=text]{background:var(--bg)!important;border-color:var(--border)!important;color:var(--text)!important}
+  [data-theme="light"] #authModal input::placeholder{color:var(--text-3)!important}
+  [data-theme="light"] #authModal button:not(#authClose),
+  [data-theme="light"] #codeModal button:not(#codeClose):not(.theme-opt){color:#fff!important;text-shadow:none!important}
+  [data-theme="light"] #codeDisplay{color:var(--primary)!important}
+  [data-theme="light"] .nav-cta[id="navCodeBtn"]{box-shadow:0 4px 16px rgba(245,158,11,.25)!important}
 </style>
 </head>
 <body>
@@ -436,10 +458,8 @@
     <div class="bg-noise"></div>
   </div>
   <div class="wrap">
-    <div class="hero-eyebrow reveal"><span class="pulse"></span>跨境电商 AI 智能设计</div>
-    <h1 class="reveal d1"><span class="grad">Fleta</span> · 让每个卖家都做出<span class="grad">专业级视觉</span></h1>
-    <p class="sub reveal d2">AI 驱动的提示词生成与视频反推平台<br><strong>1 分钟生成高转化主图、详情页与爆款海报</strong></p>
-    <div class="user-stat reveal d2"><strong>Seedance 2.5</strong> <span class="sep">|</span> <strong>SD 2.5</strong> <span class="sep">|</span> 多平台适配</div>
+    <h1 class="reveal d1"><span class="grad">Fleta</span></h1>
+    <p class="sub reveal d2">AI 提示词生成 · 视频反推 · 电商视觉设计</p>
     <div class="cta-row reveal d3">
       <a class="btn btn-primary" href="#prompt-gen">✨ 开始生成提示词</a>
       <a class="btn btn-ghost" href="#video-reverse">🎬 视频反推</a>
