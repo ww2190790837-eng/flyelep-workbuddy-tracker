@@ -30,10 +30,38 @@ function loadJSON(file, fallback) {
 }
 function saveJSON(file, data) { fs.writeFileSync(file, JSON.stringify(data, null, 2)); }
 
-// 加载现有 visits/clicks DB(兼容)
+// 加载现有 visits/clicks DB(本地仅作兜底/首次播种;联网优先走 Gist)
 let db = loadJSON(DB_FILE, { visits: [], clicks: [] });
 let codes = loadJSON(CODES_FILE, { pool: [] });
-function saveDB() { saveJSON(DB_FILE, db); }
+
+// ---- 跟踪数据持久化:优先 Gist(异步 debounce,避免每次请求都打 API 触发限流)+ 本地兜底 ----
+let dbSaveTimer = null;
+let dbSaving = false;
+function saveDB(immediate) {
+  if (usingGist) {
+    if (immediate) {
+      if (dbSaveTimer) { clearTimeout(dbSaveTimer); dbSaveTimer = null; }
+      persistDBToGist();
+    } else if (!dbSaveTimer) {
+      dbSaveTimer = setTimeout(() => { dbSaveTimer = null; persistDBToGist(); }, 3000);
+    }
+    return; // 内存为真值,异步落盘即可
+  }
+  saveJSON(DB_FILE, db);
+}
+async function persistDBToGist() {
+  if (dbSaving) return; // 上一次未完成,下个周期再写
+  dbSaving = true;
+  try { await gistPushTracking(db); }
+  catch (e) { console.error("[tracking] Gist 持久化失败(内存保留,稍后重试):", e.message); }
+  finally { dbSaving = false; }
+}
+// 进程退出(SIGTERM/SIGINT)前尽量落盘,压缩重启丢数据窗口
+async function flushDB() {
+  if (usingGist) { try { await gistPushTracking(db); } catch (e) { console.error("[tracking] 退出落盘失败:", e.message); } }
+}
+process.on("SIGTERM", () => { flushDB().finally(() => process.exit(0)); });
+process.on("SIGINT", () => { flushDB().finally(() => process.exit(0)); });
 function saveCodes() {
   if (usingGist) {
     return gistPushCodes(codes).catch(e => console.error("[codes] Gist 持久化失败,回退本地:", e.message));
@@ -57,6 +85,9 @@ const GIST_TOKEN = process.env.USERS_GIST_TOKEN || "";
 const GIST_ID = process.env.USERS_GIST_ID || "";
 const GIST_FILENAME = "flyelep_users.json";
 const CODES_GIST_FILENAME = "flyelep_codes.json";
+const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
+// 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
+const MAX_TRACK = 2500;
 let usingGist = false;
 let gistCache = [];
 async function gistFetch() {
@@ -93,6 +124,25 @@ async function gistPushCodes(codesData) {
     body: JSON.stringify({ files: { [CODES_GIST_FILENAME]: { content: JSON.stringify(codesData, null, 2) } } })
   });
   if (!r.ok) throw new Error("gist push codes " + r.status);
+}
+// 访问/点击跟踪数据同样走 Gist(单独文件,与 users/codes 同一 Gist)
+// 用紧凑 JSON(无缩进)以压低体积,避免超过 Gist 单文件 ~1MB 上限
+async function gistFetchTracking() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch tracking " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[TRACKING_GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : null;
+}
+async function gistPushTracking(tracking) {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "flyelep-tracker", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [TRACKING_GIST_FILENAME]: { content: JSON.stringify(tracking) } } })
+  });
+  if (!r.ok) throw new Error("gist push tracking " + r.status);
 }
 
 async function initUsersStore() {
@@ -136,6 +186,23 @@ async function initUsersStore() {
         codes = loadJSON(CODES_FILE, { pool: [] });
         await gistPushCodes(codes).catch(e => console.error("[codes] Gist 播种失败:", e.message));
         console.log(`[store] 已启用 GitHub Gist 持久化,邀请码已播种(${codes.pool.length} 个)`);
+      }
+      // 跟踪数据:优先读 Gist;若 Gist 尚无该文件,用本地 db.json 播种一次
+      try {
+        const gt = await gistFetchTracking();
+        if (gt && (gt.visits || gt.clicks)) {
+          db = { visits: (gt.visits || []).slice(-MAX_TRACK), clicks: (gt.clicks || []).slice(-MAX_TRACK) };
+          console.log(`[tracking] 已从 Gist 恢复(访问 ${db.visits.length}/点击 ${db.clicks.length})`);
+        } else {
+          db.visits = (db.visits || []).slice(-MAX_TRACK);
+          db.clicks = (db.clicks || []).slice(-MAX_TRACK);
+          await gistPushTracking(db).catch(e => console.error("[tracking] Gist 播种失败:", e.message));
+          console.log(`[tracking] 已从本地播种到 Gist(访问 ${db.visits.length}/点击 ${db.clicks.length})`);
+        }
+      } catch (e) {
+        console.error("[tracking] Gist 读取失败,使用内存数据:", e.message);
+        db.visits = (db.visits || []).slice(-MAX_TRACK);
+        db.clicks = (db.clicks || []).slice(-MAX_TRACK);
       }
       return;
     } catch (e) {
@@ -372,8 +439,8 @@ app.get("/t.gif", (req, res) => {
   const vid = (req.cookies && req.cookies.vid) || hash(ip + ua);
   const isUnique = !(req.cookies && req.cookies.vid);
   const userId = req.session.userId || null;
-  db.visits.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua, referer: ref, path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
-  if (db.visits.length > 20000) db.visits = db.visits.slice(-20000);
+  db.visits.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua: (ua || "").slice(0, 300), referer: (ref || "").slice(0, 300), path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
+  if (db.visits.length > MAX_TRACK) db.visits = db.visits.slice(-MAX_TRACK);
   saveDB();
   if (isUnique) { res.cookie("vid", vid, { maxAge: 30 * 24 * 3600 * 1000, sameSite: "lax" }); }
   res.set("Content-Type", "image/gif");
@@ -389,8 +456,8 @@ app.post("/api/click", (req, res) => {
   const u = getUtm({ ...req.query, ...req.body });
   const { target, label } = req.body || {};
   const userId = req.session.userId || null;
-  db.clicks.push({ ts: Date.now(), ip, region: resolveRegion(ip), vid, ...u, target: target || "", label: label || "", userId });
-  if (db.clicks.length > 20000) db.clicks = db.clicks.slice(-20000);
+  db.clicks.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua: (ua || "").slice(0, 300), referer: (ref || "").slice(0, 300), vid, ...u, target: target || "", label: label || "", userId });
+  if (db.clicks.length > MAX_TRACK) db.clicks = db.clicks.slice(-MAX_TRACK);
   saveDB();
   res.json({ ok: true });
 });
@@ -426,6 +493,7 @@ app.get("/admin/api/stats", requireAdmin, async (req, res) => {
     recent: db.visits.slice(-50).reverse(),
     recentClicks: db.clicks.slice(-50).reverse(),
     byDay: groupByDay(db.visits),
+    persist: usingGist ? "gist" : "local",
     publicUrl: PUBLIC_URL,
     publicHost: req.get("host")
   });
@@ -440,9 +508,12 @@ function groupByDay(arr) {
   for (const x of arr) { const d = new Date(x.ts).toISOString().slice(0, 10); m.set(d, (m.get(d) || 0) + 1); }
   return Array.from(m, ([k, v]) => ({ d: k, c: v })).sort((a, b) => a.d.localeCompare(b.d));
 }
-app.get("/admin/api/reset", requireAdmin, (req, res) => {
+app.get("/admin/api/reset", requireAdmin, async (req, res) => {
   if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
-  db = { visits: [], clicks: [] }; saveDB(); res.json({ ok: true });
+  db = { visits: [], clicks: [] };
+  if (usingGist) { try { await persistDBToGist(); } catch (e) { console.error("[tracking] reset 落盘失败:", e.message); } }
+  else saveJSON(DB_FILE, db);
+  res.json({ ok: true });
 });
 app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
   const v = db.visits;

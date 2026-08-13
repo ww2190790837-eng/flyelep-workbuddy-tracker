@@ -90,6 +90,7 @@
 <p class="sub">
   飞象 × WorkBuddy 抖音落地页数据
   · 主机:<span id="host"></span>
+  · <span id="persistBadge"></span>
   · <a href="/admin/api/export.csv">导出访问 CSV</a>
   · <a href="/admin/api/export-clicks.csv">导出点击 CSV(含地区)</a>
   · <a href="/admin/api/reset?confirm=yes" onclick="return confirm('确定清空所有数据?')">清空</a>
@@ -225,6 +226,10 @@
       const r = await fetch('/admin/api/stats',{cache:'no-store'});
       const d = await r.json();
       $('host').textContent = d.publicHost + (d.publicUrl || '');
+      // 持久化状态徽标:直接回应"数据会不会丢"
+      const pb = $('persistBadge');
+      if (d.persist === 'gist') { pb.textContent = '✅ 数据已持久化(GitHub,重启不丢)'; pb.style.color = 'var(--success)'; }
+      else { pb.textContent = '⚠️ 本地存储(重启可能丢)'; pb.style.color = 'var(--warn)'; }
       $('kpi-total').textContent = d.total;
       $('kpi-unique').textContent = d.unique;
       $('kpi-clicks').textContent = d.clicks;
@@ -267,7 +272,10 @@
         <td>${esc(r.region)||'未知'}</td>
       </tr>`).join('') || '<tr><td colspan="6" class="empty">暂无点击</td></tr>';
     }catch(e){
-      document.body.insertAdjacentHTML('afterbegin', '<div class="panel" style="border-color:var(--danger);color:#fca5a5">加载失败:'+esc(e.message)+'</div>');
+      // 复用同一个错误横幅,避免每 8 秒轮询失败就叠加一条
+      let b = $('errBanner');
+      if(!b){ b = document.createElement('div'); b.id = 'errBanner'; b.className = 'panel'; b.style.borderColor = 'var(--danger)'; b.style.color = '#fca5a5'; document.body.insertBefore(b, document.body.firstChild); }
+      b.textContent = '加载失败:' + e.message;
     }
   }
   function fmtDate(t){ return t ? new Date(t).toLocaleString('zh-CN',{hour12:false}) : '-'; }
@@ -328,7 +336,7 @@
 
   buildUtm();
   load(); loadUsers();
-  setInterval(() => { load(); loadUsers(); }, 8000);
+  setInterval(() => { load(); loadUsers(); }, 15000);
 </script>
 </body>
 </html>
