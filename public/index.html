@@ -580,6 +580,42 @@
     .chat-container{width:calc(100vw - 24px);height:420px}
     #chatToggleBtn{padding:8px 14px;font-size:13px}
   }
+
+  /* ===== Video-Use 盒子 ===== */
+  #video-use .vu-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+  .vu-status{display:flex;align-items:center;gap:16px;padding:14px 16px;background:rgba(124,92,255,.06);border:1px solid rgba(124,92,255,.15);border-radius:12px;margin-bottom:18px}
+  .vu-status-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+  .vu-dot{width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.18);flex-shrink:0}
+  .vu-dot.off{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.18)}
+  .vu-dot.wait{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.18)}
+  .vu-status-title{font-size:14px;font-weight:700;color:var(--text)}
+  .vu-status-sub{font-size:12px;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vu-quota{text-align:center;flex-shrink:0}
+  .vu-quota-num{font-size:26px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+  .vu-quota-label{font-size:11px;color:var(--text-3);margin-top:4px}
+  .vu-refresh{background:none;border:1px solid var(--border);color:var(--text-2);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:16px;flex-shrink:0;transition:all .2s}
+  .vu-refresh:hover{background:rgba(124,92,255,.12);border-color:var(--primary)}
+  .vu-label{display:block;font-size:13px;font-weight:600;color:var(--text-3);margin-bottom:8px}
+  .vu-input-row{display:flex;gap:8px;flex-wrap:wrap}
+  .vu-input{flex:1;min-width:220px;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none;transition:border .2s}
+  .vu-input:focus{border-color:var(--primary)}
+  .vu-select{padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none}
+  .vu-submit{padding:11px 20px;border-radius:10px;background:var(--gradient);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
+  .vu-submit:hover{filter:brightness(1.08)}
+  .vu-submit:disabled{opacity:.6;cursor:not-allowed}
+  .vu-hint{font-size:12px;color:var(--text-3);margin:10px 0 0;line-height:1.5}
+  .vu-result{margin-top:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .vu-result-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(124,92,255,.06);font-size:13px;font-weight:600;color:var(--text)}
+  .vu-copy{background:none;border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .vu-result pre{padding:14px;margin:0;font-size:13px;line-height:1.6;color:var(--text-2);white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto}
+  .vu-error{margin-top:12px;color:#ef4444;font-size:13px;display:none}
+  .vu-loading{margin-top:12px;text-align:center;color:var(--text-3);font-size:13px}
+
+  [data-theme="light"] #video-use .vu-card{background:#fff!important;border-color:rgba(108,79,247,.15)!important}
+  [data-theme="light"] .vu-status{background:rgba(108,79,247,.05)!important;border-color:rgba(108,79,247,.15)!important}
+  [data-theme="light"] .vu-input,[data-theme="light"] .vu-select{background:#f6f7fb!important;border-color:rgba(108,79,247,.18)!important}
+  [data-theme="light"] .vu-result{background:#fafbff!important}
+  [data-theme="light"] .vu-result pre{color:#333!important}
 </style>
 </head>
 <body>
@@ -920,6 +956,61 @@
   </div>
 </section>
 
+<!-- ===== Video-Use 智能视频助手盒子 ===== -->
+<section id="video-use">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal">/ Video-Use</span>
+      <h2 class="section-title reveal"><em>智能视频助手</em> 在线编辑 & 转写</h2>
+      <p class="section-sub reveal">基于 Video-Use 能力，粘贴视频链接即可调用 AI 转写与剪辑；实时显示你的免费额度，方便规划使用</p>
+    </div>
+
+    <div class="vu-card reveal" style="margin-top:24px">
+      <!-- 额度状态条 -->
+      <div class="vu-status">
+        <div class="vu-status-left">
+          <span class="vu-dot wait" id="vuDot"></span>
+          <div>
+            <div class="vu-status-title">Video-Use 服务</div>
+            <div class="vu-status-sub" id="vuStatusSub">检测中…</div>
+          </div>
+        </div>
+        <div class="vu-quota">
+          <div class="vu-quota-num" id="vuQuotaNum">--</div>
+          <div class="vu-quota-label">剩余免费分钟</div>
+        </div>
+        <button class="vu-refresh" id="vuRefresh" onclick="loadVideoUseQuota()" title="刷新额度">↻</button>
+      </div>
+
+      <!-- 提交区 -->
+      <div class="vu-form">
+        <label class="vu-label">视频 / 音频链接</label>
+        <div class="vu-input-row">
+          <input id="vuUrl" class="vu-input" placeholder="https://... 粘贴视频或音频直链 (MP4 / MP3 / WAV)" />
+          <select id="vuMode" class="vu-select">
+            <option value="">默认模式</option>
+            <option value="transcribe">仅转写</option>
+            <option value="edit">智能剪辑</option>
+          </select>
+          <button class="vu-submit" id="vuSubmit" onclick="submitVideoUse()">▶ 提交处理</button>
+        </div>
+        <p class="vu-hint">提交后由 Video-Use 服务处理，结果将显示在下方（转写文本 / 处理状态）。需要服务支持公开可访问的直链。</p>
+      </div>
+
+      <!-- 结果 -->
+      <div class="vu-result" id="vuResult" style="display:none">
+        <div class="vu-result-head">
+          <span>✅ 处理结果</span>
+          <button class="vu-copy" id="vuCopy" onclick="copyVideoUseResult()">复制</button>
+        </div>
+        <pre id="vuResultText"></pre>
+      </div>
+      <div class="vu-error" id="vuError"></div>
+      <div class="vu-loading" id="vuLoading" style="display:none">处理中…</div>
+    </div>
+  </div>
+</section>
+
 
 <footer>
   <div class="wrap">
@@ -935,6 +1026,7 @@
         <h5>功能</h5>
         <a href="#prompt-gen">提示词生成</a>
         <a href="#video-reverse">视频反推</a>
+        <a href="#video-use">智能视频助手</a>
       </div>
       <div class="foot-col">
         <h5>联系我</h5>
@@ -1528,6 +1620,85 @@
       btn.style.opacity='1';btn.style.pointerEvents='auto';
     }
   };
+
+  // ===== Video-Use 盒子(查免费分钟 + 提交视频处理) =====
+  function loadVideoUseQuota(){
+    var dot = document.getElementById("vuDot");
+    var sub = document.getElementById("vuStatusSub");
+    var num = document.getElementById("vuQuotaNum");
+    if(dot) dot.className = "vu-dot wait";
+    if(sub) sub.textContent = "查询额度中…";
+    fetch("/api/video-use/quota", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+      if(d.ok && d.minutes !== null && d.minutes !== undefined){
+        if(dot) dot.className = "vu-dot";
+        if(sub) sub.textContent = "已连接 · " + (d.tier ? ("套餐 " + d.tier) : "服务正常");
+        if(num) num.textContent = d.minutes;
+      } else if(d.ok){
+        if(dot) dot.className = "vu-dot";
+        if(sub) sub.textContent = "已连接(该服务未返回分钟额度)";
+        if(num) num.textContent = "∞";
+      } else {
+        if(dot) dot.className = "vu-dot off";
+        if(sub) sub.textContent = "连接失败: " + (d.error || "未知错误");
+        if(num) num.textContent = "--";
+      }
+    }).catch(function(){
+      if(dot) dot.className = "vu-dot off";
+      if(sub) sub.textContent = "网络错误,请稍后重试";
+      if(num) num.textContent = "--";
+    });
+  }
+  function submitVideoUse(){
+    var url = document.getElementById("vuUrl");
+    var mode = document.getElementById("vuMode");
+    var btn = document.getElementById("vuSubmit");
+    var err = document.getElementById("vuError");
+    var loading = document.getElementById("vuLoading");
+    var result = document.getElementById("vuResult");
+    var resultText = document.getElementById("vuResultText");
+    if(!url || !url.value.trim()){ if(err){ err.style.display="block"; err.textContent="请先粘贴视频/音频链接"; } return; }
+    if(err) err.style.display = "none";
+    if(btn){ btn.disabled = true; btn.textContent = "处理中…"; }
+    if(loading) loading.style.display = "block";
+    if(result) result.style.display = "none";
+    fetch("/api/video-use/process", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ url: url.value.trim(), mode: mode ? mode.value : "" })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(loading) loading.style.display = "none";
+      if(btn){ btn.disabled = false; btn.textContent = "▶ 提交处理"; }
+      if(!d.ok){
+        if(err){ err.style.display="block"; err.textContent = "处理失败: " + (d.error || "未知错误"); }
+        return;
+      }
+      if(result && resultText){
+        var txt = typeof d.result === "string" ? d.result : JSON.stringify(d.result, null, 2);
+        resultText.textContent = txt;
+        result.style.display = "block";
+      }
+    }).catch(function(e){
+      if(loading) loading.style.display = "none";
+      if(btn){ btn.disabled = false; btn.textContent = "▶ 提交处理"; }
+      if(err){ err.style.display="block"; err.textContent = "网络错误: " + e.message; }
+    });
+  }
+  function copyVideoUseResult(){
+    var t = document.getElementById("vuResultText");
+    if(!t) return;
+    var ta = document.createElement("textarea");
+    ta.value = t.textContent; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+    var c = document.getElementById("vuCopy");
+    if(c){ var old = c.textContent; c.textContent = "已复制"; setTimeout(function(){ c.textContent = old; }, 1200); }
+  }
+  // 进入网页时拉一次额度
+  loadVideoUseQuota();
+  // 暴露给内联 onclick 调用
+  window.loadVideoUseQuota = loadVideoUseQuota;
+  window.submitVideoUse = submitVideoUse;
+  window.copyVideoUseResult = copyVideoUseResult;
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选

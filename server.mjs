@@ -90,6 +90,12 @@ const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
 const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
 const PROMPTS_GIST_FILENAME = "flyelep_prompts.json"; // 提示词训练语料(独立文件)
 const MESSAGES_GIST_FILENAME = "flyelep_messages.json"; // 留言板数据(独立文件)
+// ===== Video-Use 辅助 API (Scribe 类视频转写/处理服务) =====
+// 说明: apisk_ 前缀 key 并非 ElevenLabs 的 xi- 格式, 底层为兼容 Scribe 的第三方视频服务。
+// Render Blueprint 不注入自定义环境变量, 故地址/key 写死在此, 更换服务改这里即可。
+const VIDEO_USE_API_KEY = process.env.VIDEO_USE_API_KEY || "apisk_7e6135b97c0dde70783d3aa5fa5487b1e47b15c02663b0ca";
+const VIDEO_USE_API_BASE = (process.env.VIDEO_USE_API_BASE || "https://api.elevenlabs.io").replace(/\/$/, "");
+const VIDEO_USE_AUTH_HEADER = process.env.VIDEO_USE_AUTH_HEADER || "xi-api-key"; // Scribe 类服务鉴权头
 // 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
 const MAX_TRACK = 2500;
 let usingGist = false;
@@ -895,6 +901,66 @@ app.post("/api/chat", express.json({ limit: "8kb" }), async (req, res) => {
   } catch (e) {
     console.error("[chat]", e.message);
     res.status(500).json({ error: "AI 对话失败: " + e.message });
+  }
+});
+
+// ===== Video-Use 辅助 API (Scribe 类: 查剩余免费分钟 / 提交视频转写处理) =====
+// 状态(不向前端泄露完整 key)
+app.get("/api/video-use/status", (req, res) => {
+  res.json({
+    ok: true,
+    configured: !!VIDEO_USE_API_KEY,
+    keyPreview: VIDEO_USE_API_KEY ? VIDEO_USE_API_KEY.slice(0, 8) + "..." + VIDEO_USE_API_KEY.slice(-4) : "",
+    base: VIDEO_USE_API_BASE
+  });
+});
+
+// 查剩余免费分钟(灵活解析多种返回结构)
+app.get("/api/video-use/quota", async (req, res) => {
+  try {
+    const r = await fetch(`${VIDEO_USE_API_BASE}/v1/user/subscription`, {
+      headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY }
+    });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => "");
+      return res.json({ ok: false, error: `API ${r.status}`, detail: txt.slice(0, 300) });
+    }
+    const d = await r.json().catch(() => ({}));
+    let minutes = null;
+    if (typeof d.free_minutes === "number") minutes = d.free_minutes;
+    else if (typeof d.remaining_minutes === "number") minutes = d.remaining_minutes;
+    else if (typeof d.minutes_left === "number") minutes = d.minutes_left;
+    else if (d.quota && typeof d.quota.minutes === "number") minutes = d.quota.minutes;
+    else if (typeof d.character_limit === "number" && typeof d.character_count === "number") {
+      const left = Math.max(0, d.character_limit - d.character_count);
+      minutes = Math.round(left / 1000); // 粗略: 1000 字符 ≈ 1 分钟口语
+    }
+    res.json({ ok: true, minutes, tier: d.tier || null, raw: d });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
+});
+
+// 提交视频处理(转写/编辑) — Scribe 类: audio_url + 可选 mode
+app.post("/api/video-use/process", express.json({ limit: "4mb" }), async (req, res) => {
+  try {
+    const { url, mode } = req.body || {};
+    if (!url || typeof url !== "string" || !/^https?:\/\//.test(url)) {
+      return res.status(400).json({ ok: false, error: "请提供有效的视频/音频 URL (http/https)" });
+    }
+    const fd = new FormData();
+    fd.append("audio_url", url);
+    if (mode && typeof mode === "string") fd.append("mode", mode);
+    const r = await fetch(`${VIDEO_USE_API_BASE}/v1/speech-to-text`, {
+      method: "POST",
+      headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY },
+      body: fd
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return res.json({ ok: false, error: `API ${r.status}`, detail: d });
+    res.json({ ok: true, result: d });
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
   }
 });
 
