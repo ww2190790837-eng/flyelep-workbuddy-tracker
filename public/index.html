@@ -682,7 +682,7 @@
 <!-- 版本更新通知 -->
 <div id="versionModal" style="display:none;position:fixed;inset:0;z-index:220;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeVersionModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative">
-    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(91,59,255,.4)">v1.1.0</div>
+    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(91,59,255,.4)">v1.2.0</div>
     <h3 id="versionTitle" style="margin:8px 0 6px;font-size:19px;font-weight:700;color:var(--text)">版本更新</h3>
     <p style="margin:0 0 16px;font-size:13px;color:var(--text-2)">本次更新内容</p>
     <ul id="versionItems" style="margin:0 0 22px;padding-left:20px;color:var(--text-2);font-size:14px;line-height:1.9"></ul>
@@ -714,8 +714,8 @@
       <div id="announcementBar" class="reveal d4" style="margin-top:28px;max-width:560px;background:linear-gradient(135deg,rgba(108,79,247,.12),rgba(232,58,130,.10));border:1px solid rgba(108,79,247,.2);border-radius:12px;padding:14px 20px;display:flex;align-items:flex-start;gap:12px">
         <span style="font-size:18px;line-height:1;flex-shrink:0">📢</span>
         <div style="flex:1;min-width:0">
-          <strong style="font-size:13px;color:var(--primary-2);display:block;margin-bottom:3px">版本更新 · v1.1.0</strong>
-          <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0">提示词自进化训练已上线 — 你生成的每条提示词都会自动匿名收集，用于持续训练 AI 模型，越用越准 ✨</p>
+          <strong style="font-size:13px;color:var(--primary-2);display:block;margin-bottom:3px">版本更新 · v1.2.0</strong>
+          <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0">AI 智能代码助手已上线 — 右下角新增对话按钮，点击即可与 AI 实时交流，内置 Build Your Own X 知识库，帮你从零实现各种技术系统 🤖</p>
         </div>
         <button onclick="this.parentElement.style.display='none'" style="flex-shrink:0;background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="关闭公告">×</button>
       </div>
@@ -1287,12 +1287,12 @@
 
   // ===== 版本更新通知(进入网页自动检测,版本变化才弹) =====
   var RELEASE = {
-    version: "1.1.0",
-    title: "🧠 提示词自进化训练上线",
+    version: "1.2.0",
+    title: "🤖 AI 智能代码助手上线",
     items: [
-      "你生成的每一条提示词都会自动匿名收集，用于持续训练 AI 模型，越用越准",
-      "模型会参考历史优质示例，返回更贴合你需求的提示词与视频反推结果",
-      "训练数据独立存储，仅用于改进生成质量，不影响你的账户与隐私"
+      "右下角新增 AI 智能代码助手，随时点击展开，与 AI 实时对话",
+      "内置 Build Your Own X 知识库，可帮你从零实现数据库、操作系统、编程语言、Web 服务器等 30+ 技术系统",
+      "支持多轮上下文对话、代码块高亮展示，提问越具体回答越精准"
     ]
   };
   function checkVersion(){
