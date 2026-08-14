@@ -830,6 +830,74 @@ app.post("/api/click", (req, res) => {
   res.json({ ok: true });
 });
 
+// ===== AI 对话框(通用聊天,接入 Build Your Own X 知识) =====
+const CHAT_SYSTEM_PROMPT = `你是 Fleta AI 助手，专精于"从零实现技术系统"(Build Your Own X)领域。你的知识库覆盖 30+ 经典技术系统的从零实现方法。
+
+## 你的核心能力
+当用户想自己写/手写/从零实现/造一个以下任何系统时，你能给出完整的实现指导：
+3D渲染器、AI模型、增强现实、BitTorrent、区块链、Bot、命令行工具、数据库、Docker、模拟器/虚拟机、前端框架/库、游戏、Git、内存分配器、网络协议栈、神经网络、操作系统、物理引擎、处理器(CPU)、编程语言、正则表达式引擎、搜索引擎、Shell、模板引擎、文本编辑器、视觉识别系统、体素引擎、Web浏览器、Web服务器、分布式系统 等。
+
+## 回答风格
+- 用中文回答（专有名词保留英文）
+- 先确认目标系统和语言，再拆分 5-10 个递增里程碑
+- 每个里程碑都要能独立运行验证
+- 给出最小可运行代码（MVP 阶段单文件优先）
+- 强调"做中学"，解释关键原理
+- 如果用户问其他领域问题，友好引导回 BYOX 方向，但也可以正常聊天
+- 保持简洁实用，不要废话`;
+
+app.post("/api/chat", express.json({ limit: "8kb" }), async (req, res) => {
+  try {
+    const { message, history = [] } = req.body;
+    if (!message || typeof message !== "string" || message.trim().length === 0) {
+      return res.status(400).json({ error: "消息不能为空" });
+    }
+    if (!AI_API_KEY) {
+      return res.json({ reply: "🤖 AI 服务暂未配置，请稍后再试。\n\n你可以先试试站内的「提示词生成」和「视频反推」功能 ✨", usage: { provider: "none" } });
+    }
+
+    // 构建对话历史
+    const messages = [{ role: "system", content: CHAT_SYSTEM_PROMPT }];
+    history.forEach(h => {
+      if (h.role === "user") messages.push({ role: "user", content: h.content });
+      else if (h.role === "assistant") messages.push({ role: "assistant", content: h.content });
+    });
+    messages.push({ role: "user", content: message.trim() });
+
+    let reply = "";
+    if (AI_PROVIDER === "gemini") {
+      // Gemini: 把 system + history 合并为 context
+      const parts = [];
+      messages.slice(1).forEach(m => {
+        parts.push({ text: (m.role === "user" ? "用户: " : "助手: ") + m.content });
+      });
+      reply = await callGemini(parts, CHAT_SYSTEM_PROMPT, 2048);
+    } else if (AI_PROVIDER === "deepseek") {
+      // DeepSeek/OpenAI兼容: 直接传 messages 数组
+      const model = AI_MODEL || "deepseek-chat";
+      const url = AI_PROVIDER === "deepseek" && !AI_BASE_URL
+        ? "https://api.deepseek.com/chat/completions"
+        : `${(AI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")}/chat/completions`;
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
+        body: JSON.stringify({ model: AI_MODEL || model, messages, temperature: 0.7, max_tokens: 2048 })
+      });
+      if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Chat API ${r.status}`); }
+      const data = await r.json();
+      reply = data.choices?.[0]?.message?.content || "";
+    } else {
+      // OpenAI 兼容
+      reply = await callOpenAIChat(AI_MODEL || "gpt-4o-mini", CHAT_SYSTEM_PROMPT, message, 2048);
+    }
+
+    res.json({ reply: reply || "抱歉，我没有生成回复。请换个方式提问。", usage: { provider: AI_PROVIDER, model: AI_MODEL } });
+  } catch (e) {
+    console.error("[chat]", e.message);
+    res.status(500).json({ error: "AI 对话失败: " + e.message });
+  }
+});
+
 // ===== Admin(原有)=====
 function requireAdmin(req, res, next) {
   if (req.signedCookies && req.signedCookies.admin === "ok") return next();
