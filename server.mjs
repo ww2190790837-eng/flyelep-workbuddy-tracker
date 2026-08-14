@@ -993,14 +993,33 @@ function pickPrimary(metas) {
   return best || metas[0];
 }
 // Scribe 文件转写
+// 注意: ElevenLabs Scribe 免费层对单文件大小和时长有限制, 建议不超过 100MB / 30分钟
+const SCRIBE_MAX_BYTES = 100 * 1024 * 1024; // 100MB 安全上限
 async function scribeTranscribe(filePath, name) {
+  const stat = fs.statSync(filePath);
+  if (stat.size > SCRIBE_MAX_BYTES) {
+    throw new Error(`文件过大(${(stat.size/1024/1024).toFixed(1)}MB), 超过 Scribe 安全上限(${SCRIBE_MAX_BYTES/1024/1024}MB)。建议先用 ffmpeg 压缩或裁剪后再试。`);
+  }
+  // 流式读取避免 OOM: 用 createReadStream + 可读流包装, 不一次性 readFileSync 全量进内存
   const fd = new FormData();
-  // 全局 FormData(undici) 只接受 Blob/File, 不能用 Buffer(否则报 not of type Blob)
-  fd.append("file", new Blob([fs.readFileSync(filePath)], { type: "video/mp4" }), name);
+  const fileStream = fs.createReadStream(filePath);
+  fd.append("file", new Blob([await streamToBuffer(fileStream)], { type: guessMime(name) }), name);
   fd.append("model_id", "scribe_v1");
-  const r = await fetch(`${VIDEO_USE_API_BASE}/v1/speech-to-text`, { method: "POST", headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY }, body: fd });
-  if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(`Scribe ${r.status}: ${t.slice(0, 200)}`); }
+  const r = await fetch(`${VIDEO_USE_API_BASE}/v1/speech-to-text`, { method: "POST", headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY }, body: fd, signal: AbortSignal.timeout(300_000) });
+  if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(`Scribe ${r.status}: ${t.slice(0, 300)}`); }
   return await r.json();
+}
+function guessMime(name) {
+  const ext = (name || "").split(".").pop()?.toLowerCase();
+  return ({ mp4:"video/mp4",mov:"video/quicktime",mkv:"video/x-matroska",webm:"video/webm",avi:"video/x-msvideo",wav:"audio/wav",mp3:"audio/mpeg",m4a:"audio/mp4" })[ext] || "video/mp4";
+}
+function streamToBuffer(stream) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on("data", c => chunks.push(c));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
 }
 // 逐字稿打包(按 ≥0.5s 静音断句)
 function packTranscript(d) {
@@ -1073,13 +1092,25 @@ app.post("/api/video-use/transcribe", express.json({ limit: "1mb" }), async (req
     const { jobId } = req.body || {};
     const jobDir = path.join(VU_JOBS, jobId);
     const meta = loadJSON(path.join(jobDir, "meta.json"), null);
-    if (!meta) return res.status(404).json({ ok: false, error: "任务不存在" });
+    if (!meta) return res.status(404).json({ ok: false, error: "任务不存在, 请先上传文件" });
     const primaryPath = path.join(jobDir, "files", meta.primary);
+    if (!fs.existsSync(primaryPath)) return res.status(404).json({ ok: false, error: `主文件不存在: ${meta.primary}` });
+    // 前置检查: 文件大小
+    const fstat = fs.statSync(primaryPath);
+    const mb = (fstat.size / 1024 / 1024).toFixed(1);
+    console.log(`[video-use] 开始转写 job=${jobId} file=${meta.primary} size=${mb}MB`);
+    if (fstat.size > SCRIBE_MAX_BYTES) {
+      return res.status(413).json({ ok: false, error: `文件过大(${mb}MB), 超过 Scribe 安全上限(${SCRIBE_MAX_BYTES/1024/1024}MB)。建议先用 ffmpeg/剪映压缩到 100MB 以内再试。` });
+    }
     const d = await scribeTranscribe(primaryPath, meta.primary);
     const packed = packTranscript(d);
     saveJSON(path.join(jobDir, "transcript.json"), { raw: d, packed });
+    console.log(`[video-use] 转写完成 job=${jobId} words=${(d.words||[]).length} lang=${d.language_code}`);
     res.json({ ok: true, transcript: packed, duration: d.audio_duration_secs || null, language: d.language_code || null });
-  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+  } catch (e) {
+    console.error(`[video-use] 转写失败:`, e.message);
+    res.status(500).json({ ok: false, error: e.message.includes("timeout") ? "转写超时(文件可能过大或网络不稳定), 请稍后重试" : e.message });
+  }
 });
 
 // 3) AI 剪辑策略

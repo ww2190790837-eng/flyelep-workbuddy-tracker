@@ -1777,14 +1777,30 @@
   function renderFileList(){
     var box=document.getElementById("vuFlist"); if(!box) return;
     box.innerHTML="";
+    var maxSize=0;
     vuSelected.forEach(function(f){
       var d=document.createElement("div"); d.className="vu-fitem";
+      var sz=f.file.size||0; if(sz>maxSize) maxSize=sz;
+      // 大文件(>100MB) 标红警告
+      var isLarge = sz > 100*1024*1024;
       var a=document.createElement("span"); a.textContent=f.name; a.style.overflow="hidden"; a.style.textOverflow="ellipsis"; a.style.whiteSpace="nowrap";
-      var b=document.createElement("span"); b.textContent=fmtSize(f.file.size);
+      if(isLarge){ a.style.color="#e53e3e"; a.style.fontWeight="600"; }
+      var b=document.createElement("span"); b.textContent=fmtSize(sz);
+      if(isLarge){ b.style.color="#e53e3e"; b.style.fontWeight="600"; }
       d.appendChild(a); d.appendChild(b); box.appendChild(d);
     });
     var btn=document.getElementById("vuTranscribeBtn");
     if(btn) btn.disabled = vuSelected.length===0;
+    // 大文件警告
+    var warn=document.getElementById("vuSizeWarn"); if(!warn){
+      warn=document.createElement("div"); warn.id="vuSizeWarn"; warn.className="vu-error"; warn.style.background="#fff5f5"; warn.style.borderColor="#feb2b2"; warn.style.color="#c53030";
+      box.parentNode.insertBefore(warn, box.nextSibling);
+    }
+    if(maxSize > 100*1024*1024){
+      warn.style.display="block"; warn.textContent="⚠️ 检测到大文件("+(maxSize/1024/1024).toFixed(1)+"MB), Scribe 免费层建议不超过 100MB。大文件可能导致转写超时或失败，建议先压缩后再试。";
+    } else {
+      warn.style.display="none";
+    }
   }
 
   function vuPickFiles(){ var inp=document.getElementById("vuFiles"); if(inp){ try{ inp.webkitdirectory=false; inp.directory=false; }catch(e){} inp.multiple=true; inp.click(); } }
@@ -1808,14 +1824,22 @@
 
   function vuTranscribe(){
     if(!vuSelected.length){ vuShowErr("请先选择视频文件"); return; }
+    // 前端预检: 检查主文件大小
+    var maxSize=0; var maxName="";
+    vuSelected.forEach(function(f){ if(f.file.size>maxSize){ maxSize=f.file.size; maxName=f.name; } });
+    if(maxSize > 100*1024*1024){
+      var confirmLarge = confirm("检测到大文件 \""+maxName+"\" ("+(maxSize/1024/1024).toFixed(1)+"MB), 超过 Scribe 推荐上限(100MB)。\n\n继续尝试可能因超时失败。是否继续？");
+      if(!confirmLarge) return;
+    }
     vuHideErr(); vuSetStep(2);
     var btn=document.getElementById("vuTranscribeBtn"); if(btn){ btn.disabled=true; btn.textContent="转写中…"; }
-    var prog=document.getElementById("vuProgress"); if(prog){ prog.style.display="block"; prog.textContent="⏳ 上传并调用 ElevenLabs Scribe 转写中…"; }
+    var prog=document.getElementById("vuProgress"); if(prog){ prog.style.display="block"; prog.textContent="⏳ 正在上传文件…"; }
     var fd=new FormData();
     vuSelected.forEach(function(f){ fd.append("files", f.file, f.name); });
     fetch("/api/video-use/upload", { method:"POST", body: fd }).then(function(r){ return r.json(); }).then(function(up){
       if(!up.ok) throw new Error(up.error||"上传失败");
       vuJobId = up.jobId;
+      if(prog) prog.textContent="⏳ 上传完成, 正在调用 ElevenLabs Scribe 转写(大文件可能需要 1-3 分钟)…";
       return fetch("/api/video-use/transcribe", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ jobId: up.jobId }) });
     }).then(function(r){ return r.json(); }).then(function(tr){
       if(!tr.ok) throw new Error(tr.error||"转写失败");
@@ -1827,7 +1851,10 @@
     }).catch(function(e){
       vuSetStep(1); if(btn){ btn.disabled=false; btn.textContent="② 开始转写"; }
       if(prog) prog.style.display="none";
-      vuShowErr("转写失败: "+(e.message||e));
+      var msg = (e.message||e)||"未知错误";
+      if(msg==="Failed to fetch" || msg.includes("fetch")) msg = "连接服务器失败(可能转写耗时过长被中断), 请检查网络后重试";
+      if(msg.includes("413") || msg.includes("过大")) msg = "⚠️ " + msg + " — 建议: 先用 ffmpeg/剪映/HandBrake 压缩到 100MB 以内再试";
+      vuShowErr("转写失败: "+msg);
     });
   }
 
