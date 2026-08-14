@@ -1038,8 +1038,10 @@ const GRADE_FILTERS = {
 };
 // 中文渲染字体(打包进仓库, 保证 Render/Linux 上中文不乱码)
 const VU_FONT = path.join(__dirname, "vu_fonts", "simhei.ttf");
-const VU_FONT_ARG = fs.existsSync(VU_FONT) ? `fontfile='${VU_FONT.replace(/:/g, "\\:").replace(/'/g, "\\'")}'` : "";
-const VU_FONT_DIR = fs.existsSync(VU_FONT) ? VU_FONT.replace(/[^/]+$/, "").replace(/:/g, "\\:") : "";
+// ffmpeg 滤镜内统一用正斜杠路径, 规避 Windows 反斜杠/冒号转义(本地测试与 Render 通用)
+const ffPath = (p) => p.replace(/\\/g, "/");
+const VU_FONT_ARG = fs.existsSync(VU_FONT) ? `fontfile='${ffPath(VU_FONT)}'` : "";
+const VU_FONT_DIR = fs.existsSync(VU_FONT) ? ffPath(VU_FONT.replace(/[^/]+$/, "")) : "";
 
 // 1) 上传
 app.post("/api/video-use/upload", vuUpload.array("files", 20), async (req, res) => {
@@ -1119,17 +1121,18 @@ app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, re
     const inFile = path.join(jobDir, "files", meta.primary);
     const grade = GRADE_FILTERS[edl.grade] !== undefined ? GRADE_FILTERS[edl.grade] : "";
     const segs = [...edl.segments].sort((a, b) => a.start - b.start);
-    const segFiles = [];
-    for (let i = 0; i < segs.length; i++) {
-      const s = segs[i]; const dur = (s.end - s.start);
-      const sf = path.join(jobDir, `seg_${String(i).padStart(3, "0")}.mp4`);
-      await execFileAsync(ffmpegPath, ["-y", "-ss", String(s.start), "-to", String(s.end), "-i", inFile, "-vf", grade || "null", "-af", `afade=t=in:st=0:d=0.03,afade=t=out:st=${(dur - 0.03).toFixed(3)}:d=0.03`, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", sf]);
-      segFiles.push(sf);
-    }
-    const listPath = path.join(jobDir, "concat.txt");
-    fs.writeFileSync(listPath, segFiles.map(f => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"));
+    // 单次 filter_complex: 逐段 trim + 调色 + 音频淡入淡出 + 拼接(避免多次 ffmpeg 进程, 大幅提速, 防 Render 超时)
+    const fc = [];
+    segs.forEach((s, i) => {
+      const dur = Math.max(0.1, s.end - s.start);
+      const g = grade || "null";
+      fc.push(`[0:v]trim=start=${s.start}:end=${s.end},setpts=PTS-STARTPTS,${g}[v${i}]`);
+      fc.push(`[0:a]atrim=start=${s.start}:end=${s.end},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.03,afade=t=out:st=${(dur - 0.03).toFixed(3)}:d=0.03[a${i}]`);
+    });
+    const inter = segs.map((_, i) => `[v${i}][a${i}]`).join("");
+    fc.push(`${inter}concat=n=${segs.length}:v=1:a=1[cv][ca]`);
     const concatFile = path.join(jobDir, "concat.mp4");
-    await execFileAsync(ffmpegPath, ["-y", "-f", "concat", "-safe", "0", "-i", listPath, "-c", "copy", concatFile]);
+    await execFileAsync(ffmpegPath, ["-y", "-i", inFile, "-filter_complex", fc.join(";"), "-map", "[cv]", "-map", "[ca]", "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", concatFile]);
     // 字幕 SRT(输出时间轴)
     const words = (t.raw.words || []).filter(w => w.start != null && w.end != null);
     const hasSubs = words.length > 0;
@@ -1138,13 +1141,11 @@ app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, re
     const force = edl.subtitleStyle === "natural-sentence"
       ? `FontName=${subFont},FontSize=20,Bold=0,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BackColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=60`
       : `FontName=${subFont},FontSize=18,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BackColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=35`;
-    const escPath = path.join(jobDir, "subs.srt").replace(/:/g, "\\:").replace(/'/g, "\\'");
-    const forceEsc = force.replace(/:/g, "\\:").replace(/'/g, "\\'");
-    const subsFilter = VU_FONT_DIR
-      ? `subtitles='${escPath}':fontsdir='${VU_FONT_DIR}':force_style='${forceEsc}'`
-      : `subtitles='${escPath}':force_style='${forceEsc}'`;
-    // 片头标题卡(可选, 失败则跳过不影响出片)
-    let baseFile = concatFile;
+    const escPath = ffPath(path.join(jobDir, "subs.srt"));
+    const forceEsc = force.replace(/'/g, "\\'");
+    const subsFilter = `subtitles='${escPath}':${VU_FONT_DIR ? `fontsdir='${VU_FONT_DIR}',` : ""}force_style='${forceEsc}'`;
+    // 片头标题卡(可选) + 一次性把字幕烧录进成片(省一次全片重编码)
+    const finalFile = path.join(jobDir, "final.mp4");
     if (edl.title && edl.title.trim()) {
       try {
         const tt = edl.title.trim().replace(/['"\\]/g, "").slice(0, 40);
@@ -1153,17 +1154,18 @@ app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, re
           ? `drawtext=${VU_FONT_ARG}:text='${tt}':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h-text_h)/2`
           : `drawtext=text='${tt}':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h-text_h)/2`;
         await execFileAsync(ffmpegPath, ["-y", "-f", "lavfi", "-i", "color=c=0x0a0a0a:s=1280x720:d=3", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo:d=3", "-shortest", "-vf", drawtext, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", tc]);
-        const base1 = path.join(jobDir, "base.mp4");
-        await execFileAsync(ffmpegPath, ["-y", "-i", tc, "-i", concatFile, "-filter_complex", "[0][1]concat=n=2:v=1:a=1[out]", "-map", "[out]", "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", base1]);
-        baseFile = base1;
-      } catch (e) { console.error("[video-use] 片头生成失败,跳过:", e.message); baseFile = concatFile; }
-    }
-    const finalFile = path.join(jobDir, "final.mp4");
-    if (hasSubs) {
-      await execFileAsync(ffmpegPath, ["-y", "-i", baseFile, "-vf", subsFilter, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+        const fc2 = hasSubs
+          ? `[0][1]concat=n=2:v=1:a=1[v];[v]subtitles='${escPath}':${VU_FONT_DIR ? `fontsdir='${VU_FONT_DIR}',` : ""}force_style='${forceEsc}'[out]`
+          : `[0][1]concat=n=2:v=1:a=1[out]`;
+        await execFileAsync(ffmpegPath, ["-y", "-i", tc, "-i", concatFile, "-filter_complex", fc2, "-map", "[out]", "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+      } catch (e) {
+        console.error("[video-use] 片头/字幕合成失败,降级直出:", e.message);
+        if (hasSubs) await execFileAsync(ffmpegPath, ["-y", "-i", concatFile, "-vf", subsFilter, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+        else await execFileAsync(ffmpegPath, ["-y", "-i", concatFile, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+      }
     } else {
-      // 无字幕(纯 B-roll/音乐素材): 直接转码出片
-      await execFileAsync(ffmpegPath, ["-y", "-i", baseFile, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+      if (hasSubs) await execFileAsync(ffmpegPath, ["-y", "-i", concatFile, "-vf", subsFilter, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+      else await execFileAsync(ffmpegPath, ["-y", "-i", concatFile, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
     }
     res.json({ ok: true, downloadUrl: `/api/video-use/download/${jobId}`, title: edl.title || "" });
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
