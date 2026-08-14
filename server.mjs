@@ -1085,7 +1085,7 @@ app.post("/api/video-use/transcribe", express.json({ limit: "1mb" }), async (req
 // 3) AI 剪辑策略
 app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res) => {
   try {
-    const { jobId, instructions } = req.body || {};
+    const { jobId, instructions, customCopy, refImages } = req.body || {};
     const jobDir = path.join(VU_JOBS, jobId);
     const t = loadJSON(path.join(jobDir, "transcript.json"), null);
     if (!t) return res.status(400).json({ ok: false, error: "请先转写" });
@@ -1096,10 +1096,14 @@ app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res)
     const noSpeech = !t.raw || !(t.raw.words || []).some(w => w.text && w.text.trim());
     const sys = `你是专业视频剪辑师。根据逐字稿(带 [start-end] 时间码,单位秒), 输出剪辑决策。规则: 1) 保留核心内容, 删除重复/口误/长静音/废话; 2) 切点必须落在词语边界(用原时间码), 且 end>start; 3) 输出 JSON: {"grade":"warm_cinematic|neutral_punch|none","subtitleStyle":"bold-overlay|natural-sentence","title":"片头标题(无则空串)","segments":[{"start":数字,"end":数字,"reason":"简短理由"}]}。segments 按时间顺序覆盖要保留的片段(可连续), 总时长控制在原片的 60%-90%。只返回 JSON。`;
     let user;
+    // 构建自定义文案和参考图片信息
+    let extraInfo = "";
+    if (customCopy && customCopy.trim()) extraInfo += `\n【用户自定义文案(可作为叠加文字/字幕参考)】:\n${customCopy.trim()}\n`;
+    if (refImages && refImages.length > 0) extraInfo += `\n【参考图片(${refImages.length}张)】:\n${refImages.map((u,i)=>`  图片${i+1}: ${u}`).join("\n")}\n`;
     if (noSpeech && primaryDur) {
-      user = `这是一个没有语音旁白的视频(时长约 ${primaryDur.toFixed(1)} 秒, 可能是 B-roll/音乐/实拍素材)。请输出剪辑决策 JSON: 保留整段(单个 segment 从 0 到 ${primaryDur.toFixed(1)}), 选择合适的 grade 与 subtitleStyle(无字幕也行), 如需片头标题可填 title。只返回 JSON。`;
+      user = `这是一个没有语音旁白的视频(时长约 ${primaryDur.toFixed(1)} 秒, 可能是 B-roll/音乐/实拍素材)。请输出剪辑决策 JSON: 保留整段(单个 segment 从 0 到 ${primaryDur.toFixed(1)}), 选择合适的 grade 与 subtitleStyle(无字幕也行), 如需片头标题可填 title。只返回 JSON。${extraInfo}`;
     } else {
-      user = `逐字稿:\n${t.packed}\n\n用户要求: ${instructions || "(无特殊要求,按专业判断精简)"}\n\n请输出剪辑决策 JSON。`;
+      user = `逐字稿:\n${t.packed}\n\n用户要求: ${instructions || "(无特殊要求,按专业判断精简)"}\n${extraInfo}\n请输出剪辑决策 JSON。`;
     }
     const txt = await aiText(sys, user);
     const edl = extractJSON(txt);

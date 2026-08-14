@@ -636,6 +636,22 @@
   .vu-opt-row{display:flex;gap:12px;flex-wrap:wrap}
   .vu-field{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-3);font-weight:600;flex:1;min-width:160px}
   .vu-field .vu-input,.vu-field .vu-select{font-weight:400}
+  .vu-field-full{flex:1 1 100%}
+  /* 自定义文案 + 参考图片 */
+  .vu-custom-copy{margin-top:4px;padding:12px;border:1px solid rgba(124,92,255,.15);border-radius:12px;background:rgba(124,92,255,.03);display:flex;flex-direction:column;gap:10px}
+  .vu-textarea{width:100%;min-height:72px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:var(--text);font-size:13px;line-height:1.6;resize:vertical;font-family:inherit}
+  .vu-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,92,255,.15)}
+  .vu-img-input-row{display:flex;gap:8px;align-items:center}
+  .vu-img-url{flex:1}
+  .vu-btn-sm{padding:7px 14px;font-size:12px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
+  .vu-btn-upload{cursor:pointer}
+  .vu-ref-imgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;min-height:0}
+  .vu-ref-img-item{position:relative;width:120px;height:90px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:rgba(0,0,0,.2);cursor:pointer;transition:border-color .2s}
+  .vu-ref-img-item:hover{border-color:var(--primary)}
+  .vu-ref-img-item img{width:100%;height:100%;object-fit:cover}
+  .vu-ref-img-item .vu-img-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(220,38,38,.85);color:#fff;font-size:11px;line-height:20px;text-align:center;cursor:pointer;opacity:0;transition:opacity .2s}
+  .vu-ref-img-item:hover .vu-img-remove{opacity:1}
+  .vu-ref-img-item .vu-img-name{position:absolute;bottom:0;left:0;right:0;padding:3px 6px;font-size:10px;color:#fff;background:rgba(0,0,0,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .vu-transcript{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:14px;background:rgba(255,255,255,.03);max-height:300px;overflow:auto;font-size:13px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;word-break:break-word}
   .vu-plan{margin-top:12px;border:1px solid rgba(124,92,255,.25);border-radius:12px;padding:14px;background:rgba(124,92,255,.05);font-size:13px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;word-break:break-word}
   .vu-render-row{margin-top:14px}
@@ -649,6 +665,8 @@
   [data-theme="light"] #video-use .vu-card{background:#fff!important;border-color:rgba(108,79,247,.15)!important}
   [data-theme="light"] .vu-status{background:rgba(108,79,247,.05)!important;border-color:rgba(108,79,247,.15)!important}
   [data-theme="light"] .vu-input,[data-theme="light"] .vu-select{background:#f6f7fb!important;border-color:rgba(108,79,247,.18)!important}
+  [data-theme="light"] .vu-textarea{background:#f6f7fb!important;border-color:rgba(108,79,247,.18)!important;color:#333}
+  [data-theme="light"] .vu-custom-copy{background:rgba(108,79,247,.04)!important;border-color:rgba(108,79,247,.12)!important}
   [data-theme="light"] .vu-result{background:#fafbff!important}
   [data-theme="light"] .vu-result pre{color:#333!important}
 </style>
@@ -1065,6 +1083,26 @@
           <label class="vu-field">剪辑要求（可选）
             <input id="vuInstr" class="vu-input" placeholder="如：保留产品演示，删掉寒暄，节奏紧凑" />
           </label>
+
+          <!-- ===== 自定义文案 + 参考图片 ===== -->
+          <div class="vu-custom-copy">
+            <label class="vu-field vu-field-full">自定义文案（可选，将作为字幕/叠加文字参考）
+              <textarea id="vuCustomCopy" class="vu-textarea" rows="3" placeholder="输入你想在视频中展示的文案内容...&#10;支持多行，每行对应一个时间段的叠加文字"></textarea>
+            </label>
+            <label class="vu-field vu-field-full">参考图片（粘贴图片 URL 或上传本地图片）
+              <div class="vu-img-input-row">
+                <input id="vuImgUrl" class="vu-input vu-img-url" placeholder="https://example.com/image.jpg 或拖拽/选择图片文件" />
+                <button type="button" class="vu-btn vu-btn-sm" onclick="vuAddRefImg()">+ 添加</button>
+                <label class="vu-btn vu-btn-sm vu-btn-upload">
+                  📁 上传
+                  <input type="file" accept="image/*" hidden onchange="vuUploadRefImg(this)" />
+                </label>
+              </div>
+            </label>
+            <!-- 参考图片预览列表 -->
+            <div class="vu-ref-imgs" id="vuRefImgs"></div>
+          </div>
+
           <button class="vu-btn" id="vuPlanBtn" onclick="vuPlan()">③ AI 生成剪辑方案</button>
         </div>
 
@@ -1799,8 +1837,14 @@
     var btn=document.getElementById("vuPlanBtn"); if(btn){ btn.disabled=true; btn.textContent="AI 生成中…"; }
     var prog=document.getElementById("vuProgress"); if(prog){ prog.style.display="block"; prog.textContent="⏳ AI 正在分析逐字稿并生成剪辑方案…"; }
     var title=document.getElementById("vuTitle"); var grade=document.getElementById("vuGrade"); var sub=document.getElementById("vuSubStyle"); var instr=document.getElementById("vuInstr");
+    var copyEl=document.getElementById("vuCustomCopy");
+    // 收集参考图片
+    var refImgs=[];
+    document.querySelectorAll("#vuRefImgs .vu-ref-img-item").forEach(function(el){
+      refImgs.push(el.dataset.src||"");
+    });
     fetch("/api/video-use/plan", { method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ jobId: vuJobId, instructions: instr?instr.value:"", title: title?title.value:"", grade: grade?grade.value:"", subtitleStyle: sub?sub.value:"" })
+      body: JSON.stringify({ jobId: vuJobId, instructions: instr?instr.value:"", title: title?title.value:"", grade: grade?grade.value:"", subtitleStyle: sub?sub.value:"", customCopy: copyEl?copyEl.value:"", refImages: refImgs })
     }).then(function(r){ return r.json(); }).then(function(d){
       if(!d.ok) throw new Error(d.error||"生成失败");
       var p=document.getElementById("vuPlan"); if(p){
@@ -1839,6 +1883,78 @@
         vuShowErr("渲染失败: "+(e.message||e));
       });
   }
+
+  // ===== 自定义文案 + 参考图片管理 =====
+  var vuRefImgList = [];
+
+  function vuAddRefImg(){
+    var input = document.getElementById("vuImgUrl");
+    if(!input) return;
+    var url = (input.value||"").trim();
+    if(!url){ vuShowErr("请输入图片 URL 或上传图片"); return; }
+    vuRenderRefItem(url, url.split("/").pop() || "ref_img");
+    input.value = "";
+  }
+
+  function vuUploadRefImg(fileInput){
+    var file = fileInput.files && fileInput.files[0];
+    if(!file) return;
+    if(!file.type.startsWith("image/")){ vuShowErr("请选择图片文件"); return; }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var dataUrl = e.target.result;
+      vuRenderRefItem(dataUrl, file.name);
+      // 重置以便重复选同一文件
+      fileInput.value = "";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function vuRenderRefItem(src, name){
+    var box = document.getElementById("vuRefImgs");
+    if(!box) return;
+    var item = document.createElement("div");
+    item.className = "vu-ref-img-item";
+    item.dataset.src = src;
+    item.innerHTML =
+      '<img src="'+src+'" alt="'+name+'" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.textContent=\'加载失败\'" />'+
+      '<span class="vu-img-remove" onclick="vuRemoveRefImg(this.parentElement)" title="移除">✕</span>'+
+      '<span class="vu-img-name">'+name+'</span>';
+    // 点击查看大图
+    item.onclick = function(e){ if(e.target.className !== "vu-img-remove") vuPreviewImage(src); };
+    box.appendChild(item);
+    vuRefImgList.push(src);
+  }
+
+  function vuRemoveRefImg(el){
+    var src = el.dataset.src || "";
+    el.remove();
+    vuRefImgList = vuRefImgList.filter(function(s){ return s !== src; });
+  }
+
+  function vuPreviewImage(src){
+    // 全屏预览弹窗
+    var overlay = document.createElement("div");
+    overlay.id = "vuImgOverlay";
+    overlay.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:20px";
+    overlay.onclick = function(){ this.remove(); };
+    var img = document.createElement("img");
+    img.src = src;
+    img.style.cssText = "max-width:95vw;max-height:95vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);object-fit:contain";
+    overlay.appendChild(img);
+    // 提示文字
+    var hint = document.createElement("div");
+    hint.textContent = "点击任意处关闭";
+    hint.style.cssText = "position:absolute;bottom:24px;color:rgba(255,255,255,.6);font-size:13px";
+    overlay.appendChild(hint);
+    document.body.appendChild(overlay);
+  }
+
+  // 支持 URL 输入框回车添加
+  (function(){
+    var urlInput = document.getElementById("vuImgUrl");
+    if(urlInput) urlInput.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); vuAddRefImg(); } });
+  })();
 
   // Video-Use 测试模式: 仅 ?vu=1 或 #vu-test 时显示并加载
   (function(){
