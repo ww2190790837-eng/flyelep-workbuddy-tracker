@@ -1048,7 +1048,9 @@ app.post("/api/video-use/upload", vuUpload.array("files", 20), async (req, res) 
     const metas = [];
     for (const f of files) {
       const dest = path.join(jobDir, "files", f.originalname || f.filename);
-      fs.renameSync(f.path, dest);
+      // Render 上 multer 临时目录(/tmp)与项目目录跨设备, rename 会 EXDEV, 需回退 copy+unlink
+      try { fs.renameSync(f.path, dest); }
+      catch (e) { if (e.code === "EXDEV") { fs.copyFileSync(f.path, dest); fs.unlinkSync(f.path); } else throw e; }
       try { const p = await probeMedia(dest); metas.push({ name: f.originalname || f.filename, path: dest, meta: p }); }
       catch (e) { metas.push({ name: f.originalname || f.filename, path: dest, meta: null, probeError: e.message }); }
     }
