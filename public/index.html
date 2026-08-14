@@ -507,9 +507,9 @@
   [data-theme="light"] #msgLoadMoreBtn{background:rgba(108,79,247,.05)!important;color:#4a5068!important;border-color:rgba(108,79,247,.18)!important}
 
   /* ===== Hero 双栏布局 ===== */
-  .hero-grid{display:flex;align-items:flex-start;gap:32px;padding-top:60px;padding-bottom:20px}
+  .hero-grid{display:flex;align-items:flex-start;gap:24px;padding-top:60px;padding-bottom:20px}
   .hero-left{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
-  .hero-right{width:380px;flex-shrink:0;position:sticky;top:80px}
+  .hero-right{width:380px;flex-shrink:0;position:sticky;top:80px;margin-left:auto}
 
   /* ===== AI 对话框 ===== */
   .chat-container{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;height:560px;overflow:hidden}
@@ -725,9 +725,9 @@
       <div class="chat-container">
         <div class="chat-header">
           <div class="chat-header-left">
-            <span class="chat-avatar">🤖</span>
+            <span class="chat-avatar">✦</span>
             <div>
-              <strong class="chat-title">Fleta AI 助手</strong>
+              <strong class="chat-title">Fleta 助手</strong>
               <span class="chat-status" id="chatStatus">● 在线</span>
             </div>
           </div>
@@ -735,7 +735,7 @@
         </div>
         <div class="chat-messages" id="chatMessages">
           <div class="chat-msg bot-msg">
-            <div class="chat-bubble">你好！我是 Fleta AI 助手 🚀<br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web服务器等30+主题），也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
+            <div class="chat-bubble">你好！有什么可以帮你的？<br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
           </div>
         </div>
         <div class="chat-input-area">
@@ -1517,6 +1517,9 @@
     if(list) list.innerHTML = '';
     addChatBubble('对话已清空 ✨ 有什么新问题随时问我！', false);
   }
+  // 暴露给内联 onclick 调用
+  window.sendChat = sendChat;
+  window.clearChat = clearChat;
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选
