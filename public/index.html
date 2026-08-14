@@ -509,7 +509,7 @@
   /* ===== Hero 双栏布局 ===== */
   .hero-grid{display:flex;align-items:flex-start;gap:24px;padding-top:60px;padding-bottom:20px}
   .hero-left{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
-  .hero-right{width:380px;flex-shrink:0;position:sticky;top:80px;margin-left:auto}
+  .hero-right{width:380px;flex-shrink:0;position:sticky;top:80px;margin-left:auto;margin-right:-40px}
 
   /* ===== AI 对话框 ===== */
   .chat-container{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;height:560px;overflow:hidden}
@@ -519,6 +519,12 @@
   .chat-title{font-size:14px;color:var(--text);display:block}
   .chat-status{font-size:11px;color:#10b981;margin-left:6px}
   .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+  .chat-messages::-webkit-scrollbar{width:5px}
+  .chat-messages::-webkit-scrollbar-track{background:transparent}
+  .chat-messages::-webkit-scrollbar-thumb{background:rgba(124,92,255,.25);border-radius:10px}
+  .chat-messages::-webkit-scrollbar-thumb:hover{background:rgba(124,92,255,.4)}
+  /* Firefox scrollbar */
+  .chat-messages{scrollbar-width:thin;scrollbar-color:rgba(124,92,255,.25) transparent}
   .chat-msg{display:flex;gap:8px;max-width:88%}
   .chat-msg.user-msg{align-self:flex-end;flex-direction:row-reverse}
   .chat-bubble{padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.65;color:var(--text);word-break:break-word}
