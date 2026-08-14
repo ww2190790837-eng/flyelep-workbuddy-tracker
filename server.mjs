@@ -90,12 +90,12 @@ const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
 const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
 const PROMPTS_GIST_FILENAME = "flyelep_prompts.json"; // 提示词训练语料(独立文件)
 const MESSAGES_GIST_FILENAME = "flyelep_messages.json"; // 留言板数据(独立文件)
-// ===== Video-Use 辅助 API (Scribe 类视频转写/处理服务) =====
-// 说明: apisk_ 前缀 key 并非 ElevenLabs 的 xi- 格式, 底层为兼容 Scribe 的第三方视频服务。
+// ===== Video-Use 辅助 API (ElevenLabs Scribe 转写/处理) =====
+// 实测确认: sk_ 前缀为 ElevenLabs 新版 key 格式; apisk_ 前缀非 ElevenLabs key(返回 Invalid API key)。
 // Render Blueprint 不注入自定义环境变量, 故地址/key 写死在此, 更换服务改这里即可。
-const VIDEO_USE_API_KEY = process.env.VIDEO_USE_API_KEY || "apisk_7e6135b97c0dde70783d3aa5fa5487b1e47b15c02663b0ca";
+const VIDEO_USE_API_KEY = process.env.VIDEO_USE_API_KEY || "sk_df39dd4b8d5d4e5abe0fd1470fc1a36f0976a907597b2393";
 const VIDEO_USE_API_BASE = (process.env.VIDEO_USE_API_BASE || "https://api.elevenlabs.io").replace(/\/$/, "");
-const VIDEO_USE_AUTH_HEADER = process.env.VIDEO_USE_AUTH_HEADER || "xi-api-key"; // Scribe 类服务鉴权头
+const VIDEO_USE_AUTH_HEADER = process.env.VIDEO_USE_AUTH_HEADER || "xi-api-key"; // ElevenLabs 鉴权头
 // 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
 const MAX_TRACK = 2500;
 let usingGist = false;
@@ -915,7 +915,7 @@ app.get("/api/video-use/status", (req, res) => {
   });
 });
 
-// 查剩余免费分钟(灵活解析多种返回结构)
+// 查剩余额度(单位无关: 自动识别 分钟/字符/积分/次数 等任意额度字段)
 app.get("/api/video-use/quota", async (req, res) => {
   try {
     const r = await fetch(`${VIDEO_USE_API_BASE}/v1/user/subscription`, {
@@ -926,16 +926,21 @@ app.get("/api/video-use/quota", async (req, res) => {
       return res.json({ ok: false, error: `API ${r.status}`, detail: txt.slice(0, 300) });
     }
     const d = await r.json().catch(() => ({}));
-    let minutes = null;
-    if (typeof d.free_minutes === "number") minutes = d.free_minutes;
-    else if (typeof d.remaining_minutes === "number") minutes = d.remaining_minutes;
-    else if (typeof d.minutes_left === "number") minutes = d.minutes_left;
-    else if (d.quota && typeof d.quota.minutes === "number") minutes = d.quota.minutes;
+    // 按常见额度字段依次匹配, 带上单位
+    let quota = null, unit = null;
+    if (typeof d.free_minutes === "number") { quota = d.free_minutes; unit = "分钟"; }
+    else if (typeof d.remaining_minutes === "number") { quota = d.remaining_minutes; unit = "分钟"; }
+    else if (typeof d.minutes_left === "number") { quota = d.minutes_left; unit = "分钟"; }
+    else if (d.quota && typeof d.quota.minutes === "number") { quota = d.quota.minutes; unit = "分钟"; }
     else if (typeof d.character_limit === "number" && typeof d.character_count === "number") {
-      const left = Math.max(0, d.character_limit - d.character_count);
-      minutes = Math.round(left / 1000); // 粗略: 1000 字符 ≈ 1 分钟口语
+      quota = Math.max(0, d.character_limit - d.character_count); unit = "字符";
     }
-    res.json({ ok: true, minutes, tier: d.tier || null, raw: d });
+    else if (typeof d.credit_balance === "number") { quota = d.credit_balance; unit = "积分"; }
+    else if (typeof d.remaining_credits === "number") { quota = d.remaining_credits; unit = "积分"; }
+    else if (typeof d.credits === "number") { quota = d.credits; unit = "积分"; }
+    else if (typeof d.remaining_requests === "number") { quota = d.remaining_requests; unit = "次"; }
+    else if (typeof d.remaining === "number") { quota = d.remaining; unit = ""; }
+    res.json({ ok: true, quota, unit, tier: d.tier || d.plan || null });
   } catch (e) {
     res.json({ ok: false, error: e.message });
   }
