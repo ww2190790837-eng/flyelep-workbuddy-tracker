@@ -1081,8 +1081,17 @@ app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res)
     const jobDir = path.join(VU_JOBS, jobId);
     const t = loadJSON(path.join(jobDir, "transcript.json"), null);
     if (!t) return res.status(400).json({ ok: false, error: "请先转写" });
-    const sys = `你是专业视频剪辑师。根据逐字稿(带 [start-end] 时间码,单位秒), 输出剪辑决策。规则: 1) 保留核心内容, 删除重复/口误/长静音/废话; 2) 切点必须落在词语边界(用原时间码); 3) 输出 JSON: {"grade":"warm_cinematic|neutral_punch|none","subtitleStyle":"bold-overlay|natural-sentence","title":"片头标题(无则空串)","segments":[{"start":数字,"end":数字,"reason":"简短理由"}]}。segments 按时间顺序覆盖要保留的片段(可连续), 总时长控制在原片的 60%-90%。只返回 JSON。`;
-    const user = `逐字稿:\n${t.packed}\n\n用户要求: ${instructions || "(无特殊要求,按专业判断精简)"}\n\n请输出剪辑决策 JSON。`;
+    const meta = loadJSON(path.join(jobDir, "meta.json"), null);
+    const primaryDur = meta?.files?.find(f => f.name === meta.primary)?.duration
+      ? parseFloat(meta.files.find(f => f.name === meta.primary).duration) : null;
+    const noSpeech = !t.raw || !(t.raw.words || []).some(w => w.text && w.text.trim());
+    const sys = `你是专业视频剪辑师。根据逐字稿(带 [start-end] 时间码,单位秒), 输出剪辑决策。规则: 1) 保留核心内容, 删除重复/口误/长静音/废话; 2) 切点必须落在词语边界(用原时间码), 且 end>start; 3) 输出 JSON: {"grade":"warm_cinematic|neutral_punch|none","subtitleStyle":"bold-overlay|natural-sentence","title":"片头标题(无则空串)","segments":[{"start":数字,"end":数字,"reason":"简短理由"}]}。segments 按时间顺序覆盖要保留的片段(可连续), 总时长控制在原片的 60%-90%。只返回 JSON。`;
+    let user;
+    if (noSpeech && primaryDur) {
+      user = `这是一个没有语音旁白的视频(时长约 ${primaryDur.toFixed(1)} 秒, 可能是 B-roll/音乐/实拍素材)。请输出剪辑决策 JSON: 保留整段(单个 segment 从 0 到 ${primaryDur.toFixed(1)}), 选择合适的 grade 与 subtitleStyle(无字幕也行), 如需片头标题可填 title。只返回 JSON。`;
+    } else {
+      user = `逐字稿:\n${t.packed}\n\n用户要求: ${instructions || "(无特殊要求,按专业判断精简)"}\n\n请输出剪辑决策 JSON。`;
+    }
     const txt = await aiText(sys, user);
     const edl = extractJSON(txt);
     if (!edl || !Array.isArray(edl.segments)) throw new Error("AI 未返回有效剪辑方案");
@@ -1116,7 +1125,8 @@ app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, re
     await execFileAsync(ffmpegPath, ["-y", "-f", "concat", "-safe", "0", "-i", listPath, "-c", "copy", concatFile]);
     // 字幕 SRT(输出时间轴)
     const words = (t.raw.words || []).filter(w => w.start != null && w.end != null);
-    fs.writeFileSync(path.join(jobDir, "subs.srt"), buildSRT(words, segs));
+    const hasSubs = words.length > 0;
+    if (hasSubs) fs.writeFileSync(path.join(jobDir, "subs.srt"), buildSRT(words, segs));
     const subFont = VU_FONT_DIR ? "SimHei" : "Arial";
     const force = edl.subtitleStyle === "natural-sentence"
       ? `FontName=${subFont},FontSize=20,Bold=0,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BackColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=60`
@@ -1142,7 +1152,12 @@ app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, re
       } catch (e) { console.error("[video-use] 片头生成失败,跳过:", e.message); baseFile = concatFile; }
     }
     const finalFile = path.join(jobDir, "final.mp4");
-    await execFileAsync(ffmpegPath, ["-y", "-i", baseFile, "-vf", subsFilter, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+    if (hasSubs) {
+      await execFileAsync(ffmpegPath, ["-y", "-i", baseFile, "-vf", subsFilter, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+    } else {
+      // 无字幕(纯 B-roll/音乐素材): 直接转码出片
+      await execFileAsync(ffmpegPath, ["-y", "-i", baseFile, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+    }
     res.json({ ok: true, downloadUrl: `/api/video-use/download/${jobId}`, title: edl.title || "" });
   } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
 });
