@@ -991,8 +991,8 @@
   </div>
 </section>
 
-<!-- ===== Video-Use 智能视频助手盒子 ===== -->
-<section id="video-use">
+<!-- ===== Video-Use 智能视频助手盒子（默认隐藏，仅 ?vu=1 测试模式显示） ===== -->
+<section id="video-use" style="display:none">
   <div class="wrap">
     <div class="section-head">
       <span class="section-eyebrow reveal">/ Video-Use</span>
@@ -1100,7 +1100,7 @@
         <h5>功能</h5>
         <a href="#prompt-gen">提示词生成</a>
         <a href="#video-reverse">视频反推</a>
-        <a href="#video-use">智能视频助手</a>
+        <!-- <a href="#video-use">智能视频助手</a> 测试中隐藏 -->
       </div>
       <div class="foot-col">
         <h5>联系我</h5>
@@ -1840,15 +1840,25 @@
       });
   }
 
-  // 进入网页时拉一次额度
-  loadVideoUseQuota();
-  // 暴露给内联 onclick 调用
-  window.loadVideoUseQuota = loadVideoUseQuota;
-  window.vuPickFiles = vuPickFiles;
-  window.vuPickFolder = vuPickFolder;
-  window.vuTranscribe = vuTranscribe;
-  window.vuPlan = vuPlan;
-  window.vuRender = vuRender;
+  // Video-Use 测试模式: 仅 ?vu=1 或 #vu-test 时显示并加载
+  (function(){
+    var showVU = (location.search.indexOf('vu=1') !== -1) || (location.hash === '#vu-test');
+    var vuSec = document.getElementById('video-use');
+    if(showVU && vuSec){
+      vuSec.style.display = '';
+      loadVideoUseQuota();
+      // 页面标题加 [TEST] 标记
+      var t = document.querySelector('title');
+      if(t) t.textContent = '[TEST] ' + t.textContent;
+    }
+    // 暴露给内联 onclick 调用（测试模式下才需要）
+    window.loadVideoUseQuota = loadVideoUseQuota;
+    window.vuPickFiles = vuPickFiles;
+    window.vuPickFolder = vuPickFolder;
+    window.vuTranscribe = vuTranscribe;
+    window.vuPlan = vuPlan;
+    window.vuRender = vuRender;
+  })();
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选
