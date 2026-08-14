@@ -14,8 +14,11 @@ import nodemailer from "nodemailer";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import multer from "multer";
-import ffmpegPath from "ffmpeg-static";
-import ffprobePath from "ffprobe-static";
+import ffmpegPathRaw from "ffmpeg-static";
+import ffprobePathRaw from "ffprobe-static";
+// ffmpeg-static 导出字符串; ffprobe-static@2 导出 { path } 对象, 统一成字符串
+const ffmpegPath = typeof ffmpegPathRaw === "string" ? ffmpegPathRaw : ffmpegPathRaw.path;
+const ffprobePath = typeof ffprobePathRaw === "string" ? ffprobePathRaw : ffprobePathRaw.path;
 
 const execFileAsync = promisify(execFile);
 
@@ -992,7 +995,8 @@ function pickPrimary(metas) {
 // Scribe 文件转写
 async function scribeTranscribe(filePath, name) {
   const fd = new FormData();
-  fd.append("file", fs.readFileSync(filePath), { filename: name, contentType: "video/mp4" });
+  // 全局 FormData(undici) 只接受 Blob/File, 不能用 Buffer(否则报 not of type Blob)
+  fd.append("file", new Blob([fs.readFileSync(filePath)], { type: "video/mp4" }), name);
   fd.append("model_id", "scribe_v1");
   const r = await fetch(`${VIDEO_USE_API_BASE}/v1/speech-to-text`, { method: "POST", headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY }, body: fd });
   if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(`Scribe ${r.status}: ${t.slice(0, 200)}`); }
@@ -1084,8 +1088,9 @@ app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res)
     const t = loadJSON(path.join(jobDir, "transcript.json"), null);
     if (!t) return res.status(400).json({ ok: false, error: "请先转写" });
     const meta = loadJSON(path.join(jobDir, "meta.json"), null);
-    const primaryDur = meta?.files?.find(f => f.name === meta.primary)?.duration
+    let primaryDur = meta?.files?.find(f => f.name === meta.primary)?.duration
       ? parseFloat(meta.files.find(f => f.name === meta.primary).duration) : null;
+    if (!primaryDur && t.raw?.audio_duration_secs) primaryDur = parseFloat(t.raw.audio_duration_secs);
     const noSpeech = !t.raw || !(t.raw.words || []).some(w => w.text && w.text.trim());
     const sys = `你是专业视频剪辑师。根据逐字稿(带 [start-end] 时间码,单位秒), 输出剪辑决策。规则: 1) 保留核心内容, 删除重复/口误/长静音/废话; 2) 切点必须落在词语边界(用原时间码), 且 end>start; 3) 输出 JSON: {"grade":"warm_cinematic|neutral_punch|none","subtitleStyle":"bold-overlay|natural-sentence","title":"片头标题(无则空串)","segments":[{"start":数字,"end":数字,"reason":"简短理由"}]}。segments 按时间顺序覆盖要保留的片段(可连续), 总时长控制在原片的 60%-90%。只返回 JSON。`;
     let user;
