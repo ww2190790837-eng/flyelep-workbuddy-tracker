@@ -6,6 +6,7 @@
     plan: free
     buildCommand: npm install
     startCommand: node server.mjs
+    maxRequestTimeout: 100
     envVars:
       - key: NODE_VERSION
         value: 20

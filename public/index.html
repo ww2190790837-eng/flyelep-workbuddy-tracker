@@ -611,6 +611,41 @@
   .vu-error{margin-top:12px;color:#ef4444;font-size:13px;display:none}
   .vu-loading{margin-top:12px;text-align:center;color:var(--text-3);font-size:13px}
 
+  /* 完整编辑器 */
+  .vu-editor{margin-top:4px}
+  .vu-steps{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .vu-step{font-size:12px;color:var(--text-3);padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.03);transition:all .2s}
+  .vu-step.active{color:#fff;background:var(--gradient);border-color:transparent;font-weight:600}
+  .vu-step.done{color:var(--primary);border-color:rgba(124,92,255,.4)}
+  .vu-drop{border:2px dashed var(--border);border-radius:14px;padding:28px 20px;text-align:center;transition:all .2s;cursor:pointer;background:rgba(255,255,255,.02)}
+  .vu-drop.drag{border-color:var(--primary);background:rgba(124,92,255,.08)}
+  .vu-drop-icon{font-size:34px;margin-bottom:8px}
+  .vu-drop-text{font-size:14px;color:var(--text-2)}
+  .vu-link{background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;font-size:14px;padding:0 2px;text-decoration:underline}
+  .vu-drop-sub{font-size:12px;color:var(--text-3);margin-top:8px}
+  .vu-flist{margin-top:14px;display:flex;flex-direction:column;gap:4px;text-align:left;max-height:160px;overflow:auto}
+  .vu-fitem{font-size:12px;color:var(--text-2);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;gap:10px}
+  .vu-fitem span:last-child{color:var(--text-3);flex-shrink:0}
+  .vu-actions{margin-top:14px}
+  .vu-btn{padding:11px 20px;border-radius:10px;background:rgba(124,92,255,.12);color:var(--primary);border:1px solid rgba(124,92,255,.3);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+  .vu-btn:hover{background:rgba(124,92,255,.2)}
+  .vu-btn:disabled{opacity:.5;cursor:not-allowed}
+  .vu-btn-primary{padding:12px 26px;border-radius:10px;background:var(--gradient);color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;display:inline-block;text-decoration:none}
+  .vu-btn-primary:hover{filter:brightness(1.08)}
+  .vu-opts{margin-top:16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--border);padding-top:16px}
+  .vu-opt-row{display:flex;gap:12px;flex-wrap:wrap}
+  .vu-field{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-3);font-weight:600;flex:1;min-width:160px}
+  .vu-field .vu-input,.vu-field .vu-select{font-weight:400}
+  .vu-transcript{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:14px;background:rgba(255,255,255,.03);max-height:300px;overflow:auto;font-size:13px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;word-break:break-word}
+  .vu-plan{margin-top:12px;border:1px solid rgba(124,92,255,.25);border-radius:12px;padding:14px;background:rgba(124,92,255,.05);font-size:13px;line-height:1.7;color:var(--text-2);white-space:pre-wrap;word-break:break-word}
+  .vu-render-row{margin-top:14px}
+  .vu-progress{margin-top:14px;text-align:center;color:var(--text-3);font-size:13px;padding:14px;border:1px dashed var(--border);border-radius:12px}
+  .vu-done{margin-top:14px;text-align:center}
+  [data-theme="light"] .vu-drop{background:#fafbff!important}
+  [data-theme="light"] .vu-step{background:#f1f2f8!important}
+  [data-theme="light"] .vu-transcript{background:#fafbff!important}
+  [data-theme="light"] .vu-plan{background:#f3f0ff!important}
+
   [data-theme="light"] #video-use .vu-card{background:#fff!important;border-color:rgba(108,79,247,.15)!important}
   [data-theme="light"] .vu-status{background:rgba(108,79,247,.05)!important;border-color:rgba(108,79,247,.15)!important}
   [data-theme="light"] .vu-input,[data-theme="light"] .vu-select{background:#f6f7fb!important;border-color:rgba(108,79,247,.18)!important}
@@ -982,31 +1017,70 @@
         <button class="vu-refresh" id="vuRefresh" onclick="loadVideoUseQuota()" title="刷新额度">↻</button>
       </div>
 
-      <!-- 提交区 -->
-      <div class="vu-form">
-        <label class="vu-label">视频 / 音频链接</label>
-        <div class="vu-input-row">
-          <input id="vuUrl" class="vu-input" placeholder="https://... 粘贴视频或音频直链 (MP4 / MP3 / WAV)" />
-          <select id="vuMode" class="vu-select">
-            <option value="">默认模式</option>
-            <option value="transcribe">仅转写</option>
-            <option value="edit">智能剪辑</option>
-          </select>
-          <button class="vu-submit" id="vuSubmit" onclick="submitVideoUse()">▶ 提交处理</button>
+      <!-- 完整编辑器 -->
+      <div class="vu-editor">
+        <div class="vu-steps">
+          <span class="vu-step active" id="vuStep1">① 上传</span>
+          <span class="vu-step" id="vuStep2">② 转写</span>
+          <span class="vu-step" id="vuStep3">③ AI剪辑</span>
+          <span class="vu-step" id="vuStep4">④ 出片</span>
         </div>
-        <p class="vu-hint">提交后由 Video-Use 服务处理，结果将显示在下方（转写文本 / 处理状态）。需要服务支持公开可访问的直链。</p>
-      </div>
 
-      <!-- 结果 -->
-      <div class="vu-result" id="vuResult" style="display:none">
-        <div class="vu-result-head">
-          <span>✅ 处理结果</span>
-          <button class="vu-copy" id="vuCopy" onclick="copyVideoUseResult()">复制</button>
+        <div class="vu-drop" id="vuDrop">
+          <input type="file" id="vuFiles" multiple accept="video/*,audio/*" hidden />
+          <div class="vu-drop-inner">
+            <div class="vu-drop-icon">🎬</div>
+            <div class="vu-drop-text">拖拽视频到此处，或
+              <button type="button" class="vu-link" onclick="vuPickFiles()">选择文件</button>
+              <button type="button" class="vu-link" onclick="vuPickFolder()">选择文件夹</button>
+            </div>
+            <div class="vu-drop-sub">支持 MP4 / MOV / WEBM / MP3 / WAV，可整文件夹批量上传（单文件 ≤400MB）</div>
+          </div>
+          <div class="vu-flist" id="vuFlist"></div>
         </div>
-        <pre id="vuResultText"></pre>
+
+        <div class="vu-actions">
+          <button class="vu-btn" id="vuTranscribeBtn" onclick="vuTranscribe()" disabled>② 开始转写</button>
+        </div>
+
+        <div class="vu-opts" id="vuOpts" style="display:none">
+          <div class="vu-opt-row">
+            <label class="vu-field">片头标题（可选）
+              <input id="vuTitle" class="vu-input" placeholder="如：产品发布会精剪版" />
+            </label>
+            <label class="vu-field">调色
+              <select id="vuGrade" class="vu-select">
+                <option value="warm_cinematic">暖电影感</option>
+                <option value="neutral_punch">中性增强</option>
+                <option value="none">不调色</option>
+              </select>
+            </label>
+            <label class="vu-field">字幕样式
+              <select id="vuSubStyle" class="vu-select">
+                <option value="bold-overlay">醒目（短视频）</option>
+                <option value="natural-sentence">自然（教程/纪录片）</option>
+              </select>
+            </label>
+          </div>
+          <label class="vu-field">剪辑要求（可选）
+            <input id="vuInstr" class="vu-input" placeholder="如：保留产品演示，删掉寒暄，节奏紧凑" />
+          </label>
+          <button class="vu-btn" id="vuPlanBtn" onclick="vuPlan()">③ AI 生成剪辑方案</button>
+        </div>
+
+        <div class="vu-transcript" id="vuTranscript" style="display:none"></div>
+        <div class="vu-plan" id="vuPlan" style="display:none"></div>
+
+        <div class="vu-render-row" id="vuRenderRow" style="display:none">
+          <button class="vu-btn vu-btn-primary" id="vuRenderBtn" onclick="vuRender()">④ 渲染成片</button>
+        </div>
+
+        <div class="vu-progress" id="vuProgress" style="display:none"></div>
+        <div class="vu-done" id="vuDone" style="display:none">
+          <a class="vu-btn vu-btn-primary" id="vuDownload" href="#" download="fleta_edit.mp4">⬇ 下载成片 final.mp4</a>
+        </div>
+        <div class="vu-error" id="vuError"></div>
       </div>
-      <div class="vu-error" id="vuError"></div>
-      <div class="vu-loading" id="vuLoading" style="display:none">处理中…</div>
     </div>
   </div>
 </section>
@@ -1653,57 +1727,128 @@
       if(label) label.textContent = "剩余额度";
     });
   }
-  function submitVideoUse(){
-    var url = document.getElementById("vuUrl");
-    var mode = document.getElementById("vuMode");
-    var btn = document.getElementById("vuSubmit");
-    var err = document.getElementById("vuError");
-    var loading = document.getElementById("vuLoading");
-    var result = document.getElementById("vuResult");
-    var resultText = document.getElementById("vuResultText");
-    if(!url || !url.value.trim()){ if(err){ err.style.display="block"; err.textContent="请先粘贴视频/音频链接"; } return; }
-    if(err) err.style.display = "none";
-    if(btn){ btn.disabled = true; btn.textContent = "处理中…"; }
-    if(loading) loading.style.display = "block";
-    if(result) result.style.display = "none";
-    fetch("/api/video-use/process", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ url: url.value.trim(), mode: mode ? mode.value : "" })
-    }).then(function(r){ return r.json(); }).then(function(d){
-      if(loading) loading.style.display = "none";
-      if(btn){ btn.disabled = false; btn.textContent = "▶ 提交处理"; }
-      if(!d.ok){
-        if(err){ err.style.display="block"; err.textContent = "处理失败: " + (d.error || "未知错误"); }
-        return;
-      }
-      if(result && resultText){
-        var txt = typeof d.result === "string" ? d.result : JSON.stringify(d.result, null, 2);
-        resultText.textContent = txt;
-        result.style.display = "block";
-      }
+  // ---- 完整编辑器逻辑 ----
+  var vuJobId = null;
+  var vuSelected = [];
+
+  function vuShowErr(msg){ var e=document.getElementById("vuError"); if(e){ e.style.display="block"; e.textContent=msg; } }
+  function vuHideErr(){ var e=document.getElementById("vuError"); if(e) e.style.display="none"; }
+  function vuSetStep(n){ for(var i=1;i<=4;i++){ var s=document.getElementById("vuStep"+i); if(!s) continue; s.className="vu-step"+(i<n?" done":"")+(i===n?" active":""); } }
+  function fmtSize(b){ if(b>=1048576) return (b/1048576).toFixed(1)+" MB"; if(b>=1024) return (b/1024).toFixed(0)+" KB"; return b+" B"; }
+
+  function renderFileList(){
+    var box=document.getElementById("vuFlist"); if(!box) return;
+    box.innerHTML="";
+    vuSelected.forEach(function(f){
+      var d=document.createElement("div"); d.className="vu-fitem";
+      var a=document.createElement("span"); a.textContent=f.name; a.style.overflow="hidden"; a.style.textOverflow="ellipsis"; a.style.whiteSpace="nowrap";
+      var b=document.createElement("span"); b.textContent=fmtSize(f.file.size);
+      d.appendChild(a); d.appendChild(b); box.appendChild(d);
+    });
+    var btn=document.getElementById("vuTranscribeBtn");
+    if(btn) btn.disabled = vuSelected.length===0;
+  }
+
+  function vuPickFiles(){ var inp=document.getElementById("vuFiles"); if(inp){ try{ inp.webkitdirectory=false; inp.directory=false; }catch(e){} inp.multiple=true; inp.click(); } }
+  function vuPickFolder(){ var inp=document.getElementById("vuFiles"); if(inp){ try{ inp.webkitdirectory=true; inp.directory=true; }catch(e){} inp.multiple=true; inp.click(); } }
+
+  function onVuFilesSelected(e){
+    var files = e.target.files || (e.dataTransfer && e.dataTransfer.files) || [];
+    vuSelected = [];
+    for(var i=0;i<files.length;i++){ vuSelected.push({ file: files[i], name: files[i].webkitRelativePath || files[i].name || ("file"+i) }); }
+    vuHideErr(); renderFileList();
+  }
+
+  (function(){
+    var drop=document.getElementById("vuDrop"); if(!drop) return;
+    ["dragenter","dragover"].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add("drag"); }); });
+    ["dragleave"].forEach(function(ev){ drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove("drag"); }); });
+    drop.addEventListener("drop", function(e){ e.preventDefault(); onVuFilesSelected(e); drop.classList.remove("drag"); });
+  })();
+  var vuFileInput=document.getElementById("vuFiles");
+  if(vuFileInput) vuFileInput.addEventListener("change", onVuFilesSelected);
+
+  function vuTranscribe(){
+    if(!vuSelected.length){ vuShowErr("请先选择视频文件"); return; }
+    vuHideErr(); vuSetStep(2);
+    var btn=document.getElementById("vuTranscribeBtn"); if(btn){ btn.disabled=true; btn.textContent="转写中…"; }
+    var prog=document.getElementById("vuProgress"); if(prog){ prog.style.display="block"; prog.textContent="⏳ 上传并调用 ElevenLabs Scribe 转写中…"; }
+    var fd=new FormData();
+    vuSelected.forEach(function(f){ fd.append("files", f.file, f.name); });
+    fetch("/api/video-use/upload", { method:"POST", body: fd }).then(function(r){ return r.json(); }).then(function(up){
+      if(!up.ok) throw new Error(up.error||"上传失败");
+      vuJobId = up.jobId;
+      return fetch("/api/video-use/transcribe", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ jobId: up.jobId }) });
+    }).then(function(r){ return r.json(); }).then(function(tr){
+      if(!tr.ok) throw new Error(tr.error||"转写失败");
+      var box=document.getElementById("vuTranscript"); if(box){ box.style.display="block"; box.textContent=(tr.transcript||"")+(tr.language?("\n\n[语言: "+tr.language+"]"):""); }
+      var opts=document.getElementById("vuOpts"); if(opts) opts.style.display="block";
+      vuSetStep(3);
+      if(btn) btn.textContent="② 重新转写";
+      if(prog) prog.style.display="none";
     }).catch(function(e){
-      if(loading) loading.style.display = "none";
-      if(btn){ btn.disabled = false; btn.textContent = "▶ 提交处理"; }
-      if(err){ err.style.display="block"; err.textContent = "网络错误: " + e.message; }
+      vuSetStep(1); if(btn){ btn.disabled=false; btn.textContent="② 开始转写"; }
+      if(prog) prog.style.display="none";
+      vuShowErr("转写失败: "+(e.message||e));
     });
   }
-  function copyVideoUseResult(){
-    var t = document.getElementById("vuResultText");
-    if(!t) return;
-    var ta = document.createElement("textarea");
-    ta.value = t.textContent; document.body.appendChild(ta); ta.select();
-    try { document.execCommand("copy"); } catch(e){}
-    document.body.removeChild(ta);
-    var c = document.getElementById("vuCopy");
-    if(c){ var old = c.textContent; c.textContent = "已复制"; setTimeout(function(){ c.textContent = old; }, 1200); }
+
+  function vuPlan(){
+    if(!vuJobId){ vuShowErr("请先完成转写"); return; }
+    vuHideErr(); vuSetStep(3);
+    var btn=document.getElementById("vuPlanBtn"); if(btn){ btn.disabled=true; btn.textContent="AI 生成中…"; }
+    var prog=document.getElementById("vuProgress"); if(prog){ prog.style.display="block"; prog.textContent="⏳ AI 正在分析逐字稿并生成剪辑方案…"; }
+    var title=document.getElementById("vuTitle"); var grade=document.getElementById("vuGrade"); var sub=document.getElementById("vuSubStyle"); var instr=document.getElementById("vuInstr");
+    fetch("/api/video-use/plan", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ jobId: vuJobId, instructions: instr?instr.value:"", title: title?title.value:"", grade: grade?grade.value:"", subtitleStyle: sub?sub.value:"" })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(!d.ok) throw new Error(d.error||"生成失败");
+      var p=document.getElementById("vuPlan"); if(p){
+        var kept=d.edl.segments.reduce(function(a,s){return a+(s.end-s.start);},0);
+        p.style.display="block";
+        p.textContent="🎬 剪辑方案（共 "+d.edl.segments.length+" 段，保留约 "+kept.toFixed(1)+"s）\n调色: "+d.edl.grade+" ｜ 字幕: "+d.edl.subtitleStyle+(d.edl.title?(" ｜ 片头: 《"+d.edl.title+"》"):"")+"\n\n";
+        d.edl.segments.forEach(function(s,i){ p.textContent += (i+1)+". ["+s.start.toFixed(2)+"–"+s.end.toFixed(2)+"s] "+(s.reason||"")+"\n"; });
+      }
+      var rr=document.getElementById("vuRenderRow"); if(rr) rr.style.display="block";
+      vuSetStep(4);
+      if(btn){ btn.disabled=false; btn.textContent="③ 重新生成"; }
+      if(prog) prog.style.display="none";
+    }).catch(function(e){
+      if(btn){ btn.disabled=false; btn.textContent="③ AI 生成剪辑方案"; }
+      if(prog) prog.style.display="none";
+      vuShowErr("生成失败: "+(e.message||e));
+    });
   }
+
+  function vuRender(){
+    if(!vuJobId){ vuShowErr("请先生成剪辑方案"); return; }
+    vuHideErr(); vuSetStep(4);
+    var btn=document.getElementById("vuRenderBtn"); if(btn){ btn.disabled=true; btn.textContent="渲染中…"; }
+    var prog=document.getElementById("vuProgress"); if(prog){ prog.style.display="block"; prog.textContent="⏳ ffmpeg 渲染成片中（剪切+调色+字幕）… 长视频可能需要几分钟"; }
+    fetch("/api/video-use/render", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ jobId: vuJobId }) })
+      .then(function(r){ return r.json(); }).then(function(d){
+        if(!d.ok) throw new Error(d.error||"渲染失败");
+        var done=document.getElementById("vuDone"); var dl=document.getElementById("vuDownload");
+        if(dl) dl.href = d.downloadUrl;
+        if(done) done.style.display="block";
+        if(prog) prog.style.display="none";
+        if(btn){ btn.disabled=false; btn.textContent="④ 重新渲染"; }
+      }).catch(function(e){
+        if(btn){ btn.disabled=false; btn.textContent="④ 渲染成片"; }
+        if(prog) prog.style.display="none";
+        vuShowErr("渲染失败: "+(e.message||e));
+      });
+  }
+
   // 进入网页时拉一次额度
   loadVideoUseQuota();
   // 暴露给内联 onclick 调用
   window.loadVideoUseQuota = loadVideoUseQuota;
-  window.submitVideoUse = submitVideoUse;
-  window.copyVideoUseResult = copyVideoUseResult;
+  window.vuPickFiles = vuPickFiles;
+  window.vuPickFolder = vuPickFolder;
+  window.vuTranscribe = vuTranscribe;
+  window.vuPlan = vuPlan;
+  window.vuRender = vuRender;
 
   // 把 UTM 跟踪的点击 CTA 行为改为:已登录 → 直接到 /account,未登录 → 弹 modal
   // 暂时不动,让用户自己选

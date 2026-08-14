@@ -5,11 +5,19 @@ import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 import path from "node:path";
 import fs from "node:fs";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import crypto from "node:crypto";
 import IP2RegionPkg from "ip2region";
 import nodemailer from "nodemailer";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import multer from "multer";
+import ffmpegPath from "ffmpeg-static";
+import ffprobePath from "ffprobe-static";
+
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -946,27 +954,204 @@ app.get("/api/video-use/quota", async (req, res) => {
   }
 });
 
-// 提交视频处理(转写/编辑) — Scribe 类: audio_url + 可选 mode
-app.post("/api/video-use/process", express.json({ limit: "4mb" }), async (req, res) => {
-  try {
-    const { url, mode } = req.body || {};
-    if (!url || typeof url !== "string" || !/^https?:\/\//.test(url)) {
-      return res.status(400).json({ ok: false, error: "请提供有效的视频/音频 URL (http/https)" });
-    }
-    const fd = new FormData();
-    fd.append("audio_url", url);
-    if (mode && typeof mode === "string") fd.append("mode", mode);
-    const r = await fetch(`${VIDEO_USE_API_BASE}/v1/speech-to-text`, {
-      method: "POST",
-      headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY },
-      body: fd
-    });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) return res.json({ ok: false, error: `API ${r.status}`, detail: d });
-    res.json({ ok: true, result: d });
-  } catch (e) {
-    res.json({ ok: false, error: e.message });
+// ============================================================
+//  Video-Use 完整剪辑流水线: 上传 → Scribe 转写 → AI 剪辑策略 → ffmpeg 出片
+// ============================================================
+const VU_JOBS = path.join(DATA_DIR, "vu_jobs");
+if (!fs.existsSync(VU_JOBS)) fs.mkdirSync(VU_JOBS, { recursive: true });
+const vuUpload = multer({
+  dest: path.join(os.tmpdir(), "vu_uploads"),
+  limits: { fileSize: 400 * 1024 * 1024, files: 20 }
+});
+
+function fmt2(t) { const m = Math.floor(t / 60), s = t - m * 60; return `${String(m).padStart(2, "0")}:${s.toFixed(2).padStart(5, "0")}`; }
+function fmtSrt(t) { const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = Math.floor(t % 60), ms = Math.round((t - Math.floor(t)) * 1000); return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")},${String(ms).padStart(3, "0")}`; }
+function extractJSON(text) { try { const m = text.match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null; } catch { return null; } }
+
+// 统一 AI 文本调用(复用现有 provider)
+async function aiText(system, user) {
+  if (!AI_API_KEY) throw new Error("AI 服务未配置");
+  if (AI_PROVIDER === "gemini") return await callGemini([{ text: user }], system, 4000);
+  if (AI_PROVIDER === "deepseek") return await callDeepSeek(user, system, 4000);
+  return await callOpenAIChat(AI_MODEL || "gpt-4o-mini", system, user, 4000);
+}
+// ffprobe 取元数据
+async function probeMedia(file) {
+  const { stdout } = await execFileAsync(ffprobePath, ["-v", "error", "-show_entries", "format=duration:stream=index,width,height,codec_type,codec_name", "-of", "json", file]);
+  return JSON.parse(stdout);
+}
+function pickPrimary(metas) {
+  let best = null;
+  for (const m of metas) {
+    const hasVideo = (m.streams || []).some(s => s.codec_type === "video");
+    const dur = parseFloat(m.format?.duration || "0");
+    if (hasVideo && (!best || dur > best.dur)) best = { ...m, dur };
   }
+  return best || metas[0];
+}
+// Scribe 文件转写
+async function scribeTranscribe(filePath, name) {
+  const fd = new FormData();
+  fd.append("file", fs.readFileSync(filePath), { filename: name, contentType: "video/mp4" });
+  fd.append("model_id", "scribe_v1");
+  const r = await fetch(`${VIDEO_USE_API_BASE}/v1/speech-to-text`, { method: "POST", headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY }, body: fd });
+  if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(`Scribe ${r.status}: ${t.slice(0, 200)}`); }
+  return await r.json();
+}
+// 逐字稿打包(按 ≥0.5s 静音断句)
+function packTranscript(d) {
+  const words = (d.words || []).filter(w => w.type !== "audio_event" && w.text && w.text.trim());
+  if (!words.length) return d.text || "(无语音内容)";
+  const lines = []; let cur = ""; let curStart = null; let lastEnd = null;
+  for (const w of words) {
+    if (curStart === null) curStart = w.start;
+    if (lastEnd !== null && (w.start - lastEnd) >= 0.5 && cur) { lines.push(`[${fmt2(curStart)}-${fmt2(lastEnd)}] ${cur}`); cur = ""; curStart = null; }
+    cur += (cur ? " " : "") + w.text; lastEnd = w.end;
+  }
+  if (cur) lines.push(`[${fmt2(curStart)}-${fmt2(lastEnd)}] ${cur}`);
+  return lines.join("\n");
+}
+// 输出时间轴 SRT(按 EDL 切点偏移, Hard Rule 5)
+function buildSRT(words, segments) {
+  const segs = [...segments].sort((a, b) => a.start - b.start);
+  let outOffset = 0; const blocks = []; let idx = 1;
+  for (const seg of segs) {
+    const len = seg.end - seg.start;
+    const inSeg = words.filter(w => w.start >= seg.start - 0.001 && w.end <= seg.end + 0.001 && w.type !== "audio_event");
+    for (const w of inSeg) {
+      const os = (w.start - seg.start) + outOffset, oe = (w.end - seg.start) + outOffset;
+      blocks.push(`${idx}\n${fmtSrt(os)} --> ${fmtSrt(oe)}\n${w.text}\n`);
+      idx++;
+    }
+    outOffset += len;
+  }
+  return blocks.join("\n");
+}
+const GRADE_FILTERS = {
+  warm_cinematic: "colorbalance=rs=0.05:gs=-0.02:bs=-0.06,eq=saturation=0.92:contrast=1.04",
+  neutral_punch: "eq=contrast=1.08:saturation=1.02",
+  none: ""
+};
+// 中文渲染字体(打包进仓库, 保证 Render/Linux 上中文不乱码)
+const VU_FONT = path.join(__dirname, "vu_fonts", "simhei.ttf");
+const VU_FONT_ARG = fs.existsSync(VU_FONT) ? `fontfile='${VU_FONT.replace(/:/g, "\\:").replace(/'/g, "\\'")}'` : "";
+const VU_FONT_DIR = fs.existsSync(VU_FONT) ? VU_FONT.replace(/[^/]+$/, "").replace(/:/g, "\\:") : "";
+
+// 1) 上传
+app.post("/api/video-use/upload", vuUpload.array("files", 20), async (req, res) => {
+  try {
+    const files = req.files || [];
+    if (!files.length) return res.status(400).json({ ok: false, error: "未收到文件" });
+    const jobId = nanoid(10);
+    const jobDir = path.join(VU_JOBS, jobId);
+    fs.mkdirSync(path.join(jobDir, "files"), { recursive: true });
+    const metas = [];
+    for (const f of files) {
+      const dest = path.join(jobDir, "files", f.originalname || f.filename);
+      fs.renameSync(f.path, dest);
+      try { const p = await probeMedia(dest); metas.push({ name: f.originalname || f.filename, path: dest, meta: p }); }
+      catch (e) { metas.push({ name: f.originalname || f.filename, path: dest, meta: null, probeError: e.message }); }
+    }
+    const primary = pickPrimary(metas.map(m => ({ ...m.meta, _path: m.path })));
+    const primaryInfo = metas.find(m => m.path === primary._path) || metas[0];
+    saveJSON(path.join(jobDir, "meta.json"), { jobId, files: metas.map(m => ({ name: m.name, duration: m.meta?.format?.duration || null })), primary: primaryInfo.name });
+    res.json({ ok: true, jobId, files: metas.map(m => ({ name: m.name, duration: m.meta?.format?.duration ? parseFloat(m.meta.format.duration).toFixed(1) : null })), primary: primaryInfo.name });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// 2) 转写
+app.post("/api/video-use/transcribe", express.json({ limit: "1mb" }), async (req, res) => {
+  try {
+    const { jobId } = req.body || {};
+    const jobDir = path.join(VU_JOBS, jobId);
+    const meta = loadJSON(path.join(jobDir, "meta.json"), null);
+    if (!meta) return res.status(404).json({ ok: false, error: "任务不存在" });
+    const primaryPath = path.join(jobDir, "files", meta.primary);
+    const d = await scribeTranscribe(primaryPath, meta.primary);
+    const packed = packTranscript(d);
+    saveJSON(path.join(jobDir, "transcript.json"), { raw: d, packed });
+    res.json({ ok: true, transcript: packed, duration: d.audio_duration_secs || null, language: d.language_code || null });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// 3) AI 剪辑策略
+app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res) => {
+  try {
+    const { jobId, instructions } = req.body || {};
+    const jobDir = path.join(VU_JOBS, jobId);
+    const t = loadJSON(path.join(jobDir, "transcript.json"), null);
+    if (!t) return res.status(400).json({ ok: false, error: "请先转写" });
+    const sys = `你是专业视频剪辑师。根据逐字稿(带 [start-end] 时间码,单位秒), 输出剪辑决策。规则: 1) 保留核心内容, 删除重复/口误/长静音/废话; 2) 切点必须落在词语边界(用原时间码); 3) 输出 JSON: {"grade":"warm_cinematic|neutral_punch|none","subtitleStyle":"bold-overlay|natural-sentence","title":"片头标题(无则空串)","segments":[{"start":数字,"end":数字,"reason":"简短理由"}]}。segments 按时间顺序覆盖要保留的片段(可连续), 总时长控制在原片的 60%-90%。只返回 JSON。`;
+    const user = `逐字稿:\n${t.packed}\n\n用户要求: ${instructions || "(无特殊要求,按专业判断精简)"}\n\n请输出剪辑决策 JSON。`;
+    const txt = await aiText(sys, user);
+    const edl = extractJSON(txt);
+    if (!edl || !Array.isArray(edl.segments)) throw new Error("AI 未返回有效剪辑方案");
+    saveJSON(path.join(jobDir, "edl.json"), edl);
+    res.json({ ok: true, edl });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// 4) 渲染出片
+app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, res) => {
+  try {
+    const { jobId } = req.body || {};
+    const jobDir = path.join(VU_JOBS, jobId);
+    const meta = loadJSON(path.join(jobDir, "meta.json"), null);
+    const t = loadJSON(path.join(jobDir, "transcript.json"), null);
+    const edl = loadJSON(path.join(jobDir, "edl.json"), null);
+    if (!meta || !t || !edl) return res.status(400).json({ ok: false, error: "缺少上传/转写/剪辑方案" });
+    const inFile = path.join(jobDir, "files", meta.primary);
+    const grade = GRADE_FILTERS[edl.grade] !== undefined ? GRADE_FILTERS[edl.grade] : "";
+    const segs = [...edl.segments].sort((a, b) => a.start - b.start);
+    const segFiles = [];
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i]; const dur = (s.end - s.start);
+      const sf = path.join(jobDir, `seg_${String(i).padStart(3, "0")}.mp4`);
+      await execFileAsync(ffmpegPath, ["-y", "-ss", String(s.start), "-to", String(s.end), "-i", inFile, "-vf", grade || "null", "-af", `afade=t=in:st=0:d=0.03,afade=t=out:st=${(dur - 0.03).toFixed(3)}:d=0.03`, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", sf]);
+      segFiles.push(sf);
+    }
+    const listPath = path.join(jobDir, "concat.txt");
+    fs.writeFileSync(listPath, segFiles.map(f => `file '${f.replace(/'/g, "'\\''")}'`).join("\n"));
+    const concatFile = path.join(jobDir, "concat.mp4");
+    await execFileAsync(ffmpegPath, ["-y", "-f", "concat", "-safe", "0", "-i", listPath, "-c", "copy", concatFile]);
+    // 字幕 SRT(输出时间轴)
+    const words = (t.raw.words || []).filter(w => w.start != null && w.end != null);
+    fs.writeFileSync(path.join(jobDir, "subs.srt"), buildSRT(words, segs));
+    const subFont = VU_FONT_DIR ? "SimHei" : "Arial";
+    const force = edl.subtitleStyle === "natural-sentence"
+      ? `FontName=${subFont},FontSize=20,Bold=0,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BackColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=60`
+      : `FontName=${subFont},FontSize=18,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BackColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=35`;
+    const escPath = path.join(jobDir, "subs.srt").replace(/:/g, "\\:").replace(/'/g, "\\'");
+    const forceEsc = force.replace(/:/g, "\\:").replace(/'/g, "\\'");
+    const subsFilter = VU_FONT_DIR
+      ? `subtitles='${escPath}':fontsdir='${VU_FONT_DIR}':force_style='${forceEsc}'`
+      : `subtitles='${escPath}':force_style='${forceEsc}'`;
+    // 片头标题卡(可选, 失败则跳过不影响出片)
+    let baseFile = concatFile;
+    if (edl.title && edl.title.trim()) {
+      try {
+        const tt = edl.title.trim().replace(/['"\\]/g, "").slice(0, 40);
+        const tc = path.join(jobDir, "titlecard.mp4");
+        const drawtext = VU_FONT_ARG
+          ? `drawtext=${VU_FONT_ARG}:text='${tt}':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h-text_h)/2`
+          : `drawtext=text='${tt}':fontcolor=white:fontsize=64:x=(w-text_w)/2:y=(h-text_h)/2`;
+        await execFileAsync(ffmpegPath, ["-y", "-f", "lavfi", "-i", "color=c=0x0a0a0a:s=1280x720:d=3", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo:d=3", "-shortest", "-vf", drawtext, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", tc]);
+        const base1 = path.join(jobDir, "base.mp4");
+        await execFileAsync(ffmpegPath, ["-y", "-i", tc, "-i", concatFile, "-filter_complex", "[0][1]concat=n=2:v=1:a=1[out]", "-map", "[out]", "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", base1]);
+        baseFile = base1;
+      } catch (e) { console.error("[video-use] 片头生成失败,跳过:", e.message); baseFile = concatFile; }
+    }
+    const finalFile = path.join(jobDir, "final.mp4");
+    await execFileAsync(ffmpegPath, ["-y", "-i", baseFile, "-vf", subsFilter, "-c:v", "libx264", "-preset", "veryfast", "-c:a", "aac", "-b:a", "192k", finalFile]);
+    res.json({ ok: true, downloadUrl: `/api/video-use/download/${jobId}`, title: edl.title || "" });
+  } catch (e) { res.status(500).json({ ok: false, error: e.message }); }
+});
+
+// 5) 下载成片
+app.get("/api/video-use/download/:jobId", (req, res) => {
+  const finalFile = path.join(VU_JOBS, req.params.jobId, "final.mp4");
+  if (!fs.existsSync(finalFile)) return res.status(404).json({ ok: false, error: "成片不存在" });
+  res.download(finalFile, "fleta_edit.mp4");
 });
 
 // ===== Admin(原有)=====
