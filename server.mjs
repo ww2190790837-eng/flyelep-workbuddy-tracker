@@ -855,11 +855,11 @@ app.post("/api/click", (req, res) => {
   res.json({ ok: true });
 });
 
-// ===== AI 对话框(通用聊天,接入 Build Your Own X 知识) =====
-const CHAT_SYSTEM_PROMPT = `你是 Fleta AI 助手，专精于"从零实现技术系统"(Build Your Own X)领域。你的知识库覆盖 30+ 经典技术系统的从零实现方法。
+// ===== AI 对话框(AI写代码助手,接入 Build Your Own X 知识) =====
+const CHAT_SYSTEM_PROMPT = `你是 Fleta AI 写代码助手，专精于"从零实现技术系统"(Build Your Own X)领域。你的知识库覆盖 30+ 经典技术系统的从零实现方法，并擅长写出可直接运行的代码。
 
 ## 你的核心能力
-当用户想自己写/手写/从零实现/造一个以下任何系统时，你能给出完整的实现指导：
+当用户想自己写/手写/从零实现/造一个以下任何系统时，你能给出完整的实现指导和可直接运行的代码：
 3D渲染器、AI模型、增强现实、BitTorrent、区块链、Bot、命令行工具、数据库、Docker、模拟器/虚拟机、前端框架/库、游戏、Git、内存分配器、网络协议栈、神经网络、操作系统、物理引擎、处理器(CPU)、编程语言、正则表达式引擎、搜索引擎、Shell、模板引擎、文本编辑器、视觉识别系统、体素引擎、Web浏览器、Web服务器、分布式系统 等。
 
 ## 回答风格
@@ -911,6 +911,9 @@ app.post("/api/chat", express.json({ limit: "8kb" }), async (req, res) => {
       if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Chat API ${r.status}`); }
       const data = await r.json();
       reply = data.choices?.[0]?.message?.content || "";
+    } else if (AI_PROVIDER === "qwen") {
+      // 通义千问 OpenAI 兼容接口
+      reply = await callOpenAIChat(AI_MODEL || "qwen-coder-plus-latest", CHAT_SYSTEM_PROMPT, message, 2048);
     } else {
       // OpenAI 兼容
       reply = await callOpenAIChat(AI_MODEL || "gpt-4o-mini", CHAT_SYSTEM_PROMPT, message, 2048);
@@ -984,6 +987,7 @@ async function aiText(system, user) {
   if (!AI_API_KEY) throw new Error("AI 服务未配置");
   if (AI_PROVIDER === "gemini") return await callGemini([{ text: user }], system, 4000);
   if (AI_PROVIDER === "deepseek") return await callDeepSeek(user, system, 4000);
+  if (AI_PROVIDER === "qwen") return await callOpenAIChat(AI_MODEL || "qwen-coder-plus-latest", system, user, 4000);
   return await callOpenAIChat(AI_MODEL || "gpt-4o-mini", system, user, 4000);
 }
 // ffprobe 取元数据
@@ -1391,16 +1395,21 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 });
 
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
-const AI_PROVIDER = (process.env.AI_PROVIDER || "gemini").toLowerCase();
+// Render Blueprint 不注入自定义环境变量, 故对千问(qwen)写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
+const AI_PROVIDER = (process.env.AI_PROVIDER || "qwen").toLowerCase();
 const AI_API_KEY = process.env.AI_API_KEY || "";
-const AI_MODEL = process.env.AI_MODEL || "gemini-2.5-flash"; // 留空则用工况默认模型
-const AI_BASE_URL = process.env.AI_BASE_URL || ""; // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
+const AI_MODEL = process.env.AI_MODEL || "qwen-coder-plus-latest"; // 留空则用工况默认模型
+const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || ""; // 处理图片时使用的视觉模型(默认回落到 AI_MODEL)
 
 // OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)
 // contentParts: [{type:"image_url",image_url:{url}}, {type:"text",text}]
 async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens) {
-  const url = AI_BASE_URL ? `${AI_BASE_URL.replace(/\/$/, "")}/chat/completions` : "https://api.openai.com/v1/chat/completions";
+  const url = AI_BASE_URL
+    ? `${AI_BASE_URL.replace(/\/$/, "")}/chat/completions`
+    : (AI_PROVIDER === "qwen"
+        ? "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        : "https://api.openai.com/v1/chat/completions");
   const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: contentParts }], temperature: 0.7, max_tokens: maxTokens };
   // 免费模型共享算力,偶发 429 限流,自动重试
   const maxRetry = 3;
@@ -1582,9 +1591,10 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
 【重要】时间线是核心，每段必须写满：起始状态、具体动作过程、运镜方式、环境光影变化、结束状态。动作要具体可拍摄（如"右手抓起竹筷挑起面条"而非"做面条"），写出质感细节（蒸汽/反光/飞溅/烟雾）。**格式要求：每段用逗号分隔要素，一行一个时间段，不要用分号或连续箭头。**请直接输出完整的五段式提示词，不需要额外解释。`;
 
   switch (AI_PROVIDER) {
-    case "openai": {
-      const textModel = AI_MODEL || "gpt-4o-mini";
-      const visionModel = AI_VISION_MODEL || textModel;
+    case "openai":
+    case "qwen": {
+      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-coder-plus-latest" : "gpt-4o-mini");
+      const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : textModel);
       // 视频反推: 逐帧分析(每帧独占视觉模型输出额度) → 合并描述 → 文本模型反推五段式
       if (isReverse && imgList.length) {
         const isFlash = /v-flash/.test(visionModel);
@@ -1670,8 +1680,8 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
 
 // AI 配置状态查询(前端用来判断是否可用)
 app.get("/api/prompt-generate/status", (req, res) => {
-  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : "deepseek-chat");
-  const visionModel = AI_VISION_MODEL || model;
+  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-coder-plus-latest" : "deepseek-chat");
+  const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : model);
   res.json({
     available: !!AI_API_KEY,
     provider: AI_PROVIDER,

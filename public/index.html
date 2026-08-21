@@ -669,124 +669,143 @@
   [data-theme="light"] .vu-custom-copy{background:rgba(108,79,247,.04)!important;border-color:rgba(108,79,247,.12)!important}
   [data-theme="light"] .vu-result{background:#fafbff!important}
   [data-theme="light"] .vu-result pre{color:#333!important}
-  /* === 机器人宠物 Fleta Bot === */
+  /* === 机器人宠物 AI 写代码助手 === */
   .fleta-pet{
-    position:fixed; left:24px; bottom:100px; z-index:999;
-    width:110px; height:140px; cursor:grab; user-select:none; touch-action:none;
-    filter:drop-shadow(0 12px 30px rgba(0,0,0,.35));
+    position:fixed; left:22px; bottom:92px; z-index:999;
+    width:64px; height:70px; cursor:pointer; user-select:none; touch-action:none;
+    filter:drop-shadow(0 8px 20px rgba(124,92,255,.35));
     transition:transform .15s, filter .15s;
   }
-  .fleta-pet:hover{ filter:drop-shadow(0 16px 40px rgba(124,92,255,.45)); }
-  .fleta-pet:active{ cursor:grabbing; transform:scale(1.03); }
+  .fleta-pet:hover{ filter:drop-shadow(0 12px 28px rgba(124,92,255,.55)); transform:scale(1.05); }
+  .fleta-pet:active{ cursor:grabbing; transform:scale(.98); }
   .fleta-pet.dragging{ transition:none; cursor:grabbing; }
   .pet-float{
-    animation:pet-float 3.2s ease-in-out infinite;
+    animation:pet-float 3s ease-in-out infinite;
     transform-style:preserve-3d;
   }
   @keyframes pet-float{
-    0%,100%{ transform:translateY(0) rotateY(-6deg) rotateX(2deg); }
-    50%{ transform:translateY(-12px) rotateY(6deg) rotateX(-2deg); }
+    0%,100%{ transform:translateY(0) rotateY(-5deg); }
+    50%{ transform:translateY(-8px) rotateY(5deg); }
   }
+  /* 机器人外发光环 */
+  .pet-glow{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:76px; height:76px; border-radius:50%;
+    background:radial-gradient(circle, rgba(124,92,255,.22) 0%, rgba(124,92,255,.06) 45%, transparent 70%);
+    animation:glow-pulse 2.4s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes glow-pulse{ 0%,100%{ transform:translate(-50%,-50%) scale(1); opacity:.8 } 50%{ transform:translate(-50%,-50%) scale(1.15); opacity:1 } }
   .pet-head{
-    width:82px; height:62px;
-    background:linear-gradient(145deg,#5b8cff 0%,#8b7cff 45%,#ff7bb5 100%);
-    border-radius:28px; position:absolute; left:14px; top:0;
+    width:46px; height:40px;
+    background:linear-gradient(145deg,#6a8cff 0%,#8b7cff 45%,#d67bff 100%);
+    border-radius:20px 20px 18px 18px; position:absolute; left:9px; top:2px;
     box-shadow:
-      inset -6px -6px 12px rgba(0,0,0,.22),
-      inset 6px 6px 12px rgba(255,255,255,.28),
-      0 10px 24px rgba(124,92,255,.38);
+      inset -4px -4px 10px rgba(0,0,0,.2),
+      inset 4px 4px 10px rgba(255,255,255,.28),
+      0 6px 16px rgba(124,92,255,.38);
     transform-style:preserve-3d;
   }
-  .pet-eyes{ position:absolute; top:23px; left:15px; width:52px; display:flex; justify-content:space-between; }
+  /* 小耳朵 */
+  .pet-ear{
+    position:absolute; top:-6px; width:10px; height:14px;
+    background:linear-gradient(180deg,#8b7cff,#6a8cff);
+    border-radius:6px 6px 0 0;
+  }
+  .pet-ear.left{ left:6px; transform:rotate(-18deg); }
+  .pet-ear.right{ right:6px; transform:rotate(18deg); }
+  .pet-eyes{ position:absolute; top:15px; left:10px; width:26px; display:flex; justify-content:space-between; }
   .pet-eye{
-    width:17px; height:17px; background:#fff; border-radius:50%;
-    box-shadow:inset 0 0 4px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.15);
-    position:relative; animation:blink 4.2s infinite;
+    width:9px; height:9px; background:#fff; border-radius:50%;
+    box-shadow:inset 0 0 2px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.15);
+    position:relative; animation:blink 4s infinite;
   }
-  .pet-eye::after{ content:''; position:absolute; width:7px; height:7px; background:#1a1c29; border-radius:50%; top:4px; left:5px; }
-  @keyframes blink{ 0%,48%,52%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(.08); } }
+  .pet-eye::after{ content:''; position:absolute; width:4px; height:4px; background:#1a1c29; border-radius:50%; top:2px; left:3px; }
+  @keyframes blink{ 0%,48%,52%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(.1); } }
   .pet-mouth{
-    position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
-    width:20px; height:9px;
-    border-bottom:3px solid rgba(255,255,255,.92);
-    border-radius:0 0 20px 20px;
+    position:absolute; bottom:9px; left:50%; transform:translateX(-50%);
+    width:12px; height:5px;
+    border-bottom:2px solid rgba(255,255,255,.92);
+    border-radius:0 0 12px 12px;
   }
-  .pet-antenna{
-    position:absolute; top:-18px; left:50%; transform:translateX(-50%);
-    width:4px; height:20px; background:rgba(255,255,255,.75); border-radius:2px;
-  }
-  .pet-antenna::after{
-    content:''; position:absolute; top:-9px; left:-6px; width:16px; height:16px;
-    background:radial-gradient(circle at 30% 30%,#fff,#ff5b9b);
-    border-radius:50%; box-shadow:0 0 14px #ff5b9b;
-    animation:antenna-glow 1.4s ease-in-out infinite alternate;
-  }
-  @keyframes antenna-glow{ from{ box-shadow:0 0 10px #ff5b9b; } to{ box-shadow:0 0 22px #ff5b9b,0 0 34px #7c5cff; } }
   .pet-body{
-    width:72px; height:84px;
-    background:linear-gradient(145deg,#4a7cff 0%,#7c5cff 55%,#ff5b9b 100%);
-    border-radius:26px 26px 22px 22px; position:absolute; left:19px; top:44px;
+    width:40px; height:34px;
+    background:linear-gradient(145deg,#5a7dff 0%,#7c5cff 55%,#e070ff 100%);
+    border-radius:16px 16px 14px 14px; position:absolute; left:12px; top:34px;
     box-shadow:
-      inset -8px -8px 18px rgba(0,0,0,.28),
-      inset 8px 8px 18px rgba(255,255,255,.28),
-      0 12px 28px rgba(124,92,255,.42);
+      inset -5px -5px 10px rgba(0,0,0,.25),
+      inset 5px 5px 10px rgba(255,255,255,.28),
+      0 8px 18px rgba(124,92,255,.38);
     transform-style:preserve-3d;
   }
-  .pet-arm{
-    position:absolute; top:14px; width:17px; height:32px;
-    background:linear-gradient(180deg,#7c5cff,#5b8cff);
-    border-radius:12px; transform-origin:top center;
+  /* 胸口小屏幕 */
+  .pet-screen{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:22px; height:14px; border-radius:5px;
+    background:rgba(0,0,0,.25);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.2);
+    overflow:hidden;
   }
-  .pet-arm.left{ left:-10px; transform:rotate(24deg); animation:wave-left 2.6s ease-in-out infinite; }
-  .pet-arm.right{ right:-10px; transform:rotate(-24deg); animation:wave-right 2.6s ease-in-out infinite; }
-  @keyframes wave-left{ 0%,100%{ transform:rotate(24deg); } 50%{ transform:rotate(44deg); } }
-  @keyframes wave-right{ 0%,100%{ transform:rotate(-24deg); } 50%{ transform:rotate(-44deg); } }
+  .pet-screen::after{
+    content:''; position:absolute; left:-6px; top:0; width:10px; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(124,255,200,.5),transparent);
+    animation:screen-scan 1.8s linear infinite;
+  }
+  @keyframes screen-scan{ to{ transform:translateX(30px); } }
+  .pet-arm{
+    position:absolute; top:6px; width:10px; height:18px;
+    background:linear-gradient(180deg,#8b7cff,#6a8cff);
+    border-radius:8px; transform-origin:top center;
+  }
+  .pet-arm.left{ left:-6px; transform:rotate(22deg); animation:wave-left 2.4s ease-in-out infinite; }
+  .pet-arm.right{ right:-6px; transform:rotate(-22deg); animation:wave-right 2.4s ease-in-out infinite; }
+  @keyframes wave-left{ 0%,100%{ transform:rotate(22deg); } 50%{ transform:rotate(36deg); } }
+  @keyframes wave-right{ 0%,100%{ transform:rotate(-22deg); } 50%{ transform:rotate(-36deg); } }
   .pet-bubble{
-    position:absolute; left:118px; top:-14px;
-    min-width:190px; max-width:280px;
+    position:absolute; left:74px; top:-18px;
+    min-width:170px; max-width:260px;
     background:rgba(17,21,36,.94);
     border:1px solid rgba(124,92,255,.38);
-    border-radius:18px 18px 18px 6px;
-    padding:13px 15px;
-    font-size:13.5px; line-height:1.55; color:var(--text);
+    border-radius:16px 16px 16px 6px;
+    padding:11px 13px;
+    font-size:12.5px; line-height:1.55; color:var(--text);
     backdrop-filter:blur(14px) saturate(180%);
     -webkit-backdrop-filter:blur(14px) saturate(180%);
-    box-shadow:0 10px 40px rgba(0,0,0,.4), 0 0 24px rgba(124,92,255,.18);
+    box-shadow:0 8px 32px rgba(0,0,0,.4), 0 0 20px rgba(124,92,255,.18);
     opacity:0; transform:translateY(10px) scale(.92);
-    transition:all .4s cubic-bezier(.34,1.56,.64,1);
+    transition:all .35s cubic-bezier(.34,1.56,.64,1);
     pointer-events:none;
   }
   .pet-bubble.show{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
   .pet-bubble::before{
-    content:''; position:absolute; left:-9px; top:30px;
-    width:0; height:0;
-    border-top:9px solid transparent;
-    border-bottom:9px solid transparent;
-    border-right:11px solid rgba(124,92,255,.38);
-  }
-  .pet-bubble::after{
-    content:''; position:absolute; left:-7px; top:31px;
+    content:''; position:absolute; left:-8px; top:24px;
     width:0; height:0;
     border-top:8px solid transparent;
     border-bottom:8px solid transparent;
-    border-right:9px solid rgba(17,21,36,.94);
+    border-right:10px solid rgba(124,92,255,.38);
+  }
+  .pet-bubble::after{
+    content:''; position:absolute; left:-6px; top:25px;
+    width:0; height:0;
+    border-top:7px solid transparent;
+    border-bottom:7px solid transparent;
+    border-right:8px solid rgba(17,21,36,.94);
   }
   .pet-bubble b{ color:var(--primary-2); }
-  .pet-bubble code{ background:rgba(124,92,255,.18); padding:1px 5px; border-radius:4px; font-size:12px; color:var(--primary-3); }
-  .pet-bubble small{ display:block; margin-top:7px; color:var(--text-3); font-size:11px; }
+  .pet-bubble code{ background:rgba(124,92,255,.18); padding:1px 4px; border-radius:4px; font-size:11px; color:var(--primary-3); }
+  .pet-bubble small{ display:block; margin-top:6px; color:var(--text-3); font-size:10.5px; }
   .pet-hint{
-    position:absolute; bottom:-24px; left:50%; transform:translateX(-50%);
-    font-size:10px; color:var(--text-3); white-space:nowrap;
-    opacity:.65; transition:opacity .3s;
+    position:absolute; bottom:-18px; left:50%; transform:translateX(-50%);
+    font-size:9px; color:var(--text-3); white-space:nowrap;
+    opacity:.55; transition:opacity .3s;
   }
   .fleta-pet:hover .pet-hint{ opacity:1; }
   @media (max-width:768px){
-    .fleta-pet{ left:12px; bottom:86px; transform:scale(.82); transform-origin:left bottom; }
-    .fleta-pet:active{ transform:scale(.85); }
-    .pet-bubble{ left:96px; min-width:165px; max-width:220px; font-size:12.5px; }
+    .fleta-pet{ left:10px; bottom:78px; }
+    .pet-bubble{ left:68px; min-width:150px; max-width:200px; font-size:11.5px; }
   }
   @media (prefers-reduced-motion:reduce){
-    .pet-float,.pet-eye,.pet-antenna::after,.pet-arm{ animation:none; }
+    .pet-float,.pet-eye,.pet-glow,.pet-screen::after,.pet-arm{ animation:none; }
   }
 </style>
 </head>
@@ -3021,18 +3040,18 @@
 
 <!-- 右下角悬浮 AI 对话框 -->
 <div id="aiChatWidget">
-  <button id="chatToggleBtn" onclick="toggleChat()" title="AI 助手">
+  <button id="chatToggleBtn" onclick="toggleChat()" title="AI 写代码助手">
     <span class="chat-toggle-icon">✦</span>
-    <span class="chat-toggle-label">AI 助手</span>
+    <span class="chat-toggle-label">AI 写代码助手</span>
     <span class="chat-toggle-dot"></span>
   </button>
   <div id="chatPanel" class="chat-panel-hidden">
     <div class="chat-container">
       <div class="chat-header">
         <div class="chat-header-left">
-          <span class="chat-avatar">✦</span>
+          <span class="chat-avatar">🤖</span>
           <div>
-            <strong class="chat-title">Fleta 助手</strong>
+            <strong class="chat-title">AI 写代码助手</strong>
             <span class="chat-status" id="chatStatus">● 在线</span>
           </div>
         </div>
@@ -3043,7 +3062,7 @@
       </div>
       <div class="chat-messages" id="chatMessages">
         <div class="chat-msg bot-msg">
-          <div class="chat-bubble">你好！有什么可以帮你的？<br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
+          <div class="chat-bubble">你好！我是 <strong>AI 写代码助手</strong> 🤖<br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），并给出可直接运行的代码。也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
         </div>
       </div>
       <div class="chat-input-area">
@@ -3053,28 +3072,31 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
         </div>
-        <p class="chat-hint">基于 Build Your Own X 知识库 · 支持多轮对话</p>
+        <p class="chat-hint">基于 Build Your Own X 知识库 · 由通义千问驱动 · 支持多轮对话</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Fleta 机器人宠物 -->
-<div class="fleta-pet pet-float" id="fletaPet" title="拖动我到任意位置">
-  <div class="pet-antenna"></div>
+<!-- AI 写代码助手 机器人宠物 -->
+<div class="fleta-pet pet-float" id="fletaPet" title="点击打开 AI 写代码助手 · 拖动我到任意位置">
+  <div class="pet-glow"></div>
   <div class="pet-head">
+    <div class="pet-ear left"></div>
+    <div class="pet-ear right"></div>
     <div class="pet-eyes"><div class="pet-eye"></div><div class="pet-eye"></div></div>
     <div class="pet-mouth"></div>
   </div>
   <div class="pet-body">
+    <div class="pet-screen"></div>
     <div class="pet-arm left"></div>
     <div class="pet-arm right"></div>
   </div>
   <div class="pet-bubble" id="petBubble">
-    <span id="petBubbleText">你好！我是 Fleta 小助手 ✨</span>
-    <small>点击我或拖动到任意位置</small>
+    <span id="petBubbleText">你好！我是 AI 写代码助手 ✨</span>
+    <small>点击我打开对话，或拖动到不挡内容的位置</small>
   </div>
-  <div class="pet-hint">拖动我</div>
+  <div class="pet-hint">AI 写代码助手</div>
 </div>
 <script>
 (function(){
@@ -3084,13 +3106,13 @@
   if(!pet || !bubble || !bubbleText) return;
 
   var tips = [
-    "你好！我是 Fleta 小助手 ✨<br><small>点击我或拖动到任意位置</small>",
-    "点击右下角 <b>AI 助手</b>，和我聊聊 Build Your Own X 🚀",
-    "试试 <b>提示词生成器</b>，上传图片就能出 Seedance 提示词 ✨",
+    "你好！我是 <b>AI 写代码助手</b> ✨<br><small>点击我或拖动到任意位置</small>",
+    "我可以帮你从零实现 <b>Web 服务器</b>、<b>数据库</b>、<b>编程语言</b>等系统 🚀",
+    "试试问我：<code>从零写一个 Web 服务器</code>",
+    "需要提示词？用 <b>提示词生成器</b>，上传图片就出 Seedance 提示词 ✨",
     "有视频素材？用 <b>视频反推</b> 拆镜头学 prompt 🎬",
     "测试模式入口：<code>?vu=1</code> 可体验智能剪辑（内部测试）🎞️",
-    "拖动我可以放到不挡内容的位置哦 🤖",
-    "点击页面导航可快速跳转到对应功能 ⚡"
+    "拖动我可以放到不挡内容的位置哦 🤖"
   ];
   var tipIdx = 0, bubbleTimer = null;
 
@@ -3107,18 +3129,20 @@
   setTimeout(function(){ showTip(0); }, 1400);
   setInterval(function(){ showTip(); }, 9000);
 
-  // click pet body to show next tip
+  // click pet body to open AI chat (drag should not trigger click)
+  var petMoved = false;
   pet.addEventListener('click', function(e){
     if(e.target.closest('.pet-bubble')) return;
-    showTip();
+    if(petMoved) return;
+    if(typeof toggleChat === 'function') toggleChat();
   });
 
   // drag logic (mouse + touch)
   var dragging = false, startX, startY, initLeft, initTop;
-  function getClient(e){ return e.touches && e.touches.length ? e.touches[0] : e; }
+  function getClient(e){ return e.touches && e.touches.length ? e.touches[0] : e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : e; }
   function onStart(e){
     if(e.target.closest('.pet-bubble')) return;
-    dragging = true;
+    dragging = true; petMoved = false;
     pet.classList.add('dragging');
     pet.classList.remove('pet-float'); // pause float while dragging
     var c = getClient(e);
@@ -3129,15 +3153,20 @@
   function onMove(e){
     if(!dragging) return;
     var c = getClient(e);
-    pet.style.left = (initLeft + c.clientX - startX) + 'px';
-    pet.style.top = (initTop + c.clientY - startY) + 'px';
+    var dx = c.clientX - startX, dy = c.clientY - startY;
+    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) petMoved = true;
+    pet.style.left = (initLeft + dx) + 'px';
+    pet.style.top = (initTop + dy) + 'px';
     pet.style.bottom = 'auto'; pet.style.right = 'auto';
     e.preventDefault();
   }
-  function onEnd(){
+  function onEnd(e){
     if(!dragging) return;
     dragging = false;
     pet.classList.remove('dragging');
+    var c = getClient(e);
+    var dx = c.clientX - startX, dy = c.clientY - startY;
+    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) petMoved = true;
     // resume float after a short delay
     setTimeout(function(){ if(!dragging) pet.classList.add('pet-float'); }, 200);
   }
