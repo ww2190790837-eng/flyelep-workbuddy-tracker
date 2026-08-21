@@ -271,10 +271,10 @@
     showAlert("请联系客服微信(见首页底部)重置密码,密码找回功能即将上线。");
   });
 
-  // 是否已登录 → 直接进账户页
+  // 是否已登录 → 直接回首页
   fetch("/api/auth/me", {credentials:"include"})
     .then(function(r){return r.json();})
-    .then(function(d){ if(d.user) location.href="/account"; })
+    .then(function(d){ if(d.user) location.href="/"; })
     .catch(function(){});
 
   form.addEventListener("submit", async function(e){
@@ -315,7 +315,7 @@
         submit.innerHTML = '<span id="submitText">'+submitText.textContent+'</span>';
         return;
       }
-      location.href = "/account";
+      location.href = "/";
     } catch(err){
       showAlert("网络异常,请稍后重试");
       submit.disabled = false;

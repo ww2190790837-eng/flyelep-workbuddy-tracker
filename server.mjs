@@ -607,6 +607,14 @@ app.use(session({
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+// 账户设置页(独立页,大厂风格:头像/昵称单独设置;放在 static 之前以便 /settings 精确命中)
+app.get("/settings", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "settings.html"));
+});
+// 旧账户页入口兼容:登录后不再跳转到 /account,统一回首页,旧书签重定向到首页
+app.get(["/account", "/account.html"], (req, res) => {
+  res.redirect("/");
+});
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Auth 路由 =====

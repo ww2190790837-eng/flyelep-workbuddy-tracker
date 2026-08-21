@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#5b3bff" />
+<title>账户设置 · Fleta</title>
+<link rel="icon" href="/logo.svg" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#080b14;--surface:#111524;--surface-2:#161a28;
+    --border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);
+    --text:#eef1f8;--text-2:#a9afc4;--text-3:#727896;
+    --primary:#7c5cff;--primary-2:#9b7cff;--pink:#ff5b9b;
+    --success:#22c55e;--danger:#ef4444;
+    --gradient:linear-gradient(135deg,#7c5cff 0%,#9b7cff 45%,#ff5b9b 100%);
+  }
+  html{background:var(--bg)}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(124,92,255,.16),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+  ::selection{background:var(--primary);color:#fff}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+  .top-nav{background:rgba(10,12,24,.7);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px}
+  .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
+  .nav-back{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
+  .nav-back:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
+
+  .page-head{padding:48px 0 8px}
+  .page-head h1{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .page-head p{color:var(--text-3);font-size:14px;margin-top:6px}
+  .shell{padding:24px 0 80px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.25);overflow:hidden;margin-bottom:20px}
+  .section{padding:26px 32px;border-top:1px solid var(--border)}
+  .section:first-child{border-top:none}
+  .section h3{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-3);margin-bottom:20px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .section h3 .dot{width:6px;height:6px;border-radius:50%;background:var(--primary)}
+
+  /* 头像行 */
+  .ava-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .ava-big{width:84px;height:84px;border-radius:50%;overflow:hidden;flex:none;border:2px solid rgba(255,255,255,.12);background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff;cursor:pointer;position:relative;transition:all .2s}
+  .ava-big:hover{box-shadow:0 0 0 3px rgba(124,92,255,.3)}
+  .ava-big img{width:100%;height:100%;object-fit:cover}
+  .ava-edit{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:12px;font-weight:600;color:#fff}
+  .ava-big:hover .ava-edit{opacity:1}
+  .ava-actions{display:flex;flex-direction:column;gap:10px}
+  .ava-hint{font-size:12px;color:var(--text-3);max-width:280px;line-height:1.6}
+
+  .btn-mini{padding:9px 16px;border:1px solid var(--border-2);border-radius:9px;background:rgba(255,255,255,.06);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text);display:inline-flex;align-items:center;gap:6px;width:fit-content}
+  .btn-mini:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-mini.danger{color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-mini.danger:hover{background:rgba(239,68,68,.12)}
+
+  /* 表单行 */
+  .field-row{padding:18px 0;border-bottom:1px solid var(--border)}
+  .field-row:last-child{border-bottom:none}
+  .field-row .fl{font-size:14px;font-weight:500;color:var(--text)}
+  .field-row .fd{font-size:12px;color:var(--text-3);margin-top:3px}
+  .field-row-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .field-row .fv{font-size:14px;color:var(--text-2);text-align:right}
+  .field-row input.inp{width:280px;max-width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface-2);color:var(--text);transition:all .2s}
+  .field-row input.inp:focus{outline:none;border-color:var(--primary);background:#1d2233}
+  .field-row input.inp[readonly]{opacity:.7;cursor:default}
+
+  .save-bar{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:20px 32px}
+  .save-bar .msg{margin-right:auto;font-size:13px}
+  .save-bar .msg.ok{color:var(--success)}
+  .save-bar .msg.err{color:var(--danger)}
+  .btn-save{padding:12px 26px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:var(--gradient);color:#fff;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
+  .btn-save:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
+  .btn-save:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a25;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* 改密弹层 */
+  .modal{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(10,10,40,.5);backdrop-filter:blur(8px);padding:24px}
+  .modal.show{display:flex}
+  .modal-card{background:var(--surface);border:1px solid rgba(255,255,255,.12);border-radius:18px;max-width:420px;width:100%;padding:28px;box-shadow:0 30px 80px -20px rgba(0,0,0,.6)}
+  .modal-card h3{font-size:18px;font-weight:700;margin-bottom:18px}
+  .modal-card .field{margin-bottom:14px}
+  .modal-card label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
+  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface-2);color:var(--text);transition:all .2s}
+  .modal-card input:focus{outline:none;border-color:var(--primary);background:#1d2233}
+  .modal-err{display:none;color:var(--danger);font-size:13px;margin:4px 0 12px}
+  .modal-actions{display:flex;gap:10px;margin-top:8px}
+  .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
+  .btn-ok{background:var(--gradient);color:#fff}
+  .btn-cancel{background:rgba(255,255,255,.08);color:var(--text-2)}
+  footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.04)}
+
+  @media(max-width:560px){
+    .section{padding:22px 20px}
+    .field-row input.inp{width:100%}
+    .field-row-inner{flex-direction:column;align-items:stretch}
+    .field-row .fv{text-align:left}
+    .save-bar{padding:18px 20px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="wrap top-nav-inner">
+    <a class="nav-logo" href="/">
+      <img src="/logo.svg" alt="Fleta" />
+      <span>Fleta</span>
+    </a>
+    <a class="nav-back" href="/">← 返回首页</a>
+  </div>
+</nav>
+
+<main class="shell">
+  <div class="wrap">
+    <div class="page-head">
+      <h1>账户设置</h1>
+      <p>管理你的头像、昵称与登录安全</p>
+    </div>
+
+    <div id="app">
+      <div style="padding:60px 0;text-align:center;color:var(--text-3)">加载中...</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 Fleta · 跨境电商 AI 内容设计平台 · 与腾讯 WorkBuddy 战略合作</div>
+</footer>
+
+<div class="modal" id="pwModal">
+  <div class="modal-card">
+    <h3>修改密码</h3>
+    <div class="field"><label>当前密码</label><input type="password" id="pwOld" autocomplete="current-password" /></div>
+    <div class="field"><label>新密码(至少 6 位)</label><input type="password" id="pwNew" autocomplete="new-password" /></div>
+    <div class="modal-err" id="pwErr"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="pwCancel">取消</button>
+      <button class="btn-ok" id="pwSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show")},2200);
+}
+function avatarHtml(u){
+  if(u && u.avatar) return '<img src="'+u.avatar+'" alt="" />';
+  var ch=(u&&u.name?u.name:u&&u.email?"U":"U")[0].toUpperCase();
+  return '<span>'+ch+'</span>';
+}
+// 把图片文件压缩成 256x256 JPEG base64(cover 裁剪)
+function downscaleAvatar(file, cb){
+  if(!file) return cb(null);
+  var reader=new FileReader();
+  reader.onerror=function(){ cb(null); };
+  reader.onload=function(){
+    var img=new Image();
+    img.onerror=function(){ cb(null); };
+    img.onload=function(){
+      var size=256, s=Math.min(img.width,img.height), sx=(img.width-s)/2, sy=(img.height-s)/2;
+      var c=document.createElement("canvas"); c.width=size; c.height=size;
+      var ctx=c.getContext("2d"); ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
+      try{ cb(c.toDataURL("image/jpeg",0.82)); }catch(e){ cb(null); }
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+var state={ u:null, pendingAvatar:null };
+var app=document.getElementById("app");
+
+async function init(){
+  var r=await fetch("/api/auth/me",{credentials:"include"});
+  var d=await r.json();
+  if(!d.user){ location.href="/login.html"; return; }
+  state.u=d.user;
+  render();
+}
+
+function render(){
+  var u=state.u;
+  app.innerHTML=`
+    <div class="card">
+      <div class="section">
+        <h3><span class="dot"></span>个人资料</h3>
+        <div class="ava-row">
+          <div class="ava-big" id="avaBig" title="点击更换头像">${avatarHtml(u)}<div class="ava-edit">更换</div></div>
+          <div class="ava-actions">
+            <label class="btn-mini" for="avaInput">上传新头像</label>
+            <input type="file" id="avaInput" accept="image/*" hidden />
+            <button class="btn-mini danger" id="avaRemove" ${u.avatar?"":"disabled style='opacity:.4;cursor:not-allowed'"}>移除头像</button>
+          </div>
+          <p class="ava-hint">支持 JPG/PNG/WebP,建议正方形,自动压缩到 256×256。</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3><span class="dot"></span>基本信息</h3>
+        <div class="field-row">
+          <div class="field-row-inner">
+            <div><div class="fl">昵称</div><div class="fd">展示在你的作品与评论中</div></div>
+            <input class="inp" id="nameInput" type="text" maxlength="40" value="${(u.name||"").replace(/"/g,'&quot;')}" placeholder="给自己起个名字" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-row-inner">
+            <div><div class="fl">登录邮箱</div><div class="fd">用于登录与接收通知,如需修改请联系客服</div></div>
+            <input class="inp" type="text" value="${u.email}" readonly />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-row-inner">
+            <div><div class="fl">登录密码</div><div class="fd">建议定期更换以保证账户安全</div></div>
+            <button class="btn-mini" id="openPw">修改密码</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-bar">
+        <span class="msg" id="saveMsg"></span>
+        <button class="btn-save" id="saveBtn">保存更改</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section">
+        <h3><span class="dot"></span>账户操作</h3>
+        <div class="field-row" style="padding-top:0">
+          <div class="field-row-inner">
+            <div><div class="fl">退出登录</div><div class="fd">你将回到首页,下次需重新登录</div></div>
+            <button class="btn-mini danger" id="logoutBtn">退出登录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 头像上传
+  var avaBig=document.getElementById("avaBig");
+  var avaInput=document.getElementById("avaInput");
+  var avaRemove=document.getElementById("avaRemove");
+  avaBig.addEventListener("click",function(){ avaInput.click(); });
+  avaInput.addEventListener("change",function(){
+    var f=avaInput.files&&avaInput.files[0]; if(!f) return;
+    downscaleAvatar(f,function(d){
+      if(!d){ toast("图片读取失败,换一张试试"); return; }
+      state.pendingAvatar=d;
+      avaBig.innerHTML='<img src="'+d+'" alt="" /><div class="ava-edit">更换</div>';
+      avaRemove.disabled=false; avaRemove.style.opacity="1"; avaRemove.style.cursor="pointer";
+    });
+  });
+  avaRemove.addEventListener("click",function(){
+    if(avaRemove.disabled) return;
+    state.pendingAvatar=""; // 空串代表清除
+    avaBig.innerHTML=avatarHtml({name:u.name,email:u.email,avatar:null})+'<div class="ava-edit">更换</div>';
+    avaInput.value="";
+  });
+
+  // 保存
+  document.getElementById("saveBtn").addEventListener("click",saveProfile);
+
+  // 改密
+  document.getElementById("openPw").addEventListener("click",function(){ document.getElementById("pwModal").classList.add("show"); });
+
+  // 退出
+  document.getElementById("logoutBtn").addEventListener("click",async function(){
+    if(!confirm("确定退出登录?"))return;
+    await fetch("/api/auth/logout",{method:"POST",credentials:"include"});
+    location.href="/";
+  });
+}
+
+async function saveProfile(){
+  var btn=document.getElementById("saveBtn");
+  var msg=document.getElementById("saveMsg");
+  var nm=document.getElementById("nameInput").value.trim();
+  if(!nm){ msg.textContent="昵称不能为空"; msg.className="msg err"; return; }
+  var payload={ name:nm };
+  if(state.pendingAvatar!==null) payload.avatar=state.pendingAvatar;
+  btn.disabled=true; btn.textContent="保存中...";
+  msg.textContent=""; msg.className="msg";
+  try{
+    var resp=await fetch("/api/auth/profile",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify(payload)});
+    var data=await resp.json();
+    if(!resp.ok||!data.ok){ msg.textContent=data.error||"保存失败"; msg.className="msg err"; btn.disabled=false; btn.textContent="保存更改"; return; }
+    state.u=data.user; state.pendingAvatar=null;
+    msg.textContent="已保存"; msg.className="msg ok";
+    toast("资料已更新");
+  }catch(e){ msg.textContent="网络异常,请重试"; msg.className="msg err"; }
+  btn.disabled=false; btn.textContent="保存更改";
+}
+
+// ===== 改密 =====
+document.getElementById("pwCancel").addEventListener("click",function(){ document.getElementById("pwModal").classList.remove("show"); });
+document.getElementById("pwModal").addEventListener("click",function(e){ if(e.target===this) this.classList.remove("show"); });
+document.getElementById("pwSave").addEventListener("click",savePw);
+async function savePw(){
+  var oldP=document.getElementById("pwOld").value;
+  var newP=document.getElementById("pwNew").value;
+  var err=document.getElementById("pwErr");
+  err.style.display="none";
+  if(!oldP||!newP){ err.textContent="请填写完整"; err.style.display="block"; return; }
+  if(newP.length<6){ err.textContent="新密码至少 6 位"; err.style.display="block"; return; }
+  try{
+    var resp=await fetch("/api/auth/change-password",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify({oldPassword:oldP,newPassword:newP})});
+    var data=await resp.json();
+    if(!resp.ok||!data.ok){ err.textContent=data.error||"修改失败"; err.style.display="block"; return; }
+    document.getElementById("pwModal").classList.remove("show");
+    document.getElementById("pwOld").value="";document.getElementById("pwNew").value="";
+    toast("密码已更新");
+  }catch(e){ err.textContent="网络异常,请重试"; err.style.display="block"; }
+}
+
+init();
+</script>
+</body>
+</html>
