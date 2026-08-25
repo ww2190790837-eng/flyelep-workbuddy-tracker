@@ -837,7 +837,7 @@
       </div>
       <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
       <div style="position:relative;flex-shrink:0;display:inline-flex">
-      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative;padding:9px 20px;white-space:nowrap"><span id="navCodeLabel">免费领取70张图片积分</span></a>
+      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative;padding:9px 20px;white-space:nowrap"><span id="navCodeLabel">免费积分邀请码</span></a>
       <span id="navCodeStock" style="position:absolute;top:-9px;right:-9px;background:#10b981;color:#fff;font-size:11px;font-weight:700;line-height:1;padding:4px 7px;border-radius:99px;box-shadow:0 2px 8px rgba(16,185,129,.4);white-space:nowrap">70张</span>
       </div>
       <div id="navUserBox" style="display:none;align-items:center;gap:10px;position:relative">
@@ -1613,14 +1613,14 @@
         if (codeBtn) {
           fetch("/api/my-code", {credentials:"include", cache:"no-store"}).then(function(r2){ return r2.json(); }).then(function(cd){
             if (cd.claimed) { if (codeLabel) codeLabel.textContent = "已领积分"; codeBtn.style.opacity = ".7"; }
-            else { if (codeLabel) codeLabel.textContent = "免费领取70张图片积分"; codeBtn.style.opacity = "1"; }
+            else { if (codeLabel) codeLabel.textContent = "免费积分邀请码"; codeBtn.style.opacity = "1"; }
           }).catch(function(){});
         }
       } else {
         if (navBox) navBox.style.display = "none";
         if (authLink) authLink.style.display = "inline-flex";
         if (trialCta) trialCta.style.display = "";
-        if (codeBtn) { if (codeLabel) codeLabel.textContent = "免费领取70张图片积分"; codeBtn.style.opacity = "1"; }
+        if (codeBtn) { if (codeLabel) codeLabel.textContent = "免费积分邀请码"; codeBtn.style.opacity = "1"; }
       }
     } catch(e) { console.log("me check fail", e); }
   }
