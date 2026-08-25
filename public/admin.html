@@ -244,8 +244,8 @@
       $('host').textContent = d.publicHost + (d.publicUrl || '');
       // 持久化状态徽标:直接回应"数据会不会丢"
       const pb = $('persistBadge');
-      if (d.persist === 'gist') { pb.textContent = '✅ 数据已持久化(GitHub,重启不丢)'; pb.style.color = 'var(--success)'; }
-      else { pb.textContent = '⚠️ 本地存储(重启可能丢)'; pb.style.color = 'var(--warn)'; }
+      if (d.persist === 'gist') { pb.textContent = '数据已持久化(GitHub,重启不丢)'; pb.style.color = 'var(--success)'; }
+      else { pb.textContent = '本地存储(重启可能丢)'; pb.style.color = 'var(--warn)'; }
       $('kpi-total').textContent = d.total;
       $('kpi-unique').textContent = d.unique;
       $('kpi-clicks').textContent = d.clicks;

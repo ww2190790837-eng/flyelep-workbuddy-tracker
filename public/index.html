@@ -223,6 +223,7 @@
   .pg-video-zone{margin-top:10px}
   .pg-video-zone .pg-upload-zone{min-height:auto;padding:18px 16px}
   .pg-video-zone .pg-upload-zone.has-video .pg-upload-icon,.pg-video-zone .pg-upload-zone.has-video .pg-upload-text,.pg-video-zone .pg-upload-zone.has-video .pg-upload-hint{display:none}
+  #video-reverse .pg-upload-icon{display:none}
   .pg-video-preview{width:100%;max-height:240px;border-radius:10px;background:#000;margin-top:4px}
   .pg-video-zone .pg-upload-zone.has-video .pg-video-preview{display:block}
   .pg-video-info{margin-top:8px;font-size:12.5px;color:var(--text-3);text-align:center}
@@ -399,9 +400,9 @@
   [data-theme="light"] .bg-noise{opacity:.035}
 
   /* 主题切换按钮 */
-  .theme-toggle{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;color:var(--text-2);font-size:16px;flex-shrink:0;position:relative}
+  .theme-toggle{height:38px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;color:var(--text-2);font-size:12px;font-weight:600;padding:0 12px;flex-shrink:0;position:relative}
   [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
-  .theme-toggle:hover{background:rgba(255,255,255,.12);color:var(--text);transform:rotate(15deg)}
+  .theme-toggle:hover{background:rgba(255,255,255,.12);color:var(--text)}
   [data-theme="light"] .theme-toggle:hover{background:rgba(0,0,0,.08)}
   .theme-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:100}
   [data-theme="light"] .theme-menu{box-shadow:0 12px 40px rgba(0,0,0,.10)}
@@ -525,7 +526,7 @@
   .chat-container{background:#13141f;border:1px solid rgba(124,92,255,.18);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(124,92,255,.08);display:flex;flex-direction:column;height:560px;overflow:hidden}
   .chat-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(124,92,255,.18);background:#1a1c29}
   .chat-header-left{display:flex;align-items:center;gap:10px}
-  .chat-avatar{font-size:22px}
+  .chat-avatar{width:34px;height:34px;border-radius:10px;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.5px}
   .chat-title{font-size:14px;color:var(--text);display:block}
   .chat-status{font-size:11px;color:#10b981;margin-left:6px}
   .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
@@ -619,7 +620,7 @@
   .vu-step.done{color:var(--primary);border-color:rgba(124,92,255,.4)}
   .vu-drop{border:2px dashed var(--border);border-radius:14px;padding:28px 20px;text-align:center;transition:all .2s;cursor:pointer;background:rgba(255,255,255,.02)}
   .vu-drop.drag{border-color:var(--primary);background:rgba(124,92,255,.08)}
-  .vu-drop-icon{font-size:34px;margin-bottom:8px}
+  .vu-drop-icon{display:none}
   .vu-drop-text{font-size:14px;color:var(--text-2)}
   .vu-link{background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;font-size:14px;padding:0 2px;text-decoration:underline}
   .vu-drop-sub{font-size:12px;color:var(--text-3);margin-top:8px}
@@ -827,16 +828,16 @@
     </div>
     <div class="nav-actions">
       <div style="position:relative;display:inline-flex">
-      <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">🌙</button>
+      <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">主题</button>
       <div class="theme-menu" id="themeMenu">
-        <button class="theme-opt active" data-theme-val="dark">🌙 深色模式<span class="tick">✓</span></button>
-        <button class="theme-opt" data-theme-val="light">☀️ 浅色模式<span class="tick">✓</span></button>
-        <button class="theme-opt" data-theme-val="auto">💻 跟随系统<span class="tick">✓</span></button>
+        <button class="theme-opt active" data-theme-val="dark">深色模式<span class="tick">✓</span></button>
+        <button class="theme-opt" data-theme-val="light">浅色模式<span class="tick">✓</span></button>
+        <button class="theme-opt" data-theme-val="auto">跟随系统<span class="tick">✓</span></button>
       </div>
       </div>
       <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
       <div style="position:relative;flex-shrink:0;display:inline-flex">
-      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative;padding:9px 20px;white-space:nowrap"><span id="navCodeLabel">🎁 70张图片积分</span></a>
+      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative;padding:9px 20px;white-space:nowrap"><span id="navCodeLabel">70张图片积分</span></a>
       <span id="navCodeStock" style="position:absolute;top:-9px;right:-9px;background:#10b981;color:#fff;font-size:11px;font-weight:700;line-height:1;padding:4px 7px;border-radius:99px;box-shadow:0 2px 8px rgba(16,185,129,.4);white-space:nowrap">70张</span>
       </div>
       <div id="navUserBox" style="display:none;align-items:center;gap:10px;position:relative">
@@ -910,9 +911,9 @@
 <!-- 领取邀请码 Modal -->
 <div id="codeModal" style="display:none;position:fixed;inset:0;z-index:210;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeCodeModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)">
-    <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:var(--text)">🎁 免费领取 70 张图片生成积分</h3>
+    <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:var(--text)">免费领取 70 张图片生成积分</h3>
     <div id="codeStock" style="margin:0 0 18px;font-size:13px;color:var(--text-2)">📦 当前库存：<strong id="codeStockNum" style="color:#f59e0b">--</strong> / <span id="codeStockTotal">70</span> 份</div>
-    <p style="margin:0 0 16px;font-size:12px;color:var(--text-3);text-align:center">🎯 可在 Flyelep 平台使用</p>
+    <p style="margin:0 0 16px;font-size:12px;color:var(--text-3);text-align:center">可在 Flyelep 平台使用</p>
     <div id="codeContent">
       <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">70 张图片生成积分</strong>，每个账户限领一次。</p>
       <button onclick="closeCodeModal();document.getElementById('navAuthLink').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>
@@ -948,16 +949,15 @@
       <h1 class="reveal d1"><span class="grad">Fleta</span></h1>
       <p class="sub reveal d2">AI 提示词生成 · 视频反推 · 电商视觉设计</p>
       <div class="cta-row reveal d3">
-        <a class="btn btn-primary" href="#prompt-gen">✨ 开始生成提示词</a>
-        <a class="btn btn-ghost" href="#video-reverse">🎬 视频反推</a>
+        <a class="btn btn-primary" href="#prompt-gen">开始生成提示词</a>
+        <a class="btn btn-ghost" href="#video-reverse">视频反推</a>
       </div>
 
       <!-- 公告栏 -->
       <div id="announcementBar" class="reveal d4" style="margin-top:28px;max-width:560px;background:linear-gradient(135deg,rgba(108,79,247,.12),rgba(232,58,130,.10));border:1px solid rgba(108,79,247,.2);border-radius:12px;padding:14px 20px;display:flex;align-items:flex-start;gap:12px">
-        <span style="font-size:18px;line-height:1;flex-shrink:0">📢</span>
         <div style="flex:1;min-width:0">
           <strong style="font-size:13px;color:var(--primary-2);display:block;margin-bottom:3px">版本更新 · v1.2.0</strong>
-          <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0">AI 智能代码助手已上线 — 右下角新增对话按钮，点击即可与 AI 实时交流，内置 Build Your Own X 知识库，帮你从零实现各种技术系统 🤖</p>
+          <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0">AI 写代码助手已上线 — 右下角新增对话按钮，点击即可与 AI 实时交流，内置 Build Your Own X 知识库，帮你从零实现各种技术系统。</p>
         </div>
         <button onclick="this.parentElement.style.display='none'" style="flex-shrink:0;background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="关闭公告">×</button>
       </div>
@@ -966,10 +966,10 @@
       <div id="messageBoard" class="reveal d5" style="margin-top:22px;max-width:560px">
         <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.15)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-            <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--text)">💬 在线留言板</h3>
+            <h3 style="margin:0;font-size:15px;font-weight:700;color:var(--text)">在线留言板</h3>
             <span id="msgCount" style="font-size:12px;color:var(--text-3)">-- 条留言</span>
           </div>
-          <p style="margin:0 0 12px;font-size:12px;color:var(--text-3);line-height:1.5">欢迎反馈 Bug、提出新功能建议或随便聊聊 💡</p>
+          <p style="margin:0 0 12px;font-size:12px;color:var(--text-3);line-height:1.5">欢迎反馈 Bug、提出新功能建议或随便聊聊。</p>
           <div style="display:flex;gap:8px;margin-bottom:14px">
             <input id="msgNameInput" placeholder="昵称(选填)" maxlength="30" style="flex:0 0 110px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
             <input id="msgContentInput" placeholder="说点什么..." maxlength="300" style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none;transition:border .2s" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')postMessage()">
@@ -977,7 +977,7 @@
           </div>
           <div id="msgList" style="max-height:280px;overflow-y:auto;display:flex;flex-direction-column;gap:10px;padding-right:4px"></div>
           <div id="msgLoading" style="text-align:center;padding:16px;color:var(--text-3);font-size:13px">加载中...</div>
-          <div id="msgEmpty" style="display:none;text-align:center;padding:20px;color:var(--text-3);font-size:13px">暂无留言，来说第一句吧 🎤</div>
+          <div id="msgEmpty" style="display:none;text-align:center;padding:20px;color:var(--text-3);font-size:13px">暂无留言，来说第一句吧</div>
           <button id="msgLoadMoreBtn" onclick="loadMoreMessages()" style="display:none;width:100%;margin-top:10px;padding:9px;background:rgba(255,255,255,.04);color:var(--text-2);border:1px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;transition:all .2s">加载更多 ↓</button>
         </div>
       </div>
@@ -1010,7 +1010,7 @@
 
       <!-- 智能生成(默认主入口) -->
       <div class="pg-idea-wrap">
-        <label class="pg-label"><span class="pg-num">✨</span>描述你的视频想法 <small>一句话或一段话都行,AI 将自动写出专业五段式提示词</small></label>
+        <label class="pg-label"><span class="pg-num">1</span>描述你的视频想法 <small>一句话或一段话都行,AI 将自动写出专业五段式提示词</small></label>
         <textarea id="pgIdea" rows="5" class="pg-idea" placeholder="例: 一个穿黑色皮夹克的女生站在赛博朋克霓虹街道上,手持发光的产品盒。电影级写实风,冷蓝品红霓虹光,慢推镜。开头全景下摇露出背影,然后她转身举盒、盒子发光,环绕360度展示产品,最后光芒扩散淡出。赛博朋克电子配乐,BPM128。"></textarea>
 
         <!-- 图片上传 -->
@@ -1031,7 +1031,7 @@
           <span class="pg-engine-label">引擎:</span>
           <div class="pg-engine-switch">
             <button class="pg-engine-opt active" data-engine="ai" id="pgEngineAI">AI 智能生成</button>
-            <button class="pg-engine-opt" data-engine="local" id="pgEngineLocal">📝 本地模板</button>
+            <button class="pg-engine-opt" data-engine="local" id="pgEngineLocal">本地模板</button>
           </div>
           <span class="pg-engine-badge ai-no" id="pgAiBadge">检测中…</span>
         </div>
@@ -1080,7 +1080,7 @@
       <!-- 操作栏 -->
       <div class="pg-actions">
         <button class="pg-generate" id="pgGenerate">
-          ✨ 智能生成提示词
+          智能生成提示词
         </button>
         <button class="pg-clear" id="pgClear">清空</button>
       </div>
@@ -1088,7 +1088,7 @@
       <!-- 输出区域 -->
       <div class="pg-output" id="pgOutput" style="display:none">
         <div class="pg-output-head">
-          <span>✨ 生成的提示词</span>
+          <span>生成的提示词</span>
           <button class="pg-copy" id="pgCopy">
             <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             复制
@@ -1100,7 +1100,7 @@
       <div class="pg-error" id="pgError"></div>
     </div>
 
-    <p class="pg-hint reveal d3">💡 <strong>AI 模式</strong>：贴一段话（或+图片），AI 自动写出专业五段式提示词。<strong>本地模板</strong>：离线可用，基于关键词模板快速生成。生成后可复制直接用于 Seedance 2.5 / SD 2.5。</p>
+    <p class="pg-hint reveal d3"><strong>AI 模式</strong>：贴一段话（或+图片），AI 自动写出专业五段式提示词。<strong>本地模板</strong>：离线可用，基于关键词模板快速生成。生成后可复制直接用于 Seedance 2.5 / SD 2.5。</p>
   </div>
 </section>
 
@@ -1120,7 +1120,7 @@
       <!-- 视频上传区 -->
       <div class="pg-upload" style="margin-bottom:16px">
         <div class="pg-upload-zone" id="vrUploadZone">
-          <div class="pg-upload-icon" style="font-size:28px">🎬</div>
+          <div class="pg-upload-icon" style="font-size:28px"></div>
           <div class="pg-upload-text">点击或拖拽<strong>上传视频文件</strong><br><span class="pg-upload-hint">支持 MP4 / WebM / OGG，建议 ≤30 秒，自动抽取关键帧后由 AI 分析反推</span></div>
           <video class="pg-video-preview" id="vrVideoPreview" controls playsinline style="display:none;max-height:280px"></video>
           <button class="pg-upload-remove" id="vrVideoRemove" title="移除视频" style="display:none">×</button>
@@ -1138,7 +1138,7 @@
       <!-- 操作栏 -->
       <div class="pg-actions">
         <button class="pg-generate" id="vrGenerate" style="width:100%;justify-content:center;padding:14px 28px;font-size:15px">
-          🎬 开始反推
+          开始反推
         </button>
         <button class="pg-clear" id="vrClear">清空</button>
       </div>
@@ -1146,7 +1146,7 @@
       <!-- 输出区域 -->
       <div class="pg-output" id="vrOutput" style="display:none;margin-top:16px">
         <div class="pg-output-head">
-          <span>🎬 反推出的五段式提示词</span>
+          <span>反推出的五段式提示词</span>
           <button class="pg-copy" id="vrCopy">
             <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             复制
@@ -1158,7 +1158,7 @@
       <div class="pg-error" id="vrError"></div>
     </div>
 
-    <p class="pg-hint reveal d3" style="margin-top:16px">💡 上传一段已生成的视频，AI 会逐帧分析画面内容，然后反推出可用于重新生成的完整五段式提示词。支持对反推结果进行二次编辑和微调。</p>
+    <p class="pg-hint reveal d3" style="margin-top:16px">上传一段已生成的视频，AI 会逐帧分析画面内容，然后反推出可用于重新生成的完整五段式提示词。支持对反推结果进行二次编辑和微调。</p>
   </div>
 </section>
 
@@ -1200,7 +1200,7 @@
         <div class="vu-drop" id="vuDrop">
           <input type="file" id="vuFiles" multiple accept="video/*,audio/*" hidden />
           <div class="vu-drop-inner">
-            <div class="vu-drop-icon">🎬</div>
+            <div class="vu-drop-icon"></div>
             <div class="vu-drop-text">拖拽视频到此处，或
               <button type="button" class="vu-link" onclick="vuPickFiles()">选择文件</button>
               <button type="button" class="vu-link" onclick="vuPickFolder()">选择文件夹</button>
@@ -1448,7 +1448,7 @@
           showClaimedCode(c, d.code);
         } else {
           c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px"><strong style="color:#f59e0b">' + (u.name || '您') + '</strong>，点击下方按钮即可领取 70 张图片生成积分（限领一次）</p>'
-            + '<button id="doClaimBtn" onclick="doClaimCode(this)" style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">🎁 立即领取积分</button>';
+            + '<button id="doClaimBtn" onclick="doClaimCode(this)" style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">立即领取积分</button>';
         }
       });
     }).catch(function(){
@@ -1465,18 +1465,18 @@
         refreshUser();
         loadCodeStock();
       } else {
-        btn.disabled = false; btn.textContent = '🎁 立即领取积分';
+        btn.disabled = false; btn.textContent = '立即领取积分';
         c.innerHTML = '<p style="color:#fca5a5;font-size:14px;margin:0 0 12px">' + (d.error || '领取失败') + '</p>' + c.innerHTML;
       }
     }).catch(function(){
-      btn.disabled = false; btn.textContent = '🎁 立即领取邀请码';
+      btn.disabled = false; btn.textContent = '立即领取邀请码';
     });
   }
   function showClaimedCode(container, code){
-    container.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px">🎉 领取成功！您的 70 张图片积分：</p>'
+    container.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px">领取成功！您的 70 张图片积分：</p>'
       + '<div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.12));border:2px dashed #f59e0b;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px">'
       + '<span id="codeDisplay" style="font-size:28px;font-weight:800;letter-spacing:4px;color:#f59e0b;font-family:monospace;user-select:all">' + code + '</span></div>'
-      + '<button onclick="copyCode()" style="width:100%;padding:12px;background:#f59e0b;color:#000;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">📋 一键复制积分码</button>'
+      + '<button onclick="copyCode()" style="width:100%;padding:12px;background:#f59e0b;color:#000;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">一键复制积分码</button>'
       + '<p style="margin-top:12px;font-size:12px;color:var(--text-3);text-align:center">请前往 Fleta 平台使用此码兑换 70 张图片生成积分</p>';
   }
   function copyCode(){
@@ -1485,7 +1485,7 @@
     navigator.clipboard.writeText(cd.textContent).then(function(){
       var b = event.target;
       var t = b.textContent;
-      b.textContent = '✅ 已复制！';
+      b.textContent = '已复制';
       b.style.background = '#22c55e';
       setTimeout(function(){ b.textContent = t; b.style.background = '#f59e0b'; }, 2000);
     });
@@ -1612,15 +1612,15 @@
         // 检查邀请码领取状态
         if (codeBtn) {
           fetch("/api/my-code", {credentials:"include", cache:"no-store"}).then(function(r2){ return r2.json(); }).then(function(cd){
-            if (cd.claimed) { if (codeLabel) codeLabel.textContent = "🎁 已领积分"; codeBtn.style.opacity = ".7"; }
-            else { if (codeLabel) codeLabel.textContent = "🎁 70张图片积分"; codeBtn.style.opacity = "1"; }
+            if (cd.claimed) { if (codeLabel) codeLabel.textContent = "已领积分"; codeBtn.style.opacity = ".7"; }
+            else { if (codeLabel) codeLabel.textContent = "70张图片积分"; codeBtn.style.opacity = "1"; }
           }).catch(function(){});
         }
       } else {
         if (navBox) navBox.style.display = "none";
         if (authLink) authLink.style.display = "inline-flex";
         if (trialCta) trialCta.style.display = "";
-        if (codeBtn) { if (codeLabel) codeLabel.textContent = "🎁 70张图片积分"; codeBtn.style.opacity = "1"; }
+        if (codeBtn) { if (codeLabel) codeLabel.textContent = "70张图片积分"; codeBtn.style.opacity = "1"; }
       }
     } catch(e) { console.log("me check fail", e); }
   }
@@ -1694,7 +1694,7 @@
   // ===== 版本更新通知(进入网页自动检测,版本变化才弹) =====
   var RELEASE = {
     version: "1.2.0",
-    title: "🤖 AI 智能代码助手上线",
+    title: "AI 写代码助手上线",
     items: [
       "右下角新增 AI 智能代码助手，随时点击展开，与 AI 实时对话",
       "内置 Build Your Own X 知识库，可帮你从零实现数据库、操作系统、编程语言、Web 服务器等 30+ 技术系统",
@@ -1893,7 +1893,7 @@
       var d = await r.json();
       hideTyping();
       if(d.error){
-        addChatBubble('⚠️ ' + d.error, false);
+        addChatBubble('错误：' + d.error, false);
       } else {
         addChatBubble(d.reply || '(无回复)', false);
         chatHistory.push({role:'assistant', content:d.reply});
@@ -1903,7 +1903,7 @@
       if(st && d.usage) st.textContent = '● ' + (d.usage.provider||'ai');
     } catch(e){
       hideTyping();
-      addChatBubble('❌ 网络错误，请稍后重试', false);
+      addChatBubble('网络错误，请稍后重试', false);
     }
     btn.disabled = false;
     input.focus();
@@ -1912,7 +1912,7 @@
     chatHistory = [];
     var list = document.getElementById('chatMessages');
     if(list) list.innerHTML = '';
-    addChatBubble('对话已清空 ✨ 有什么新问题随时问我！', false);
+    addChatBubble('对话已清空，有什么新问题随时问我。', false);
   }
   // 暴露给内联 onclick 调用
   window.sendChat = sendChat;
@@ -1999,7 +1999,7 @@
       box.parentNode.insertBefore(warn, box.nextSibling);
     }
     if(maxSize > 100*1024*1024){
-      warn.style.display="block"; warn.textContent="⚠️ 检测到大文件("+(maxSize/1024/1024).toFixed(1)+"MB), Scribe 免费层建议不超过 100MB。大文件可能导致转写超时或失败，建议先压缩后再试。";
+      warn.style.display="block"; warn.textContent="检测到大文件("+(maxSize/1024/1024).toFixed(1)+"MB), Scribe 免费层建议不超过 100MB。大文件可能导致转写超时或失败，建议先压缩后再试。";
     } else {
       warn.style.display="none";
     }
@@ -2055,7 +2055,7 @@
       if(prog) prog.style.display="none";
       var msg = (e.message||e)||"未知错误";
       if(msg==="Failed to fetch" || msg.includes("fetch")) msg = "连接服务器失败(可能转写耗时过长被中断), 请检查网络后重试";
-      if(msg.includes("413") || msg.includes("过大")) msg = "⚠️ " + msg + " — 建议: 先用 ffmpeg/剪映/HandBrake 压缩到 100MB 以内再试";
+      if(msg.includes("413") || msg.includes("过大")) msg = msg + " — 建议: 先用 ffmpeg/剪映/HandBrake 压缩到 100MB 以内再试";
       vuShowErr("转写失败: "+msg);
     });
   }
@@ -2079,7 +2079,7 @@
       var p=document.getElementById("vuPlan"); if(p){
         var kept=d.edl.segments.reduce(function(a,s){return a+(s.end-s.start);},0);
         p.style.display="block";
-        p.textContent="🎬 剪辑方案（共 "+d.edl.segments.length+" 段，保留约 "+kept.toFixed(1)+"s）\n调色: "+d.edl.grade+" ｜ 字幕: "+d.edl.subtitleStyle+(d.edl.title?(" ｜ 片头: 《"+d.edl.title+"》"):"")+"\n\n";
+        p.textContent="剪辑方案（共 "+d.edl.segments.length+" 段，保留约 "+kept.toFixed(1)+"s）\n调色: "+d.edl.grade+" ｜ 字幕: "+d.edl.subtitleStyle+(d.edl.title?(" ｜ 片头: 《"+d.edl.title+"》"):"")+"\n\n";
         d.edl.segments.forEach(function(s,i){ p.textContent += (i+1)+". ["+s.start.toFixed(2)+"–"+s.end.toFixed(2)+"s] "+(s.reason||"")+"\n"; });
       }
       var rr=document.getElementById("vuRenderRow"); if(rr) rr.style.display="block";
@@ -2230,7 +2230,7 @@
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = resolved === 'light' ? '#f8f9fc' : '#5b3bff';
     // 更新按钮图标
-    if (toggle) toggle.textContent = resolved === 'light' ? '☀️' : '🌙';
+    if (toggle) toggle.textContent = resolved === 'light' ? '浅色' : '深色';
     // 更新菜单 active 状态
     opts.forEach(function(o){
       o.classList.toggle('active', o.dataset.themeVal === val);
@@ -2691,13 +2691,13 @@
       // 默认选中 AI
       setEngine('ai');
     } else {
-      badge.textContent='⚠ 未配置';
+      badge.textContent='未配置';
       badge.className='pg-engine-badge ai-no';
       // AI 不可用,默认切到本地
       setEngine('local');
     }
   }).catch(function(){
-    document.getElementById('pgAiBadge').textContent='❓ 检测失败';
+    document.getElementById('pgAiBadge').textContent='检测失败';
     document.getElementById('pgAiBadge').className='pg-engine-badge ai-no';
     setEngine('local');
   });
@@ -2815,7 +2815,7 @@
           vrUploadZone.classList.add('has-video');
           vrVideoPreview.src=url;vrVideoPreview.style.display='block';
           vrVideoRemove.style.display='flex';
-          vrVideoInfo.innerHTML='✅ 已抽取 <b>'+frames.length+'</b> 帧（视频 '+vdur.toFixed(1)+'s，点击「开始反推」生成提示词）';
+          vrVideoInfo.innerHTML='已抽取 <b>'+frames.length+'</b> 帧（视频 '+vdur.toFixed(1)+'s，点击「开始反推」生成提示词）';
           return;
         }
         var t=vdur*(i+0.5)/n;
@@ -2835,7 +2835,7 @@
     };
     video.onerror=function(){
       URL.revokeObjectURL(url);
-      vrVideoInfo.textContent='❌ 视频解析失败，请换一个格式（mp4/webm）';
+      vrVideoInfo.textContent='视频解析失败，请换一个格式（mp4/webm）';
     };
   }
 
@@ -2895,7 +2895,7 @@
     var text=document.getElementById('vrResult').textContent;
     navigator.clipboard.writeText(text).then(function(){
       var b=document.getElementById('vrCopy');
-      var orig=b.innerHTML;b.innerHTML='✅ 已复制';setTimeout(function(){b.innerHTML=orig;},1500);
+      var orig=b.innerHTML;b.innerHTML='已复制';setTimeout(function(){b.innerHTML=orig;},1500);
     }).catch(function(){/* fallback */});
   });
 
@@ -3041,7 +3041,6 @@
 <!-- 右下角悬浮 AI 对话框 -->
 <div id="aiChatWidget">
   <button id="chatToggleBtn" onclick="toggleChat()" title="AI 写代码助手">
-    <span class="chat-toggle-icon">✦</span>
     <span class="chat-toggle-label">AI 写代码助手</span>
     <span class="chat-toggle-dot"></span>
   </button>
@@ -3049,7 +3048,7 @@
     <div class="chat-container">
       <div class="chat-header">
         <div class="chat-header-left">
-          <span class="chat-avatar">🤖</span>
+          <span class="chat-avatar">AI</span>
           <div>
             <strong class="chat-title">AI 写代码助手</strong>
             <span class="chat-status" id="chatStatus">● 在线</span>
@@ -3062,7 +3061,7 @@
       </div>
       <div class="chat-messages" id="chatMessages">
         <div class="chat-msg bot-msg">
-          <div class="chat-bubble">你好！我是 <strong>AI 写代码助手</strong> 🤖<br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），并给出可直接运行的代码。也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
+          <div class="chat-bubble">你好！我是 <strong>AI 写代码助手</strong><br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），并给出可直接运行的代码。也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
         </div>
       </div>
       <div class="chat-input-area">
@@ -3093,7 +3092,7 @@
     <div class="pet-arm right"></div>
   </div>
   <div class="pet-bubble" id="petBubble">
-    <span id="petBubbleText">你好！我是 AI 写代码助手 ✨</span>
+    <span id="petBubbleText">你好！我是 AI 写代码助手</span>
     <small>点击我打开对话，或拖动到不挡内容的位置</small>
   </div>
   <div class="pet-hint">AI 写代码助手</div>
@@ -3106,13 +3105,13 @@
   if(!pet || !bubble || !bubbleText) return;
 
   var tips = [
-    "你好！我是 <b>AI 写代码助手</b> ✨<br><small>点击我或拖动到任意位置</small>",
-    "我可以帮你从零实现 <b>Web 服务器</b>、<b>数据库</b>、<b>编程语言</b>等系统 🚀",
+    "你好！我是 <b>AI 写代码助手</b><br><small>点击我或拖动到任意位置</small>",
+    "我可以帮你从零实现 <b>Web 服务器</b>、<b>数据库</b>、<b>编程语言</b>等系统",
     "试试问我：<code>从零写一个 Web 服务器</code>",
-    "需要提示词？用 <b>提示词生成器</b>，上传图片就出 Seedance 提示词 ✨",
-    "有视频素材？用 <b>视频反推</b> 拆镜头学 prompt 🎬",
-    "测试模式入口：<code>?vu=1</code> 可体验智能剪辑（内部测试）🎞️",
-    "拖动我可以放到不挡内容的位置哦 🤖"
+    "需要提示词？用 <b>提示词生成器</b>，上传图片就出 Seedance 提示词",
+    "有视频素材？用 <b>视频反推</b> 拆镜头学 prompt",
+    "测试模式入口：<code>?vu=1</code> 可体验智能剪辑（内部测试）",
+    "拖动我可以放到不挡内容的位置哦"
   ];
   var tipIdx = 0, bubbleTimer = null;
 
