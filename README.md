@@ -1,4 +1,4 @@
-﻿# Fleta × WorkBuddy 抖音落地页 + UTM 后台
+﻿# Fleta + UTM 后台
 
 ## 项目结构
 
