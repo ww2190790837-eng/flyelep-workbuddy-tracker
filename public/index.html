@@ -96,7 +96,7 @@
   @media (max-width:720px){.nav-links{display:none}.nav-auth,.nav-cta{padding:8px 14px;font-size:12px}}
 
   /* === Hero (大厂级动态) === */
-  .hero{padding:90px 0 100px;text-align:center;position:relative;z-index:1;color:#fff;min-height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+  .hero{padding:100px 0 80px;text-align:center;position:relative;z-index:1;color:#fff;min-height:auto;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden}
   .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:200px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
   .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:999px;background:rgba(255,255,255,.12);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:500;color:rgba(255,255,255,.05);margin-bottom:32px;box-shadow:0 4px 24px rgba(0,0,0,.35)}
   .hero-eyebrow .pulse{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:dot 2s ease-in-out infinite}
@@ -837,7 +837,7 @@
       </div>
       <a href="/login.html" id="navAuthLink" class="nav-auth" style="display:none">登录 / 注册</a>
       <div style="position:relative;flex-shrink:0;display:inline-flex">
-      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative;padding:9px 20px;white-space:nowrap"><span id="navCodeLabel">70张图片积分</span></a>
+      <a class="nav-cta" id="navCodeBtn" href="#" onclick="openCodeModal();return false" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:#f59e0b;position:relative;padding:9px 20px;white-space:nowrap"><span id="navCodeLabel">免费领取70张图片积分</span></a>
       <span id="navCodeStock" style="position:absolute;top:-9px;right:-9px;background:#10b981;color:#fff;font-size:11px;font-weight:700;line-height:1;padding:4px 7px;border-radius:99px;box-shadow:0 2px 8px rgba(16,185,129,.4);white-space:nowrap">70张</span>
       </div>
       <div id="navUserBox" style="display:none;align-items:center;gap:10px;position:relative">
@@ -1613,14 +1613,14 @@
         if (codeBtn) {
           fetch("/api/my-code", {credentials:"include", cache:"no-store"}).then(function(r2){ return r2.json(); }).then(function(cd){
             if (cd.claimed) { if (codeLabel) codeLabel.textContent = "已领积分"; codeBtn.style.opacity = ".7"; }
-            else { if (codeLabel) codeLabel.textContent = "70张图片积分"; codeBtn.style.opacity = "1"; }
+            else { if (codeLabel) codeLabel.textContent = "免费领取70张图片积分"; codeBtn.style.opacity = "1"; }
           }).catch(function(){});
         }
       } else {
         if (navBox) navBox.style.display = "none";
         if (authLink) authLink.style.display = "inline-flex";
         if (trialCta) trialCta.style.display = "";
-        if (codeBtn) { if (codeLabel) codeLabel.textContent = "70张图片积分"; codeBtn.style.opacity = "1"; }
+        if (codeBtn) { if (codeLabel) codeLabel.textContent = "免费领取70张图片积分"; codeBtn.style.opacity = "1"; }
       }
     } catch(e) { console.log("me check fail", e); }
   }
