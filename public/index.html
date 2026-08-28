@@ -49,6 +49,27 @@
   img,svg{max-width:100%;display:block}
   a{color:inherit;text-decoration:none}
 
+  /* === 统一图标系统 (Lucide 风格线性图标) === */
+  .ic{
+    width:1em;height:1em;flex:none;
+    stroke:currentColor;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round;fill:none;
+    transition:transform .3s cubic-bezier(.22,1,.36,1),color .3s ease;
+    vertical-align:-0.125em;
+  }
+  .ic-fill{fill:currentColor;stroke:none}
+  /* 带图标的标题：入场时图标轻微放大 */
+  .reveal .ic{transform:scale(.85);opacity:.6;transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .5s ease}
+  .reveal.in .ic,.reveal.show .ic{transform:scale(1);opacity:1}
+  .section-head .ic{color:var(--primary-2)}
+  .section-head:hover .ic{transform:scale(1.12) rotate(-4deg);color:var(--primary-3)}
+  /* 图标按钮 hover 微交互统一 */
+  .btn:hover .ic,.vu-btn:hover .ic{transform:translateX(3px)}
+  .btn-primary:hover .ic,.vu-btn-primary:hover .ic{transform:translateX(3px) scale(1.05)}
+  /* 物料库存 / 训练提示 图标着色 */
+  #codeStock .ic{color:#f59e0b;vertical-align:-0.15em}
+  .section-note .ic{color:var(--primary-2)}
+
   /* === 全屏背景层 (大厂级动态) === */
   .bg-stage{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   /* Canvas 流场粒子 */
@@ -822,9 +843,9 @@
       <span>Fleta</span>
     </a>
     <div class="nav-links">
-      <a href="#prompt-gen" style="color:var(--primary-2)">提示词</a>
-      <a href="#video-reverse">视频反推</a>
-      <a href="https://www.douyin.com/user/self?from_tab_name=main" target="_blank" rel="noopener">联系我</a>
+      <a href="#prompt-gen" style="color:var(--primary-2);display:inline-flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.8L19 9l-4 3.3.9 5L12 15l-3.9 2.3.9-5L4 9l5.1-1.2z"/></svg>提示词</a>
+      <a href="#video-reverse" style="display:inline-flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>视频反推</a>
+      <a href="https://www.douyin.com/user/self?from_tab_name=main" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v12H5.17L4 17.17z"/><path d="M8 9h8M8 13h5"/></svg>联系我</a>
     </div>
     <div class="nav-actions">
       <div style="position:relative;display:inline-flex">
@@ -912,7 +933,7 @@
 <div id="codeModal" style="display:none;position:fixed;inset:0;z-index:210;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeCodeModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)">
     <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:var(--text)">免费领取 70 张图片生成积分</h3>
-    <div id="codeStock" style="margin:0 0 18px;font-size:13px;color:var(--text-2)">📦 当前库存：<strong id="codeStockNum" style="color:#f59e0b">--</strong> / <span id="codeStockTotal">70</span> 份</div>
+    <div id="codeStock" style="margin:0 0 18px;font-size:13px;color:var(--text-2)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg> 当前库存：<strong id="codeStockNum" style="color:#f59e0b">--</strong> / <span id="codeStockTotal">70</span> 份</div>
     <p style="margin:0 0 16px;font-size:12px;color:var(--text-3);text-align:center">可在 Flyelep 平台使用</p>
     <div id="codeContent">
       <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">70 张图片生成积分</strong>，每个账户限领一次。</p>
@@ -949,8 +970,8 @@
       <h1 class="reveal d1"><span class="grad">Fleta</span></h1>
       <p class="sub reveal d2">AI 提示词生成 · 视频反推 · 电商视觉设计</p>
       <div class="cta-row reveal d3">
-        <a class="btn btn-primary" href="#prompt-gen">开始生成提示词</a>
-        <a class="btn btn-ghost" href="#video-reverse">视频反推</a>
+        <a class="btn btn-primary" href="#prompt-gen"><svg class="ic" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9z"/></svg>开始生成提示词</a>
+        <a class="btn btn-ghost" href="#video-reverse"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>视频反推</a>
       </div>
 
       <!-- 公告栏 -->
@@ -988,10 +1009,10 @@
 <section id="prompt-gen">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-eyebrow reveal">/ AI 视频提示词</span>
+      <span class="section-eyebrow reveal"><svg class="ic" viewBox="0 0 24 24" style="margin-right:6px"><path d="M12 3l1.9 4.8L19 9l-4 3.3.9 5L12 15l-3.9 2.3.9-5L4 9l5.1-1.2z"/></svg>/ AI 视频提示词</span>
       <h2 class="section-title reveal"><em>Seedance 2.5</em> 视频提示词生成器</h2>
       <p class="section-sub reveal">五段式结构 · 主体 + 风格 + 时间线 + BGM + 限制 · 一键生成专业提示词</p>
-      <p class="section-note reveal" style="margin-top:10px;font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px;justify-content:center"><span style="font-size:13px">🧠</span>每次生成都会匿名收集，用于持续训练、越用越准（已收集 <strong id="pgTrainCount" style="color:var(--primary-2)">--</strong> 条）</p>
+      <p class="section-note reveal" style="margin-top:10px;font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px;justify-content:center"><svg class="ic" viewBox="0 0 24 24"><path d="M9 3a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V15a3 3 0 0 0 4 2.8V21"/><path d="M15 3a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V15a3 3 0 0 1-4 2.8V21"/><path d="M9 9h.01M15 9h.01"/></svg>每次生成都会匿名收集，用于持续训练、越用越准（已收集 <strong id="pgTrainCount" style="color:var(--primary-2)">--</strong> 条）</p>
     </div>
 
     <div class="pg-card reveal">
@@ -1110,7 +1131,7 @@
 <section id="video-reverse">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-eyebrow reveal">/ 视频反推</span>
+      <span class="section-eyebrow reveal"><svg class="ic" viewBox="0 0 24 24" style="margin-right:6px"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>/ 视频反推</span>
       <h2 class="section-title reveal"><em>原片反推</em> 视频提示词还原器</h2>
       <p class="section-sub reveal">上传视频 → 自动抽帧分析 → AI 反推完整五段式提示词 · 还原视频的每一个镜头与细节</p>
     </div>
@@ -1166,7 +1187,7 @@
 <section id="video-use" style="display:none">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-eyebrow reveal">/ Video-Use</span>
+      <span class="section-eyebrow reveal"><svg class="ic" viewBox="0 0 24 24" style="margin-right:6px"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>/ Video-Use</span>
       <h2 class="section-title reveal"><em>智能视频助手</em> 在线编辑 & 转写</h2>
       <p class="section-sub reveal">基于 Video-Use 能力，粘贴视频链接即可调用 AI 转写与剪辑；实时显示你的免费额度，方便规划使用</p>
     </div>
@@ -1247,7 +1268,7 @@
                 <input id="vuImgUrl" class="vu-input vu-img-url" placeholder="https://example.com/image.jpg 或拖拽/选择图片文件" />
                 <button type="button" class="vu-btn vu-btn-sm" onclick="vuAddRefImg()">+ 添加</button>
                 <label class="vu-btn vu-btn-sm vu-btn-upload">
-                  📁 上传
+                  <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg> 上传
                   <input type="file" accept="image/*" hidden onchange="vuUploadRefImg(this)" />
                 </label>
               </div>
@@ -1268,7 +1289,7 @@
 
         <div class="vu-progress" id="vuProgress" style="display:none"></div>
         <div class="vu-done" id="vuDone" style="display:none">
-          <a class="vu-btn vu-btn-primary" id="vuDownload" href="#" download="fleta_edit.mp4">⬇ 下载成片 final.mp4</a>
+          <a class="vu-btn vu-btn-primary" id="vuDownload" href="#" download="fleta_edit.mp4"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> 下载成片 final.mp4</a>
         </div>
         <div class="vu-error" id="vuError"></div>
       </div>
