@@ -1699,7 +1699,7 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
     case "openai":
     case "qwen": {
       const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-flash" : "gpt-4o-mini");
-      const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-flash" : textModel);
+      const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : textModel);
       // 视频反推: 逐帧分析(每帧独占视觉模型输出额度) → 合并描述 → 文本模型反推五段式
       if (isReverse && imgList.length) {
         const isFlash = /v-flash/.test(visionModel);
@@ -1791,7 +1791,7 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
 // AI 配置状态查询(前端用来判断是否可用)
 app.get("/api/prompt-generate/status", (req, res) => {
   const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-flash" : "deepseek-chat");
-  const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-flash" : model);
+  const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : model);
   res.json({
     available: !!AI_API_KEY,
     provider: AI_PROVIDER,
