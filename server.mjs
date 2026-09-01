@@ -942,7 +942,7 @@ app.post("/api/chat", express.json({ limit: "8kb" }), async (req, res) => {
       reply = data.choices?.[0]?.message?.content || "";
     } else if (AI_PROVIDER === "qwen") {
       // 通义千问 OpenAI 兼容接口
-      reply = await callOpenAIChat(AI_MODEL || "qwen-coder-plus-latest", CHAT_SYSTEM_PROMPT, message, 2048);
+      reply = await callOpenAIChat(AI_MODEL || "qwen-flash", CHAT_SYSTEM_PROMPT, message, 2048);
     } else {
       // OpenAI 兼容
       reply = await callOpenAIChat(AI_MODEL || "gpt-4o-mini", CHAT_SYSTEM_PROMPT, message, 2048);
@@ -1016,7 +1016,7 @@ async function aiText(system, user) {
   if (!AI_API_KEY) throw new Error("AI 服务未配置");
   if (AI_PROVIDER === "gemini") return await callGemini([{ text: user }], system, 4000);
   if (AI_PROVIDER === "deepseek") return await callDeepSeek(user, system, 4000);
-  if (AI_PROVIDER === "qwen") return await callOpenAIChat(AI_MODEL || "qwen-coder-plus-latest", system, user, 4000);
+  if (AI_PROVIDER === "qwen") return await callOpenAIChat(AI_MODEL || "qwen-flash", system, user, 4000);
   return await callOpenAIChat(AI_MODEL || "gpt-4o-mini", system, user, 4000);
 }
 // ffprobe 取元数据
@@ -1427,7 +1427,7 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 // Render Blueprint 不注入自定义环境变量, 故对千问(qwen)写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
 const AI_PROVIDER = (process.env.AI_PROVIDER || "qwen").toLowerCase();
 const AI_API_KEY = process.env.AI_API_KEY || "";
-const AI_MODEL = process.env.AI_MODEL || "qwen-coder-plus-latest"; // 留空则用工况默认模型
+const AI_MODEL = process.env.AI_MODEL || "qwen-flash"; // 留空则用工况默认模型
 const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || ""; // 处理图片时使用的视觉模型(默认回落到 AI_MODEL)
 
@@ -1698,8 +1698,8 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
   switch (AI_PROVIDER) {
     case "openai":
     case "qwen": {
-      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-coder-plus-latest" : "gpt-4o-mini");
-      const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : textModel);
+      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-flash" : "gpt-4o-mini");
+      const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-flash" : textModel);
       // 视频反推: 逐帧分析(每帧独占视觉模型输出额度) → 合并描述 → 文本模型反推五段式
       if (isReverse && imgList.length) {
         const isFlash = /v-flash/.test(visionModel);
@@ -1790,8 +1790,8 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
 
 // AI 配置状态查询(前端用来判断是否可用)
 app.get("/api/prompt-generate/status", (req, res) => {
-  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-coder-plus-latest" : "deepseek-chat");
-  const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : model);
+  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-flash" : "deepseek-chat");
+  const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-flash" : model);
   res.json({
     available: !!AI_API_KEY,
     provider: AI_PROVIDER,
