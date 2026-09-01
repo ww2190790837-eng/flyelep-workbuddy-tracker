@@ -269,6 +269,18 @@
   /* AI 错误提示 */
   .pg-error{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:13px;color:#f87171;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);display:none;line-height:1.5}
   .pg-error.show{display:block}
+  /* AI 意图解析卡片 */
+  .pg-intent{padding:14px 16px;border-bottom:1px solid rgba(124,92,255,.12);background:rgba(124,92,255,.03);font-size:12.5px;line-height:1.7}
+  .pg-intent-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;color:var(--primary-2);font-weight:600;font-size:12.5px;margin-bottom:10px}
+  .pg-intent-toggle{font-size:11px;color:var(--text-3);font-weight:500}
+  .pg-intent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:5px 20px}
+  .pg-intent.collapsed .pg-intent-grid{display:none}
+  .pg-intent.collapsed .pg-warn{display:none}
+  .pg-intent-row{display:flex;gap:8px;line-height:1.65}
+  .pg-intent-k{color:var(--text-3);flex:0 0 auto;min-width:64px;font-weight:500}
+  .pg-intent-v{color:var(--text);flex:1;word-break:break-word}
+  .pg-warn{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;color:#fbbf24;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);line-height:1.6}
+  .pg-warn b{color:#f59e0b;font-weight:600}
   /* 提示文字 */
   .pg-idea-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
   .pg-idea{width:100%;padding:16px 18px;border:1px solid rgba(124,92,255,.28);border-radius:14px;font-size:14px;font-family:inherit;background:rgba(124,92,255,.05);color:var(--text);resize:vertical;line-height:1.6;transition:all .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
@@ -1115,6 +1127,7 @@
             复制
           </button>
         </div>
+        <div class="pg-intent" id="pgIntent" style="display:none"></div>
         <pre id="pgResult"></pre>
       </div>
       <!-- 错误提示 -->
@@ -2977,6 +2990,7 @@
       }
 
       showResult(result.prompt);
+      showIntent(result.intent, result.warnings);
       if(result.trained!=null) document.getElementById('pgTrainCount').textContent=result.trained;
     }catch(e){
       showError('网络错误: '+e.message+'，请检查网络后重试，或切换到「本地模板」');
@@ -3035,6 +3049,43 @@
     res.textContent=text;
     out.style.display='block';
     out.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  /* HTML 转义(AI 返回内容不可信,渲染前必须转义) */
+  function pgEsc(s){
+    return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  /* 展示 AI 的意图解析 + 质检告警(可折叠) */
+  function showIntent(intent,warnings){
+    var box=document.getElementById('pgIntent');
+    var hasWarn=warnings&&warnings.length;
+    if(!intent&&!hasWarn){box.style.display='none';box.innerHTML='';return;}
+    var fields=['体裁','总时长','主体','人物','风格','平台与画幅','核心信息点','品牌'];
+    var html='<div class="pg-intent-head" id="pgIntentHead">AI 是这样理解你的输入的 <span class="pg-intent-toggle">收起</span></div><div class="pg-intent-grid">';
+    var any=false;
+    fields.forEach(function(k){
+      if(intent&&intent[k]!=null&&intent[k]!==''){
+        any=true;
+        html+='<div class="pg-intent-row"><span class="pg-intent-k">'+pgEsc(k)+'</span><span class="pg-intent-v">'+pgEsc(intent[k])+'</span></div>';
+      }
+    });
+    html+='</div>';
+    if(hasWarn){
+      html+='<div class="pg-warn"><b>质检提示</b><br>'+warnings.map(pgEsc).join('<br>')+'</div>';
+    }
+    if(!any&&!hasWarn){box.style.display='none';box.innerHTML='';return;}
+    box.innerHTML=html;
+    box.style.display='block';
+    box.classList.remove('collapsed');
+    var head=document.getElementById('pgIntentHead');
+    if(head){
+      head.addEventListener('click',function(){
+        box.classList.toggle('collapsed');
+        var tg=head.querySelector('.pg-intent-toggle');
+        if(tg)tg.textContent=box.classList.contains('collapsed')?'展开':'收起';
+      });
+    }
   }
 
   /* 显示错误 */

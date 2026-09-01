@@ -287,6 +287,35 @@ function buildFewShotBlock(examples) {
   }).join("\n\n");
   return `\n\n【历史优质示例参考】(系统自动收集的真实生成记录，请参考其风格、颗粒度与五段式结构，保持一致性):\n${items}`;
 }
+// 提取并剥离【意图解析】块:返回结构化意图、剥离后的纯五段式、质检告警
+function extractIntent(raw) {
+  const out = { intent: null, clean: (raw || "").trim(), warnings: [] };
+  const src = raw || "";
+  const m = src.match(/【意图解析】([\s\S]*?)(?=\n\s*【主体】|$)/);
+  if (!m) return out;
+  const fields = {};
+  m[1].split(/\n+/).forEach(line => {
+    const kv = line.match(/^\s*(体裁|总时长|主体|人物|风格|平台与画幅|核心信息点|品牌)\s*[:：]\s*(.+)$/);
+    if (kv) fields[kv[1]] = kv[2].trim();
+  });
+  out.intent = Object.keys(fields).length ? fields : null;
+  // 剥离解析块(连标题一并移除),得到可直接复制的纯五段式
+  out.clean = src.replace(/【意图解析】[\s\S]*?(?=\n?\s*【主体】)/, "").trim();
+  // 质检 1:声明总时长 vs 时间线实际覆盖到的秒数
+  const durM = (fields["总时长"] || "").match(/(\d+(?:\.\d+)?)\s*秒/);
+  const declared = durM ? Number(durM[1]) : null;
+  const segs = [...out.clean.matchAll(/【\s*(\d+(?:\.\d+)?)\s*[—\-~－]\s*(\d+(?:\.\d+)?)\s*秒/g)];
+  if (declared) {
+    if (!segs.length) out.warnings.push("未解析到任何时间段");
+    else {
+      const last = Math.max(...segs.map(s => Number(s[2])));
+      if (Math.abs(last - declared) > 0.6) out.warnings.push(`时间线只覆盖到 ${last} 秒，与声明的 ${declared} 秒不一致`);
+    }
+  }
+  // 质检 2:末段是否仍用「结尾」而非具体秒数
+  if (/【[^】]*结尾[^】]*】/.test(out.clean)) out.warnings.push("时间线末段仍写「结尾」，未写成具体秒数");
+  return out;
+}
 function regWindowCount(ip) {
   const now = Date.now();
   const arr = (ipRegHits.get(ip) || []).filter(t => now - t < REG_WINDOW_MS);
@@ -1570,8 +1599,21 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 ### 限制
 - 3—8项最容易出错的问题。涉及品牌产品时必含：人物全片同一、产品全片同一且标识一致、标签文字不改写、光线服装连贯、指定特效仅限指定段落、空镜仅一次、避免变脸畸变乱码抖动。动作/战斗类额外含：动作物理合理（不穿模/受力方向正确/无来源攻击）。
 
-## 输出格式
-严格按以下五个标题输出，不要额外分析：
+## 输出格式（两步，缺一不可）
+
+**第一步 · 意图解析**：先用下面这个块自报你对本次输入的理解，8 个字段每项一行，不展开解释、不写理由：
+
+【意图解析】
+体裁：<与上方"体裁识别"表最匹配的一类；若都不匹配，自行命名体裁并用一句话简述镜头骨架>
+总时长：<N> 秒 → <M> 段
+主体：<实际主体 + 关键外观特征>
+人物：<需要 / 不需要>；若需要，写明主播或角色的外貌与身份
+风格：<光线 / 色彩 / 质感 / 情绪基调>
+平台与画幅：<抖音=9:16竖屏 / 小红书=3:4 / B站或YouTube=16:9 / 未指定=16:9>
+核心信息点：<本次要传达的 1—3 个卖点或信息，逗号分隔>
+品牌：<显式锁定 XX / 未指定 → 全部隐藏，用"某品牌标识"替代>
+
+**第二步 · 五段式**：严格按以下五个标题输出，不要额外分析：
 【主体】
 ...
 
@@ -1725,16 +1767,21 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
     if (!idea && images.length === 0) return res.status(400).json({ ok: false, error: "请输入创意描述或上传参考图片/视频" });
     if (idea.length > 5000) return res.status(400).json({ ok: false, error: "描述过长（限5000字）" });
 
-    const prompt = await generatePrompt(idea, duration, images, mode);
-    if (!prompt || prompt.trim().length < 20) return res.status(502).json({ ok: false, error: "AI 返回结果异常，请重试" });
+    const rawPrompt = await generatePrompt(idea, duration, images, mode);
+    if (!rawPrompt || rawPrompt.trim().length < 20) return res.status(502).json({ ok: false, error: "AI 返回结果异常，请重试" });
+
+    // 剥离【意图解析】块:prompt 只保留可直接复制的纯五段式;解析结果另字段返回
+    const parsed = extractIntent(rawPrompt);
+    const prompt = (parsed.clean && parsed.clean.length >= 20) ? parsed.clean.trim() : rawPrompt.trim();
+    if (parsed.warnings.length) console.log("[ai] 意图质检告警:", parsed.warnings.join(" | "));
 
     // 自动收集到训练语料库(匿名化:仅记录生成记录,用于 few-shot 自进化)
     try {
-      const saved = collectPrompt({ idea, duration, mode, imagesCount: images.length, prompt: prompt.trim(), userId: req.session?.userId || null });
+      const saved = collectPrompt({ idea, duration, mode, imagesCount: images.length, prompt, userId: req.session?.userId || null });
       if (saved) console.log(`[prompts] 已收集 1 条语料(当前 ${promptCache.length} 条)`);
     } catch (e) { console.error("[prompts] 收集失败(不影响返回):", e.message); }
 
-    res.json({ ok: true, prompt: prompt.trim(), provider: AI_PROVIDER, trained: promptCache.length });
+    res.json({ ok: true, prompt, intent: parsed.intent, warnings: parsed.warnings, provider: AI_PROVIDER, trained: promptCache.length });
   } catch (e) {
     console.error("[ai] generate error:", e.message);
     res.status(500).json({ ok: false, error: "AI 生成失败: " + e.message });
