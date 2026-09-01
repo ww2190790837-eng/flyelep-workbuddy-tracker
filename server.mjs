@@ -1428,7 +1428,7 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 const AI_PROVIDER = (process.env.AI_PROVIDER || "qwen").toLowerCase();
 const AI_API_KEY = process.env.AI_API_KEY || "";
 const AI_MODEL = process.env.AI_MODEL || "qwen-flash"; // 留空则用工况默认模型
-const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
+const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : AI_PROVIDER === "zhipu" ? "https://open.bigmodel.cn/api/paas/v4" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || ""; // 处理图片时使用的视觉模型(默认回落到 AI_MODEL)
 
 // OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)
@@ -1452,6 +1452,20 @@ async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens) {
     throw new Error(lastErr);
   }
   throw new Error(lastErr);
+}
+
+// 视觉模型候选链(主模型失效时自动回落,全部走同一 base URL / key)
+// 支持环境变量 AI_VISION_FALLBACK(逗号分隔)自定义额外候选;内置同底座有效模型兜底
+function visionCandidates() {
+  const fb = (process.env.AI_VISION_FALLBACK || "").split(",").map(s => s.trim()).filter(Boolean);
+  const isDash = AI_PROVIDER === "qwen" || /\/dashscope/.test(AI_BASE_URL || "");
+  const isZhipu = AI_PROVIDER === "zhipu" || /\/bigmodel\.cn\//.test(AI_BASE_URL || "");
+  const primary = AI_VISION_MODEL
+    || (isDash ? "qwen3-vl-plus" : isZhipu ? "glm-4v-flash" : (AI_MODEL || "gpt-4o-mini"));
+  const builtin = isDash
+    ? ["qwen-vl-plus-latest", "qwen3-vl-plus", "qwen-vl-plus", "qwen2.5-vl-72b-instruct"]
+    : isZhipu ? ["glm-4v-flash", "glm-4.6v-flash"] : [];
+  return [...new Set([primary, ...fb, ...builtin])];
 }
 
 // Gemini API 调用(支持多图,parts 为 inlineData/text 数组)
@@ -1697,38 +1711,45 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
 
   switch (AI_PROVIDER) {
     case "openai":
-    case "qwen": {
-      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-flash" : "gpt-4o-mini");
-      const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : textModel);
+    case "qwen":
+    case "zhipu": {
+      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-flash" : AI_PROVIDER === "zhipu" ? "glm-4-flash" : "gpt-4o-mini");
+      const visionCands = visionCandidates();
+      const visionModel = visionCands[0];
       // 视频反推: 逐帧分析(每帧独占视觉模型输出额度) → 合并描述 → 文本模型反推五段式
       if (isReverse && imgList.length) {
-        const isFlash = /v-flash/.test(visionModel);
-        const visMax = isFlash ? 1024 : (imgList.length > 12 ? 1536 : 2048); // 帧多时收紧单帧额度,避免聚合描述超出文本模型上下文
-        // 逐帧单独调用视觉模型,每帧获得完整详细描述
+        // 逐帧单独调用视觉模型,每帧获得完整详细描述;主视觉模型失效时自动回落候选链
         const frameDescs = [];
         for (let fi = 0; fi < imgList.length; fi++) {
           const frameParts = [
             { type: "image_url", image_url: { url: imgList[fi], detail: "auto" } },
             { type: "text", text: `这是第${fi + 1}帧（共${imgList.length}帧，位于视频约${((fi + 0.5) / imgList.length * 100).toFixed(0)}%处）。请按系统提示格式对这一帧做极其详尽的分析。` }
           ];
-          try {
-            const fd = await callOpenAIChat(visionModel, VIDEO_VISION_SYS, frameParts, visMax);
-            frameDescs.push(`--- 第${fi + 1}帧 ---\n${fd}`);
-          } catch (e) {
-            // 单帧失败不阻断,记录错误继续
-            frameDescs.push(`--- 第${fi + 1}帧 ---\n[该帧分析失败: ${e.message}]`);
+          let fd = "", lastVisionErr = "";
+          for (const vm of visionCands) {
+            const visMax = /v-flash/.test(vm) ? 1024 : (imgList.length > 12 ? 1536 : 2048); // 帧多时收紧单帧额度,避免聚合描述超出文本模型上下文
+            try { fd = await callOpenAIChat(vm, VIDEO_VISION_SYS, frameParts, visMax); break; }
+            catch (e) { lastVisionErr = e.message; }
           }
+          if (fd) frameDescs.push(`--- 第${fi + 1}帧 ---\n${fd}`);
+          else frameDescs.push(`--- 第${fi + 1}帧 ---\n[该帧分析失败: ${lastVisionErr}]`);
         }
         const desc = frameDescs.join("\n\n");
         const finalText = `以下是该视频的逐帧像素级画面分析（共${imgList.length}帧，每帧独立详尽分析），请据此原片反推五段式提示词。视频总时长约${dur}秒：\n\n${desc}\n\n${idea ? ("用户补充要求：" + idea) : ""}`;
         return await callOpenAIChat(textModel, sys, [{ type: "text", text: finalText }], 4096);
       }
-      // 普通生成(单图或纯文本)
+      // 普通生成(单图或纯文本);有图时走视觉模型候选链(失效自动回落)
       const content = [];
       if (imgList.length) imgList.forEach(src => content.push({ type: "image_url", image_url: { url: src, detail: "auto" } }));
       content.push({ type: "text", text: userMsg });
-      const isFlash = /v-flash/.test(imgList.length ? visionModel : textModel);
-      return await callOpenAIChat(imgList.length ? visionModel : textModel, sys, content, isFlash ? 1024 : 4096);
+      if (!imgList.length) return await callOpenAIChat(textModel, sys, content, 4096);
+      let txt = "", lastErr = "";
+      for (const vm of visionCands) {
+        try { txt = await callOpenAIChat(vm, sys, content, 4096); break; }
+        catch (e) { lastErr = e.message; }
+      }
+      if (!txt) throw new Error("视觉模型调用失败: " + lastErr);
+      return txt;
     }
     case "deepseek": {
       const note = imgList.length ? "\n[注：用户上传了视频帧图片，请结合画面内容分析]\n" : "";
@@ -1790,13 +1811,15 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
 
 // AI 配置状态查询(前端用来判断是否可用)
 app.get("/api/prompt-generate/status", (req, res) => {
-  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-flash" : "deepseek-chat");
-  const visionModel = AI_VISION_MODEL || (AI_PROVIDER === "qwen" ? "qwen-vl-plus-latest" : model);
+  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-flash" : AI_PROVIDER === "zhipu" ? "glm-4-flash" : "deepseek-chat");
+  const visionCandsStatus = visionCandidates();
+  const visionModel = visionCandsStatus[0];
   res.json({
     available: !!AI_API_KEY,
     provider: AI_PROVIDER,
     model,
     visionModel,
+    visionFallback: visionCandsStatus.slice(1), // 主视觉模型失效时的自动回落候选
     supportsImage: AI_PROVIDER !== "deepseek", // deepseek 暂不支持图片输入
     supportsVideo: AI_PROVIDER !== "deepseek", // 视频抽帧后按多图处理,deepseek 暂不支持图片
     promptCount: promptCache.length // 已收集语料数(用于前端展示训练进度)
