@@ -841,46 +841,11 @@
   @media (prefers-reduced-motion:reduce){
     .pet-float,.pet-eye,.pet-glow,.pet-screen::after,.pet-arm{ animation:none; }
   }
-  /* === 模型额度告急通知 === */
-  .quota-alert{
-    position:relative;z-index:60;
-    display:flex;align-items:center;gap:.55rem;justify-content:center;
-    padding:.6rem 2.6rem .6rem 1rem;
-    background:linear-gradient(100deg,#ff5a3c 0%,#ff8a3c 48%,#ff5b9b 100%);
-    color:#fff;font-size:.9rem;line-height:1.45;
-    box-shadow:0 6px 26px rgba(255,90,60,.28);
-    animation:qa-in .5s cubic-bezier(.22,1,.36,1) both;
-  }
-  @keyframes qa-in{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-  .quota-alert .qa-ico{width:1.2rem;height:1.2rem;flex:none;color:#fff}
-  .quota-alert .qa-text{font-weight:400}
-  .quota-alert .qa-text strong{font-weight:800;letter-spacing:.02em}
-  .quota-alert .qa-text b{font-weight:700;color:#fff8e1}
-  .quota-alert .qa-close{
-    position:absolute;right:.7rem;top:50%;transform:translateY(-50%);
-    width:1.7rem;height:1.7rem;border:none;border-radius:50%;
-    background:rgba(255,255,255,.2);color:#fff;font-size:1.15rem;line-height:1;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:background .2s ease,transform .2s ease;
-  }
-  .quota-alert .qa-close:hover{background:rgba(255,255,255,.38);transform:translateY(-50%) scale(1.1)}
-  @media (max-width:600px){.quota-alert{font-size:.82rem;padding:.5rem 2.6rem .5rem .9rem}}
 </style>
 </head>
 <body>
 
 <div class="scroll-bar" id="scrollBar"></div>
-
-<!-- 模型额度告急通知（恢复后移除本块） -->
-<div class="quota-alert" id="quotaAlert" role="alert">
-  <svg class="ic qa-ico" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
-    <line x1="12" y1="9" x2="12" y2="13"/>
-    <line x1="12" y1="17" x2="12.01" y2="17"/>
-  </svg>
-  <span class="qa-text"><strong>模型额度告急</strong>：视频反推 / 图片提示词生成模型额度不足，<b>暂不可用</b>；纯文本提示词生成正常。正在紧急恢复，请稍候。</span>
-  <button class="qa-close" id="qaClose" aria-label="关闭通知" onclick="this.closest('.quota-alert').style.display='none'">&times;</button>
-</div>
 
 ﻿
 <nav class="top-nav">
