@@ -1,7 +1,7 @@
 ﻿services:
   - type: web
-    name: fleta-ai
-    slug: fleta-ai
+    name: flyelep-wb-tracker
+    slug: flyelep-wb-tracker
     runtime: node
     plan: free
     buildCommand: npm install
@@ -15,7 +15,7 @@
       - key: SESSION_SECRET
         generateValue: true
       - key: PUBLIC_URL
-        value: https://fleta-ai.onrender.com
+        value: https://flyelep-wb-tracker.onrender.com
       - key: SMTP_HOST
         value: smtp-relay.brevo.com
       - key: SMTP_PORT
