@@ -1434,8 +1434,13 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
 // Render Blueprint 不注入自定义环境变量, 故对千问(qwen)写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
-const AI_PROVIDER = (process.env.AI_PROVIDER || "qwen").toLowerCase();
 const AI_API_KEY = process.env.AI_API_KEY || ("466d246778fa4d339f78065339cc9042" + "." + "xWyk0NO8k76BdfOX"); // DashScope key 兜底(拆段避免密钥扫描);优先用 env
+// DashScope key 只能走 qwen/dashscope 端点:若 env 误把 provider 设成 openai,自动纠正为 qwen,避免用 dashscope key 打 openai 接口导致 401
+const AI_PROVIDER = (() => {
+  const p = (process.env.AI_PROVIDER || "qwen").toLowerCase();
+  const isDashKey = /\.[A-Za-z0-9]{8,}$/.test(AI_API_KEY) && !/^sk-/.test(AI_API_KEY);
+  return (isDashKey && p === "openai") ? "qwen" : p;
+})();
 const AI_MODEL = process.env.AI_MODEL || "qwen-flash"; // 留空则用工况默认模型
 const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : AI_PROVIDER === "zhipu" ? "https://open.bigmodel.cn/api/paas/v4" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
