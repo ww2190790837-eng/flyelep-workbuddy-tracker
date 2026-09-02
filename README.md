@@ -14,7 +14,12 @@ codex电商/
 ├── public/
 │   ├── index.html   # 抖音落地页(含 UTM 跟踪 + 注册/登录弹窗)
 │   ├── admin.html   # UTM 后台仪表盘
-│   └── account.html # 用户账户页
+│   ├── account.html # 用户账户页
+│   ├── ecopulse.html      # 电商脉搏:全球电商政策/活动/热点大图轮播页
+│   ├── ecopulse-data.js   # 电商脉搏数据源(资讯 + 配图路径)
+│   └── ecopulse/          # 资讯配图(从各新闻页下载,图文一一配套)
+├── scripts/
+│   └── ecopulse-refresh.mjs  # 抓取最新资讯与配图,自动写回数据源
 └── data/            # 运行时生成(users.json / db.json / events.json),已被 .gitignore 排除
 ```
 
@@ -86,3 +91,20 @@ https://你的域名/?utm_source=douyin&utm_medium=video&utm_campaign=fleta_ai&u
 
 数据保存在 `app/data/db.json`,纯 JSON 文件,无外部依赖。
 建议部署时挂载持久卷,避免重启丢数据。
+
+## 电商脉搏(/ecopulse)
+
+国内外电商平台的政策调整、活动计划与每日热点,全屏大图轮播(Ken Burns 动效),左下角显示事件的**日期 / 时间 / 内容摘要**,点击大图或「阅读原文」跳转新闻源页面。
+
+- 页面:`public/ecopulse.html`,首页导航栏已加「电商脉搏」入口
+- 数据:`public/ecopulse-data.js`(每条资讯的 `image` 都指向 `public/ecopulse/` 下从对应新闻页下载的配图)
+- 分类:全部 / 每日热点 / 平台政策 / 海外跨境 / 活动计划,支持箭头、缩略图、键盘、滑动切换与自动播放
+
+刷新资讯(抓取电商派 + 雨果跨境最新文章,连同配图一起下载并按 url 去重):
+
+```bash
+npm run refresh:ecopulse          # 每个源最多新增 8 条
+node scripts/ecopulse-refresh.mjs --max=5   # 自定义每个源的新增上限
+```
+
+数据最多保留 40 条,手写条目与「大促倒计时」配置会完整保留。
