@@ -1459,7 +1459,7 @@ async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens) {
 function visionCandidates() {
   const fb = (process.env.AI_VISION_FALLBACK || "").split(",").map(s => s.trim()).filter(Boolean);
   const isDash = AI_PROVIDER === "qwen" || /\/dashscope/.test(AI_BASE_URL || "");
-  const isZhipu = AI_PROVIDER === "zhipu" || /\/bigmodel\.cn\//.test(AI_BASE_URL || "");
+  const isZhipu = AI_PROVIDER === "zhipu" || /bigmodel\.cn/.test(AI_BASE_URL || "");
   const primary = AI_VISION_MODEL
     || (isDash ? "qwen3-vl-plus" : isZhipu ? "glm-4v-flash" : (AI_MODEL || "gpt-4o-mini"));
   const builtin = isDash
@@ -1745,8 +1745,13 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
       if (!imgList.length) return await callOpenAIChat(textModel, sys, content, 4096);
       let txt = "", lastErr = "";
       for (const vm of visionCands) {
-        try { txt = await callOpenAIChat(vm, sys, content, 4096); break; }
-        catch (e) { lastErr = e.message; }
+        // flash 类视觉模型 max_tokens 上限多为 1024,超限时自动降级重试
+        const mtList = /flash/i.test(vm) ? [1024, 4096] : [4096, 1024];
+        for (const mt of mtList) {
+          try { txt = await callOpenAIChat(vm, sys, content, mt); break; }
+          catch (e) { lastErr = e.message; txt = ""; }
+        }
+        if (txt) break;
       }
       if (!txt) throw new Error("视觉模型调用失败: " + lastErr);
       return txt;
