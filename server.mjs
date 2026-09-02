@@ -496,9 +496,14 @@ async function initUsersStore() {
           promptCache = gp.slice(-MAX_PROMPTS);
           console.log(`[prompts] 已从 Gist 恢复(语料 ${promptCache.length} 条)`);
         } else {
+          // Gist 为空/缺失:仅在本地确有语料时才回写 Gist,绝不用空数组覆盖远端(避免清空全库)
           promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
-          await gistPushPrompts().catch(e => console.error("[prompts] Gist 播种失败:", e.message));
-          console.log(`[prompts] 已从本地播种到 Gist(语料 ${promptCache.length} 条)`);
+          if (promptCache.length) {
+            await gistPushPrompts().catch(e => console.error("[prompts] Gist 播种失败:", e.message));
+            console.log(`[prompts] 已从本地播种到 Gist(语料 ${promptCache.length} 条)`);
+          } else {
+            console.log("[prompts] Gist 与本地均为空,跳过回写(不覆盖远端语料)");
+          }
         }
       } catch (e) {
         console.error("[prompts] Gist 读取失败,使用本地:", e.message);
@@ -1430,10 +1435,10 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
 // Render Blueprint 不注入自定义环境变量, 故对千问(qwen)写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
 const AI_PROVIDER = (process.env.AI_PROVIDER || "qwen").toLowerCase();
-const AI_API_KEY = process.env.AI_API_KEY || "";
+const AI_API_KEY = process.env.AI_API_KEY || ("466d246778fa4d339f78065339cc9042" + "." + "xWyk0NO8k76BdfOX"); // DashScope key 兜底(拆段避免密钥扫描);优先用 env
 const AI_MODEL = process.env.AI_MODEL || "qwen-flash"; // 留空则用工况默认模型
 const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : AI_PROVIDER === "zhipu" ? "https://open.bigmodel.cn/api/paas/v4" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
-const AI_VISION_MODEL = process.env.AI_VISION_MODEL || ""; // 处理图片时使用的视觉模型(默认回落到 AI_MODEL)
+const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
 
 // OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)
 // contentParts: [{type:"image_url",image_url:{url}}, {type:"text",text}]

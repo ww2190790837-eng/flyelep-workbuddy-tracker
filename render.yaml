@@ -28,4 +28,12 @@
         sync: false
       - key: SMTP_FROM
         value: ww2190790837@gmail.com
+      - key: AI_PROVIDER
+        value: qwen
+      - key: AI_MODEL
+        value: qwen-flash
+      - key: AI_VISION_MODEL
+        value: qwen-vl-max
+      - key: AI_BASE_URL
+        value: https://dashscope.aliyuncs.com/compatible-mode/v1
     healthCheckPath: /healthz
