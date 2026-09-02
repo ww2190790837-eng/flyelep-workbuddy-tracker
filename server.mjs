@@ -644,6 +644,10 @@ app.get("/settings", (req, res) => {
 app.get(["/account", "/account.html"], (req, res) => {
   res.redirect("/");
 });
+// 电商脉搏入口兼容：/ecopulse 与 /ecopulse/ 重定向到 ecopulse.html（避免同名目录导致 404）
+app.get(["/ecopulse", "/ecopulse/"], (req, res) => {
+  res.redirect("/ecopulse.html");
+});
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Auth 路由 =====
