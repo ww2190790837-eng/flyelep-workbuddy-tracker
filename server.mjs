@@ -332,16 +332,35 @@ function buildFewShotBlock(examples) {
   return `\n\n【历史生成记录 · 仅供结构参考】(以下是系统自动收集的真实生成记录，**只用于参考五段式结构、五要素密度与时间线切分方式**):\n${items}\n\n⚠️ 使用约束（优先级最高）:\n1. 严禁复用这些示例中的具体品类、物体、颜色、材质、接口、配件、道具、台词。\n2. 本次输出的全部实体细节必须来自本次「用户输入」；示例只提供"写多细、分几段、每段写几个要素"的刻度。\n3. 若本次输入与示例题材不同，示例内容一律忽略，只保留其结构刻度。`;
 }
 // 提取并剥离【意图解析】块:返回结构化意图、剥离后的纯五段式、质检告警
-function extractIntent(raw) {
+// duration: 请求中声明的总时长(秒),用于模型未输出意图解析块时的兜底重建
+function extractIntent(raw, duration) {
   const out = { intent: null, clean: (raw || "").trim(), warnings: [] };
   const src = raw || "";
   const m = src.match(/【意图解析】([\s\S]*?)(?=\n\s*【主体】|$)/);
-  if (!m) return out;
   const fields = {};
-  m[1].split(/\n+/).forEach(line => {
-    const kv = line.match(/^\s*(体裁|总时长|主体|人物|风格|平台与画幅|核心信息点|品牌)\s*[:：]\s*(.+)$/);
-    if (kv) fields[kv[1]] = kv[2].trim();
-  });
+  if (m) {
+    m[1].split(/\n+/).forEach(line => {
+      const kv = line.match(/^\s*(体裁|总时长|主体|人物|风格|平台与画幅|核心信息点|品牌)\s*[:：]\s*(.+)$/);
+      if (kv) fields[kv[1]] = kv[2].trim();
+    });
+  }
+  // 兜底:模型未输出【意图解析】块时,从纯五段式 + 请求时长重建可用卡片,避免前端卡片整体消失
+  if (Object.keys(fields).length === 0) {
+    const subjM = src.match(/【\s*主体\s*】\s*\n([\s\S]*?)(?=\n\s*【\s*风格\s*】)/);
+    if (subjM) {
+      const firstLine = subjM[1].split(/\n+/).map(s => s.replace(/^[-•·]\s*/, "").trim()).filter(Boolean)[0] || "";
+      if (firstLine) fields["主体"] = firstLine.slice(0, 120);
+    }
+    const styleM = src.match(/【\s*风格\s*】\s*\n([\s\S]*?)(?=\n\s*【\s*时间线\s*】)/);
+    if (styleM) {
+      const ratio = styleM[1].match(/(\d+:\d+)/);
+      if (ratio) {
+        const r = ratio[1];
+        fields["平台与画幅"] = (r === "9:16" ? "抖音=9:16竖屏" : r === "3:4" ? "小红书=3:4" : r === "16:9" ? "16:9横屏" : r);
+      }
+    }
+    if (duration) fields["总时长"] = `${duration} 秒`;
+  }
   out.intent = Object.keys(fields).length ? fields : null;
   // 剥离解析块(连标题一并移除),得到可直接复制的纯五段式
   out.clean = src.replace(/【意图解析】[\s\S]*?(?=\n?\s*【主体】)/, "").trim();
@@ -1606,6 +1625,17 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 【28—30秒｜特写·稳定收尾】……
 
 **例 C · N = 20（带货口播 · 品类仅为占位示范，示范口播带货骨架与品牌默认处理）**
+
+【意图解析】
+体裁：带货口播（产品演示型）
+总时长：20 秒 → 5 段
+主体：陶土色陶瓷杯装香薰蜡烛（大豆蜡、单芯棉烛芯、粗陶釉面杯壁、软木杯底）+ 25—30 岁女性主播
+人物：需要；25—30 岁女性，齐肩短发，浅色西装外套，浅妆
+风格：柔和顶光 + 侧逆光补面光，暖灰 / 米白主色，质感细腻，温馨治愈
+平台与画幅：未指定 → 16:9 横屏
+核心信息点：一整晚持续扩香、天然大豆蜡更安心、粗陶杯可作家居摆件
+品牌：未指定 → 全部隐藏，画面仅以"某品牌标识"轮廓呈现，不出现品牌名
+
 【主体】
 主播（25—30 岁女性，齐肩短发，浅色西装外套，浅妆）+ 陶土色陶瓷杯装香薰蜡烛（大豆蜡蜡体、单芯棉烛芯、粗陶釉面杯壁、杯底软木垫）。全片同一主播与同一产品。
 
@@ -1687,7 +1717,7 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 
 ## 输出格式（两步，缺一不可）
 
-**第一步 · 意图解析**：先用下面这个块自报你对本次输入的理解，8 个字段每项一行，不展开解释、不写理由：
+**第一步 · 意图解析（必填，不可省略）**：先用下面这个块自报你对本次输入的理解，8 个字段每项一行，不展开解释、不写理由。⚠️ 必须**第一个**输出此【意图解析】块，之后才能输出第二步五段式；任何情况下都不得跳过此块，否则视为不合格输出。
 
 【意图解析】
 体裁：<与上方"体裁识别"表最匹配的一类；若都不匹配，自行命名体裁并用一句话简述镜头骨架>
@@ -1698,6 +1728,8 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 平台与画幅：<抖音=9:16竖屏 / 小红书=3:4 / B站或YouTube=16:9 / 未指定=16:9>
 核心信息点：<本次要传达的 1—3 个卖点或信息，逗号分隔>
 品牌：<显式锁定 XX / 未指定 → 全部隐藏，用"某品牌标识"替代>
+
+（以上 8 个字段必须全部出现，即使某项为"未指定"也要显式写出，不可留空、不可只输出五段式。下方"质量锚点范例"的例 C 已示范此块的写法，请严格对齐。）
 
 **第二步 · 五段式**：严格按以下五个标题输出，不要额外分析：
 【主体】
@@ -1870,7 +1902,7 @@ app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, re
     if (!rawPrompt || rawPrompt.trim().length < 20) return res.status(502).json({ ok: false, error: "AI 返回结果异常，请重试" });
 
     // 剥离【意图解析】块:prompt 只保留可直接复制的纯五段式;解析结果另字段返回
-    const parsed = extractIntent(rawPrompt);
+    const parsed = extractIntent(rawPrompt, duration);
     const prompt = (parsed.clean && parsed.clean.length >= 20) ? parsed.clean.trim() : rawPrompt.trim();
     if (parsed.warnings.length) console.log("[ai] 意图质检告警:", parsed.warnings.join(" | "));
 
