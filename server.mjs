@@ -1491,7 +1491,13 @@ async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens, temp
     : (AI_PROVIDER === "qwen"
         ? "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
         : "https://api.openai.com/v1/chat/completions");
-  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: contentParts }], temperature, max_tokens: maxTokens };
+  // 纯文本请求必须把 content 压成字符串:智谱 glm 系列收到 `[{type:"text"}]` 数组时会丢弃 user 消息,
+  // 导致模型看不到用户输入、只能拿 system/few-shot 示例编造(表现为输出与输入无关、各次结果雷同)。
+  let content = contentParts;
+  if (Array.isArray(content) && content.length && content.every(p => p && p.type === "text")) {
+    content = content.map(p => p.text).join("\n");
+  }
+  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content }], temperature, max_tokens: maxTokens };
   // 免费模型共享算力,偶发 429 限流,自动重试
   const maxRetry = 3;
   let lastErr = "";
@@ -1795,13 +1801,14 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
         }
         const desc = frameDescs.join("\n\n");
         const finalText = `以下是该视频的逐帧像素级画面分析（共${imgList.length}帧，每帧独立详尽分析），请据此原片反推五段式提示词。视频总时长约${dur}秒：\n\n${desc}\n\n${idea ? ("用户补充要求：" + idea) : ""}`;
-        return await callOpenAIChat(textModel, sys, [{ type: "text", text: finalText }], 4096, 0.85);
+        return await callOpenAIChat(textModel, sys, finalText, 4096, 0.85);
       }
       // 普通生成(单图或纯文本);有图时走视觉模型候选链(失效自动回落)
       const content = [];
       if (imgList.length) imgList.forEach(src => content.push({ type: "image_url", image_url: { url: src, detail: "auto" } }));
       content.push({ type: "text", text: userMsg });
-      if (!imgList.length) return await callOpenAIChat(textModel, sys, content, 4096, 0.85);
+      // 纯文本:直接传字符串(传数组会让智谱丢弃 user 消息)
+      if (!imgList.length) return await callOpenAIChat(textModel, sys, userMsg, 4096, 0.85);
       let txt = "", lastErr = "";
       for (const vm of visionCands) {
         // flash 类视觉模型 max_tokens 上限多为 1024,超限时自动降级重试
