@@ -259,7 +259,13 @@ function collectPrompt({ idea, duration, mode, imagesCount, prompt, userId }) {
   }
   return true;
 }
-// 召回最相关的 few-shot 示例(关键词重合 + 模式匹配 + 近期优先)
+// 召回 few-shot 示例(关键词重合 + 模式匹配 + 近期优先 + 多样性去趋同)
+// 多样性策略:①同"主题族"限流(最多 maxPerFamily 条)②重复 idea 降权③随机抖动④近期已用降权
+const fewShotRecent = []; // 最近被召回过的语料 id/idea 指纹,用于降权
+function ideaFingerprint(s) {
+  // 取前 6 个 >=2 字的词做指纹,近似"主题族"
+  return (s || "").toLowerCase().split(/[\s,，。、；;（）()]+/).filter(w => w.length >= 2).slice(0, 6).sort().join("|");
+}
 function selectFewShots(idea, mode, k = 4) {
   if (!promptCache.length) return [];
   const kw = new Set((idea || "").toLowerCase().split(/[\s,，。、；;]+/).filter(w => w.length >= 2));
@@ -273,19 +279,50 @@ function selectFewShots(idea, mode, k = 4) {
     if (ageDays < 30) score += (30 - ageDays) / 30;
     // 语料质量启发:输出越长越详细,略加权
     if (p.prompt && p.prompt.length > 300) score += 1;
-    return { p, score };
+    // 多样性:最近召回过的降权,避免每次都喂同一批
+    const fp = ideaFingerprint(p.idea);
+    if (fp && fewShotRecent.includes(fp)) score -= 2.5;
+    // 多样性:随机抖动(0 ~ 1.2),打破固定排序
+    score += Math.random() * 1.2;
+    return { p, score, fp };
   }).filter(x => x.score > 0);
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, k).map(x => x.p);
+
+  // 同主题族限流:每个指纹最多取 1 条,保证示例尽量来自不同题材
+  const picked = [];
+  const usedFp = new Map();
+  const maxPerFamily = 1;
+  for (const item of scored) {
+    if (picked.length >= k) break;
+    const f = item.fp || "#" + Math.random();
+    const n = usedFp.get(f) || 0;
+    if (n >= maxPerFamily) continue;
+    usedFp.set(f, n + 1);
+    picked.push(item.p);
+  }
+  // 限流后不够 k 条则放宽补齐
+  if (picked.length < k) {
+    for (const item of scored) {
+      if (picked.length >= k) break;
+      if (!picked.includes(item.p)) picked.push(item.p);
+    }
+  }
+  // 记录本次召回指纹,供下次降权(只保留最近 3 轮)
+  picked.forEach(p => {
+    const f = ideaFingerprint(p.idea);
+    if (f) fewShotRecent.push(f);
+  });
+  while (fewShotRecent.length > k * 3) fewShotRecent.splice(0, fewShotRecent.length - k * 3);
+  return picked;
 }
-// 把示例拼成 system-prompt 注入块
+// 把示例拼成 system-prompt 注入块(只学结构,不抄内容)
 function buildFewShotBlock(examples) {
   if (!examples || !examples.length) return "";
   const items = examples.map((ex, i) => {
     const out = (ex.prompt || "").split("\n").slice(0, 20).join("\n").slice(0, 2000);
     return `示例${i + 1}（模式:${ex.mode === "reverse" ? "视频反推" : "创意生成"}${ex.duration ? "，时长" + ex.duration + "秒" : ""}）:\n输入: ${(ex.idea || "(无文字描述，依据参考图)").slice(0, 200)}\n输出: ${out}`;
   }).join("\n\n");
-  return `\n\n【历史优质示例参考】(系统自动收集的真实生成记录，请参考其风格、颗粒度与五段式结构，保持一致性):\n${items}`;
+  return `\n\n【历史生成记录 · 仅供结构参考】(以下是系统自动收集的真实生成记录，**只用于参考五段式结构、五要素密度与时间线切分方式**):\n${items}\n\n⚠️ 使用约束（优先级最高）:\n1. 严禁复用这些示例中的具体品类、物体、颜色、材质、接口、配件、道具、台词。\n2. 本次输出的全部实体细节必须来自本次「用户输入」；示例只提供"写多细、分几段、每段写几个要素"的刻度。\n3. 若本次输入与示例题材不同，示例内容一律忽略，只保留其结构刻度。`;
 }
 // 提取并剥离【意图解析】块:返回结构化意图、剥离后的纯五段式、质检告警
 function extractIntent(raw) {
@@ -1447,13 +1484,14 @@ const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理�
 
 // OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)
 // contentParts: [{type:"image_url",image_url:{url}}, {type:"text",text}]
-async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens) {
+// temperature 可选:提示词创作类调用传 0.85 提多样性;帧描述/聊天保持默认 0.7 保稳定
+async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens, temperature = 0.7) {
   const url = AI_BASE_URL
     ? `${AI_BASE_URL.replace(/\/$/, "")}/chat/completions`
     : (AI_PROVIDER === "qwen"
         ? "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
         : "https://api.openai.com/v1/chat/completions");
-  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: contentParts }], temperature: 0.7, max_tokens: maxTokens };
+  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: contentParts }], temperature, max_tokens: maxTokens };
   // 免费模型共享算力,偶发 429 限流,自动重试
   const maxRetry = 3;
   let lastErr = "";
@@ -1536,13 +1574,13 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 4. **区间格式**：整数或 1 位小数均可，两端用半角「—」（例 \`【0—2秒】\`、\`【2.8—5秒】\`），禁止写「结尾 / End / ...」。
 
 ### 质量锚点范例（段数依总时长 N 而定，示范"细度与五要素"）
-**例 A · N = 15（充电宝产品广告）**
+**例 A · N = 15（产品广告 · 品类仅为占位示范）**
 【时间线】
-【0—2秒｜特写·起始动作】主体正面静置于画面中央，表面哑光质感清晰可见，PHILIPS 字样微弱反光，镜头缓慢推近至品牌标识区域，环境光从左上方投射形成柔和阴影，定格于文字局部特写。
-【2—5秒｜中景·主体互动】主体侧身旋转，露出顶部 USB-C 接口与指示灯窗口，手指指尖轻触电源按钮，按钮轻微凹陷内部指示灯亮起蓝光，运镜随手推动作横向平移，背景光保持稳定。
-【5—9秒｜宽景·环境建立】主体静置于画面中心偏下位置，镜头拉远至全景视角，展现其完整形态与编织挂绳自然垂落姿态，背景为纯净白色空间，光线均匀分布，顶部光源产生轻微高光反射。
-【9—12秒｜特写·细节质感】镜头聚焦于主体侧面 USB-A 接口处，金属插口边缘有细微反光，连接线缆插入瞬间产生轻微震动，接口内镀层反光显现，周围空气无扰动。
-【12—15秒｜持续推进】主体在画面中缓慢抬升，底部轻微离地，挂钩随上升动作自然摆动，镜头跟随上移至俯视角度，同时指示灯由蓝变绿表示电量充足，环境光渐强，定格于悬浮状态的完整轮廓与发光状态。
+【0—2秒｜特写·起始动作】主体正面静置于画面中央，表面材质纹理清晰可见，品牌字样微弱反光，镜头缓慢推近至品牌标识区域，环境光从左上方投射形成柔和阴影，定格于文字局部特写。
+【2—5秒｜中景·主体互动】主体侧身旋转，露出顶部开合结构与状态指示窗，手指指尖轻触控制按钮，按钮轻微凹陷后状态窗亮起微光，运镜随手推动作横向平移，背景光保持稳定。
+【5—9秒｜宽景·环境建立】主体静置于画面中心偏下位置，镜头拉远至全景视角，展现其完整形态与随附配件自然垂落姿态，背景为纯净白色空间，光线均匀分布，顶部光源产生轻微高光反射。
+【9—12秒｜特写·细节质感】镜头聚焦于主体侧面的开合结构处，金属边缘有细微反光，配件扣合瞬间产生轻微震动，内壁镀层反光显现，周围空气无扰动。
+【12—15秒｜持续推进】主体在画面中缓慢抬升，底部轻微离地，随附配件随上升动作自然摆动，镜头跟随上移至俯视角度，同时状态指示窗转为常亮表示进入工作状态，环境光渐强，定格于悬浮状态的完整轮廓与发光状态。
 
 **例 B · N = 30（人物故事短片）**
 【时间线】
@@ -1554,21 +1592,28 @@ const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 
 【24—28秒｜宽景·结果】……
 【28—30秒｜特写·稳定收尾】……
 
-**例 C · N = 18（带货口播 · 充电宝，示范口播带货骨架与品牌默认处理）**
+**例 C · N = 20（带货口播 · 品类仅为占位示范，示范口播带货骨架与品牌默认处理）**
 【主体】
-主播（25—30 岁女性，齐肩短发，浅色西装外套，浅妆）+ 浅蓝色随身充电宝（口红大小、哑光外壳、USB-A/USB-C 双接口、编织挂绳）。全片同一主播与同一产品。
+主播（25—30 岁女性，齐肩短发，浅色西装外套，浅妆）+ 磨砂深灰不锈钢保温杯（直筒杯身、旋盖式杯口、硅胶密封圈、杯底防滑垫）。全片同一主播与同一产品。
 
 【风格】
-时长 18 秒，画幅 16:9，分辨率 3840×2160，帧率 30fps，成片形式为带货口播视频。柔和顶光 + 侧逆光补面光，浅蓝 / 灰白主色，质感细腻。
+时长 20 秒，画幅 16:9，分辨率 3840×2160，帧率 30fps，成片形式为带货口播视频。柔和顶光 + 侧逆光补面光，暖灰 / 米白主色，质感细腻。
 
 【时间线】
-【0—3秒｜中景·主播开场口播】主播正面中景面对镜头坐于白色工作台前，背后浅灰渐变柔光箱，左手轻托产品举至胸前微笑开口「姐妹们看这款随身充电宝，体积只有口红大小……」镜头正面平视缓缓推近至主播半身，环境暖光均匀。
-【3—6秒｜特写·产品展示】硬切至产品特写：产品正面静置于浅灰磨砂台面，浅蓝外壳哑光质感清晰可见，USB-A 与 USB-C 接口入镜，镜头缓慢环绕 360 度展现完整形态，背景虚化为柔白光环，环境冷光与暖光交替映射材质反光，定格于接口局部特写。
-【6—10秒｜中景·主播演示】回到主播中景，主播右手拔起 USB-C 线缆插入接口，接口处蓝色指示灯亮起，主播表情带惊喜「你看线一插就来电」，运镜轻微跟手俯拍至接口处再回主播面部，环境光从顶光过渡为侧逆光突出面部轮廓。
-【10—14秒｜特写·细节质感】切至产品细节特写：编织挂绳自然垂落，指示灯由蓝变绿表示满电状态，金属接口边缘反光与挂绳纤维纹理清晰可见，镜头微距跟拍挂绳摆动，光斑随摆动节奏扩散。
-【14—18秒｜中景·主播收尾+引导】回到主播中景稍俯视角，主播双手捧起产品举至镜头前「随身带着这一只，出差旅行再也不焦虑」，背景虚化为浅蓝渐变，主播微笑点头，画面渐隐至品牌轮廓位置（不出现品牌名），环境光渐强收束。
+【0—2秒｜中景·主播开场口播】主播正面中景面对镜头坐于白色工作台前，背后浅灰渐变柔光箱，左手轻托产品举至胸前微笑开口「出门在外最怕的就是水凉得太快……」镜头正面平视缓缓推近至主播半身，环境暖光均匀。
+【2—7秒｜特写·产品展示】硬切至产品特写：产品正面静置于浅灰磨砂台面，磨砂深灰杯身拉丝纹理清晰可见，旋盖与硅胶密封圈入镜，镜头缓慢环绕 360 度展现完整形态，背景虚化为柔白光环，环境冷光与暖光交替映射金属反光，定格于杯口局部特写。
+【7—12秒｜中景·主播演示】回到主播中景，主播右手旋开杯盖露出内胆，升腾的热气在杯口聚拢又被顶光穿透，主播表情带惊喜「早上倒的热水，到下午还是烫的」，运镜轻微跟手俯拍至杯口再回主播面部，环境光从顶光过渡为侧逆光突出面部轮廓。
+【12—17秒｜特写·细节质感】切至产品细节特写：杯盖螺纹一圈圈旋紧，硅胶密封圈被压出细微形变，金属内胆边缘反光与杯身拉丝纹理清晰可见，镜头微距跟拍杯口热气上升，光斑随气流节奏扩散。
+【17—20秒｜中景·主播收尾+引导】回到主播中景稍俯视角，主播双手捧起产品举至镜头前「一只杯子管一整天，通勤出差都够用」，背景虚化为暖灰渐变，主播微笑点头，画面渐隐至品牌轮廓位置（不出现品牌名），环境光渐强收束。
 
 → 恒定标准：五段式完整、时间线从 0 秒连续覆盖到 N 秒、末段以「X—N秒」收尾绝不写「结尾」、每镜含五要素、镜头类型交替、用可拍摄动词、写出质感细节。
+
+### 反模板泄漏（最高优先级，与上文任何规则冲突时以此条为准）
+上面三个范例**只用于示范「细度、结构、五要素密度、时间线切割」**。范例中的具体品类、物体、颜色、材质、接口、道具、人物台词**全部是占位符**，只为让该范例自身读起来连贯，**没有任何一项是标准配置**。
+1. 严禁把范例中的任何物件、颜色、材质、接口、配件、状态灯、台词迁移到本次输出。
+2. 本次输出的主体、颜色、材质、道具、卖点，**只能来自「用户输入」**；用户输入没写的，按该品类最合理的通用形态自行补全，不得套用范例细节。
+3. 自检：若用户输入是自行车锁，而输出出现「编织挂绳 / USB-C / 指示灯 / 哑光外壳」等范例专属细节，判定为不合格，必须重写。
+4. 同一批语料里的历史示例同理：只学结构，不抄内容。
 
 ### 恒定输出规则（对 ANY 输入强制适用，不可因题材而破例）
 1. **五段式结构必须完整**：【主体】【风格】【时间线】【BGM】【限制】五标题缺一不可，不额外分析、不截断。
@@ -1750,19 +1795,19 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
         }
         const desc = frameDescs.join("\n\n");
         const finalText = `以下是该视频的逐帧像素级画面分析（共${imgList.length}帧，每帧独立详尽分析），请据此原片反推五段式提示词。视频总时长约${dur}秒：\n\n${desc}\n\n${idea ? ("用户补充要求：" + idea) : ""}`;
-        return await callOpenAIChat(textModel, sys, [{ type: "text", text: finalText }], 4096);
+        return await callOpenAIChat(textModel, sys, [{ type: "text", text: finalText }], 4096, 0.85);
       }
       // 普通生成(单图或纯文本);有图时走视觉模型候选链(失效自动回落)
       const content = [];
       if (imgList.length) imgList.forEach(src => content.push({ type: "image_url", image_url: { url: src, detail: "auto" } }));
       content.push({ type: "text", text: userMsg });
-      if (!imgList.length) return await callOpenAIChat(textModel, sys, content, 4096);
+      if (!imgList.length) return await callOpenAIChat(textModel, sys, content, 4096, 0.85);
       let txt = "", lastErr = "";
       for (const vm of visionCands) {
         // flash 类视觉模型 max_tokens 上限多为 1024,超限时自动降级重试
         const mtList = /flash/i.test(vm) ? [1024, 4096] : [4096, 1024];
         for (const mt of mtList) {
-          try { txt = await callOpenAIChat(vm, sys, content, mt); break; }
+          try { txt = await callOpenAIChat(vm, sys, content, mt, 0.85); break; }
           catch (e) { lastErr = e.message; txt = ""; }
         }
         if (txt) break;
