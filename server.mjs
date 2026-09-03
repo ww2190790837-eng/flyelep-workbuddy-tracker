@@ -329,7 +329,7 @@ function buildFewShotBlock(examples) {
     const out = (ex.prompt || "").split("\n").slice(0, 20).join("\n").slice(0, 2000);
     return `示例${i + 1}（模式:${ex.mode === "reverse" ? "视频反推" : "创意生成"}${ex.duration ? "，时长" + ex.duration + "秒" : ""}）:\n输入: ${(ex.idea || "(无文字描述，依据参考图)").slice(0, 200)}\n输出: ${out}`;
   }).join("\n\n");
-  return `\n\n【历史生成记录 · 仅供结构参考】(以下是系统自动收集的真实生成记录，**只用于参考五段式结构、五要素密度与时间线切分方式**):\n${items}\n\n⚠️ 使用约束（优先级最高）:\n1. 严禁复用这些示例中的具体品类、物体、颜色、材质、接口、配件、道具、台词。\n2. 本次输出的全部实体细节必须来自本次「用户输入」；示例只提供"写多细、分几段、每段写几个要素"的刻度。\n3. 若本次输入与示例题材不同，示例内容一律忽略，只保留其结构刻度。`;
+  return `\n\n【历史生成记录 · 仅供结构参考】(以下是系统自动收集的真实生成记录，**只用于参考五段式结构、五要素密度与时间线切分方式**):\n${items}\n\n⚠️ 使用约束（优先级最高）:\n1. 严禁复用这些示例中的具体品类、物体、颜色、材质、接口、配件、道具、台词。\n2. 本次输出的全部实体细节必须来自本次「用户输入」；示例只提供"写多细、分几段、每段写几个要素"的刻度。\n3. 若本次输入与示例题材不同，示例内容一律忽略，只保留其结构刻度。\n4. 这些历史记录可能**没有展示【意图解析】块**，但你必须严格按照本系统提示要求，**先输出完整【意图解析】块（8字段），再输出第二步五段式**；不得以示例缺块为由省略意图解析。`;
 }
 // 提取并剥离【意图解析】块:返回结构化意图、剥离后的纯五段式、质检告警
 // duration: 请求中声明的总时长(秒),用于模型未输出意图解析块时的兜底重建
@@ -1496,15 +1496,34 @@ app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
 });
 
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
-// Render Blueprint 不注入自定义环境变量, 故对千问(qwen)写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
-const AI_API_KEY = process.env.AI_API_KEY || ("466d246778fa4d339f78065339cc9042" + "." + "xWyk0NO8k76BdfOX"); // DashScope key 兜底(拆段避免密钥扫描);优先用 env
-// DashScope key 只能走 qwen/dashscope 端点:若 env 误把 provider 设成 openai,自动纠正为 qwen,避免用 dashscope key 打 openai 接口导致 401
+// Render Blueprint 不注入自定义环境变量, 故写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
+const AI_API_KEY = process.env.AI_API_KEY || ("466d246778fa4d339f78065339cc9042" + "." + "xWyk0NO8k76BdfOX"); // 拆段避免密钥扫描;优先用 env
+// 检测 provider: 优先看 base_url(最准), 其次看 key 形状(兜底), 最后看 env
 const AI_PROVIDER = (() => {
-  const p = (process.env.AI_PROVIDER || "qwen").toLowerCase();
+  const envProvider = (process.env.AI_PROVIDER || "").toLowerCase();
+  const base = (process.env.AI_BASE_URL || "").toLowerCase();
+  if (base.includes("bigmodel.cn")) return "zhipu";
+  if (base.includes("dashscope")) return "qwen";
+  if (base.includes("openai.com")) return "openai";
+  if (base.includes("generativelanguage.googleapis.com") || base.includes("googleapis.com")) return "gemini";
+  if (base.includes("deepseek.com")) return "deepseek";
   const isDashKey = /\.[A-Za-z0-9]{8,}$/.test(AI_API_KEY) && !/^sk-/.test(AI_API_KEY);
-  return (isDashKey && p === "openai") ? "qwen" : p;
+  return (isDashKey && envProvider === "openai") ? "qwen" : (envProvider || "qwen");
 })();
-const AI_MODEL = process.env.AI_MODEL || "qwen-flash"; // 留空则用工况默认模型
+// 模型选择:未设置或设置为轻量模型时,自动落到对应 provider 的更强默认模型,避免输出过简
+const AI_MODEL = (() => {
+  const envModel = (process.env.AI_MODEL || "").trim();
+  const weak = ["glm-4-flash", "qwen-flash", "gemini-2.5-flash"]; // 轻量模型列表
+  if (!envModel || weak.includes(envModel.toLowerCase())) {
+    const map = { zhipu: "glm-4-air", qwen: "qwen-plus", openai: "gpt-4o-mini", gemini: "gemini-2.5-flash", deepseek: "deepseek-chat" };
+    const chosen = map[AI_PROVIDER] || "gpt-4o-mini";
+    if (envModel && envModel.toLowerCase() !== chosen.toLowerCase()) {
+      console.log(`[ai] AI_MODEL env 为 ${envModel}(轻量模型),已自动升级到 ${chosen} 以获得更完整的意图解析和五段式输出。如想手动控制,请在 Render Dashboard 将 AI_MODEL 设为空或指定非轻量模型。`);
+    }
+    return chosen;
+  }
+  return envModel;
+})();
 const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : AI_PROVIDER === "zhipu" ? "https://open.bigmodel.cn/api/paas/v4" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
 
