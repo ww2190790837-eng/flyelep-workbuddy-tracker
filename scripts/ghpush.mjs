@@ -97,8 +97,16 @@ async function main() {
   });
 
   console.log(`✓ 已推送 ${commit.sha.slice(0, 7)} -> ${REPO}@${BRANCH}`);
-  run(`git update-ref refs/remotes/origin/${BRANCH} ${commit.sha}`);
-  console.log('✓ 本地 origin/' + BRANCH + ' 已同步');
+
+  // 远端对象本地不存在，update-ref 指向它会失败；本地 HEAD 的 tree 与之完全一致，
+  // 用本地 HEAD 同步 ref，后续 diff 才准确。失败也不该阻断部署。
+  try {
+    const headSha = run('git rev-parse HEAD');
+    run(`git update-ref refs/remotes/origin/${BRANCH} ${headSha}`);
+    console.log(`✓ 本地 origin/${BRANCH} 已同步到 ${headSha.slice(0, 7)}`);
+  } catch (e) {
+    console.warn('⚠ 本地 ref 同步失败（不影响部署）:', e.message.split('\n')[0]);
+  }
 
   // 4. 触发 Render 部署
   const rd = await fetch(`https://api.render.com/v1/services/${RENDER_SERVICE}/deploys`, {

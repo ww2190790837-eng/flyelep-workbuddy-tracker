@@ -142,7 +142,9 @@
   <button class="btn" id="btnDark">🌗 预览配色</button>
   <button class="btn" id="btnImport">导入 MD</button>
   <button class="btn" id="btnExport">导出 MD</button>
-  <button class="btn" id="btnSave">保存</button>
+  <button class="btn" id="btnSave">存本机</button>
+  <button class="btn" id="btnCloudSave">☁ 存云端</button>
+  <button class="btn" id="btnCloudLoad">☁ 读取</button>
   <button class="btn primary" id="btnPresent">▶ 演示</button>
   <a class="btn" href="/slides/" target="_blank">线上版 ↗</a>
 </header>
@@ -494,7 +496,32 @@
   document.getElementById("btnDark").onclick = function(){ dark=!dark; state.colorSchema = dark?"dark":""; save(); renderAll(); if(pEl.classList.contains("on")) renderPresent(); };
   document.getElementById("deckTitle").oninput = function(){ state.title=this.value; save(); };
   document.getElementById("themeSel").onchange = function(){ state.theme=this.value; save(); };
-  document.getElementById("btnSave").onclick = function(){ save(); toast("已保存到本浏览器"); };
+  document.getElementById("btnSave").onclick = function(){ save(); toast("已存到本机浏览器"); };
+
+  async function cloudSave(){
+    try {
+      const r = await fetch("/api/deck", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ deck: state }) });
+      const j = await r.json();
+      if (!r.ok) { toast(j.error || ("保存失败 " + r.status)); return; }
+      toast("已存到云端（" + (j.storage === "gist" ? "Gist，跨设备同步" : "服务器本地") + "）");
+    } catch (e) { toast("保存失败：" + e.message); }
+  }
+  async function cloudLoad(){
+    try {
+      const r = await fetch("/api/deck");
+      const j = await r.json();
+      if (!r.ok) { toast(j.error || ("读取失败 " + r.status)); return; }
+      if (!j.deck || !j.deck.slides) { toast("云端还没有存档"); return; }
+      state = j.deck; cur = 0; step = 0;
+      document.getElementById("deckTitle").value = state.title || "";
+      document.getElementById("themeSel").value = state.theme || "default";
+      dark = state.colorSchema === "dark";
+      save(); renderAll();
+      toast("已从云端读取（" + (j.storage === "gist" ? "Gist" : "服务器本地") + "）");
+    } catch (e) { toast("读取失败：" + e.message); }
+  }
+  document.getElementById("btnCloudSave").onclick = cloudSave;
+  document.getElementById("btnCloudLoad").onclick = cloudLoad;
   document.getElementById("btnExport").onclick = function(){
     var text = toMarkdown();
     var blob = new Blob([text], {type:"text/markdown;charset=utf-8"});

@@ -101,6 +101,7 @@ const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
 const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
 const PROMPTS_GIST_FILENAME = "flyelep_prompts.json"; // 提示词训练语料(独立文件)
 const MESSAGES_GIST_FILENAME = "flyelep_messages.json"; // 留言板数据(独立文件)
+const DECKS_GIST_FILENAME = "flyelep_decks.json"; // 文稿工作室存档(按 userId 隔离,独立文件)
 // ===== Video-Use 辅助 API (ElevenLabs Scribe 转写/处理) =====
 // 实测确认: sk_ 前缀为 ElevenLabs 新版 key 格式; apisk_ 前缀非 ElevenLabs key(返回 Invalid API key)。
 // Render Blueprint 不注入自定义环境变量, 故地址/key 写死在此, 更换服务改这里即可。
@@ -214,6 +215,48 @@ async function gistPushPrompts() {
   });
   if (!r.ok) throw new Error("gist push prompts " + r.status);
 }
+// ===== 文稿工作室存档持久化(按 userId 隔离;Gist 优先,本地文件兜底) =====
+const DECKS_FILE = path.join(DATA_DIR, "decks.json");
+function readDecksLocal() {
+  try { return JSON.parse(fs.readFileSync(DECKS_FILE, "utf8")) || {}; } catch (e) { return {}; }
+}
+function writeDecksLocal(obj) {
+  try { fs.writeFileSync(DECKS_FILE, JSON.stringify(obj, null, 2)); }
+  catch (e) { console.error("[decks] 本地落盘失败:", e.message); }
+}
+async function gistFetchDecks() {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
+  });
+  if (!r.ok) throw new Error("gist fetch decks " + r.status);
+  const data = await r.json();
+  const f = data.files && data.files[DECKS_GIST_FILENAME];
+  return f && f.content ? JSON.parse(f.content) : null;
+}
+async function gistPushDecks(obj) {
+  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+    body: JSON.stringify({ files: { [DECKS_GIST_FILENAME]: { content: JSON.stringify(obj) } } })
+  });
+  if (!r.ok) throw new Error("gist push decks " + r.status);
+}
+async function loadAllDecks() {
+  if (usingGist) {
+    try { const d = await gistFetchDecks(); return d || {}; }
+    catch (e) { console.error("[decks] Gist 读取失败,回退本地:", e.message); }
+  }
+  return readDecksLocal();
+}
+async function saveAllDecks(obj) {
+  if (usingGist) {
+    try { await gistPushDecks(obj); return "gist"; }
+    catch (e) { console.error("[decks] Gist 写入失败,回退本地:", e.message); }
+  }
+  writeDecksLocal(obj);
+  return "local";
+}
+
 // ===== 留言板 Gist 持久化 =====
 let messages = []; // {id, name, content, ts, ip}
 const MAX_MESSAGES = 500;
@@ -923,6 +966,49 @@ app.get("/t.gif", (req, res) => {
   res.set("Content-Type", "image/gif");
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.send(Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64"));
+});
+
+// ===== 文稿工作室存档 API(需登录,存档按 userId 隔离) =====
+app.get("/api/deck", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
+  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
+  try {
+    const all = await loadAllDecks();
+    res.json({ ok: true, deck: all[u.id] || null, storage: usingGist ? "gist" : "local" });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: "读取失败:" + e.message });
+  }
+});
+
+app.post("/api/deck", express.json({ limit: "2mb" }), async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
+  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
+  const deck = req.body && req.body.deck;
+  if (!deck || typeof deck !== "object" || Array.isArray(deck))
+    return res.status(400).json({ ok: false, error: "存档格式不正确" });
+  if (JSON.stringify(deck).length > 2 * 1024 * 1024)
+    return res.status(413).json({ ok: false, error: "存档过大（上限 2MB）" });
+  try {
+    const all = await loadAllDecks();
+    all[u.id] = { ...deck, updatedAt: Date.now() };
+    const storage = await saveAllDecks(all);
+    res.json({ ok: true, storage, updatedAt: all[u.id].updatedAt });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: "保存失败:" + e.message });
+  }
+});
+
+app.delete("/api/deck", async (req, res) => {
+  const u = req.session.userId ? await findUserById(req.session.userId) : null;
+  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
+  try {
+    const all = await loadAllDecks();
+    delete all[u.id];
+    const storage = await saveAllDecks(all);
+    res.json({ ok: true, storage });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: "删除失败:" + e.message });
+  }
 });
 
 // ===== 留言板 API(公开,无需登录) =====

@@ -184,7 +184,7 @@
         const list = SKILLS.filter((s) => {
           if (activeCat !== "__all" && s.category !== activeCat) return false;
           if (!q) return true;
-          const hay = (s.name + " " + s.description + " " + s.categoryLabel + " " + (s.triggers || []).join(" ")).toLowerCase();
+          const hay = (s.title + " " + s.name + " " + s.description + " " + s.categoryLabel + " " + (s.triggers || []).join(" ")).toLowerCase();
           return hay.includes(q);
         });
         rc.textContent = `显示 ${list.length} / ${SKILLS.length} 个技能` + (q ? `（搜索：“${qEl.value.trim()}”）` : "");
@@ -203,7 +203,7 @@
               <span class="tag" style="background:${col}">${esc(s.categoryLabel)}</span>
               ${s.version ? `<span class="ver">v${esc(s.version)}</span>` : ""}
             </div>
-            <h3>${esc(s.name)}</h3>
+            <h3>${esc(s.title || s.name)}</h3>
             <p class="desc">${esc(s.description)}</p>
             ${triggers || moreTrig ? `<div class="triggers">${triggers}${moreTrig}</div>` : ""}
             <div class="files">

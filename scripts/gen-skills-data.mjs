@@ -34,6 +34,13 @@ const LABELS = {
   web: "Web 工具",
 };
 
+// Words that should render uppercase in display titles.
+const ACRONYMS = new Set([
+  'api', 'id', 'url', 'uri', 'seo', 'cpc', 'roi', 'asin', 'sku', 'ctr', 'gmv',
+  'ai', 'ui', 'ux', 'html', 'css', 'json', 'xml', 'csv', 'pdf', 'sms', 'erp',
+  'crm', 'sku', 'qps', 'ip', 'uv', 'pv',
+]);
+
 function readJSON(p) {
   try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
 }
@@ -74,10 +81,14 @@ for (const d of dirs) {
   const category = d.split('-')[1] || 'misc';
   const files = Array.isArray(manifest.files) ? manifest.files : [];
 
-  // Human-friendly display title: drop the "ecommerce-" prefix, split on
-  // hyphens, capitalize words longer than 2 chars (keeps "1688", "api" etc. sane).
+  // Human-friendly display title: drop the "ecommerce-" prefix, split on hyphens,
+  // capitalize words longer than 2 chars, and force known acronyms to uppercase
+  // (so "amazon-ads-api-access" -> "Amazon Ads API Access", not "... Api ...").
   const title = d.replace(/^ecommerce-/, '').split('-')
-    .map((w) => (w.length > 2 ? w[0].toUpperCase() + w.slice(1) : w))
+    .map((w) => {
+      if (ACRONYMS.has(w.toLowerCase())) return w.toUpperCase();
+      return w.length > 2 ? w[0].toUpperCase() + w.slice(1) : w;
+    })
     .join(' ');
 
   skills.push({
