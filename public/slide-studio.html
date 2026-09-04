@@ -353,7 +353,7 @@
   function renderInspector(){
     var s = state.slides[cur]; if (!s) { document.getElementById("inspector").innerHTML = '<div class="empty-hint">没有幻灯片</div>'; return; }
     var showCols = s.layout === "two-cols";
-    var showImg  = ["image-right","image-left","full"].indexOf(s.layout) >= 0;
+    var showImg  = ["image-right","image-left","full","cover","default"].indexOf(s.layout) >= 0;
     document.getElementById("inspector").innerHTML =
       '<div class="sec-title">幻灯片设置</div>'+
       f("布局", sel("f_layout", LAYOUTS.map(function(l){ return '<option value="'+l+'"'+(s.layout===l?" selected":"")+'>'+LAYOUT_CN[l]+'（'+l+'）</option>'; }).join("")))+
