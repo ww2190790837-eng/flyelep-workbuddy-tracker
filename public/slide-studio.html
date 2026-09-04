@@ -106,6 +106,21 @@
   .vclick.shown{opacity:1}
   .notes-badge{position:absolute;right:12px;bottom:10px;font-size:11px;color:#888;background:rgba(0,0,0,.06);padding:3px 8px;border-radius:6px}
   .canvas-wrap.dark .notes-badge{color:#888;background:rgba(255,255,255,.08)}
+  /* transition keyframes (present / slide-change) */
+  @keyframes fx-fade{from{opacity:0}to{opacity:1}}
+  @keyframes fx-slide-left{from{transform:translateX(48px);opacity:0}to{transform:translateX(0);opacity:1}}
+  @keyframes fx-slide-right{from{transform:translateX(-48px);opacity:0}to{transform:translateX(0);opacity:1}}
+  @keyframes fx-slide-up{from{transform:translateY(48px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes fx-slide-down{from{transform:translateY(-48px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes fx-zoom{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  /* cover / default image support */
+  .slidev.l-cover img.coverimg{max-height:38%;max-width:72%;border-radius:12px;margin-top:18px;object-fit:contain}
+  .slidev img.extra{display:block;margin:18px auto 0;max-height:240px;max-width:80%;border-radius:10px;object-fit:contain}
+  /* slide reorder */
+  .slide-item .mv{display:flex;flex-direction:column;opacity:0;margin-left:3px}
+  .slide-item:hover .mv{opacity:1}
+  .slide-item .mv button{font-size:10px;line-height:1.1;color:var(--text-3);padding:1px 4px;border-radius:4px}
+  .slide-item .mv button:hover{color:var(--primary);background:var(--panel-2)}
 
   .nav{display:flex;align-items:center;gap:10px;color:var(--text-2);font-size:13px}
   .nav .b{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center}
@@ -208,7 +223,7 @@
       } return ''; }}) : null;
 
   var state = load() || defaultDeck();
-  var cur = 0, step = 0, dark = false;
+  var cur = 0, step = 0, dark = false, playing = false;
 
   function uid(){ return Math.random().toString(36).slice(2,9); }
   function defaultDeck(){
@@ -221,6 +236,18 @@
   function load(){ try{ var r=localStorage.getItem(STORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
   function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];}); }
+
+  // which slide element is currently on screen (present overlay or preview)
+  function activeSlideEl(){ return pEl.classList.contains("on") ? document.getElementById("pslide") : document.getElementById("slide"); }
+  // single source of truth for v-clicks count: every <li>/<p> rendered in the current slide
+  function clickCount(){ try { return activeSlideEl().querySelectorAll("li, p, .vclickable").length; } catch(e){ return 0; } }
+  // play a transition animation on an element (re-triggered via reflow)
+  function applyFx(el, name){
+    if (!el || !name || name === "none" || name === "fade-out") return;
+    var map = { "slide-left":"fx-slide-left","slide-right":"fx-slide-right","slide-up":"fx-slide-up","slide-down":"fx-slide-down","fade":"fx-fade","zoom":"fx-zoom" };
+    var k = map[name]; if (!k) return;
+    el.style.animation = "none"; void el.offsetWidth; el.style.animation = k + " .35s ease both";
+  }
 
   /* ---------- markdown -> html ---------- */
   function renderMD(src){
@@ -266,8 +293,12 @@
     var L = s.layout || "default";
     var clsMap = {cover:"l-cover",default:"",center:"l-center","two-cols":"l-cols","image-right":"l-imgright","image-left":"l-imgleft",quote:"l-quote",section:"l-section",statement:"l-statement",fact:"l-fact",full:"l-full",end:"l-end",none:""};
     container.className = "slidev " + (clsMap[L]||"");
-    container.style.background = s.background || "";
-    if (s.background && /gradient|#|rgb/.test(s.background)) container.style.background = s.background;
+    container.style.background = "";
+    container.style.backgroundImage = "";
+    if (s.background) {
+      if (/^(https?:|\/|data:)/.test(s.background)) container.style.backgroundImage = "url('" + s.background.replace(/'/g, "%27") + "')";
+      else container.style.background = s.background;
+    }
 
     var h = "";
     var title = s.title ? "<h1>"+renderMD(s.title)+"</h1>" : "";
@@ -280,8 +311,10 @@
       h = title + '<div>'+body+'</div>' + img;
     } else if (L === "full") {
       h = s.image ? '<img src="'+esc(s.image)+'" alt="">' : '<div style="color:#bbb;font-size:14px">（未设置图片）</div>';
+    } else if (L === "cover") {
+      h = title + (s.image ? '<img class="coverimg" src="'+esc(s.image)+'" alt="">' : "") + body;
     } else {
-      h = title + body;
+      h = title + body + (s.image ? '<img class="extra" src="'+esc(s.image)+'" alt="">' : "");
     }
     container.innerHTML = h;
     postProcess(container);
@@ -295,14 +328,23 @@
       return '<div class="slide-item'+(i===cur?" active":"")+'" data-i="'+i+'">'+
         '<span class="idx">'+(i+1)+'</span>'+
         '<span class="meta"><div class="t">'+esc(s.title||"（无标题）")+'</div><div class="l">'+esc(LAYOUT_CN[s.layout]||s.layout)+'</div></span>'+
+        '<span class="mv"><button data-up="'+i+'" title="上移">▲</button><button data-down="'+i+'" title="下移">▼</button></span>'+
         '<span class="x" data-del="'+i+'" title="删除">×</span></div>';
     }).join("");
     el.querySelectorAll(".slide-item").forEach(function(n){
       n.addEventListener("click", function(e){
         if (e.target.dataset.del !== undefined) { del(+e.target.dataset.del); return; }
-        cur = +n.dataset.i; step = 0; renderAll();
+        if (e.target.dataset.up !== undefined) { move(+e.target.dataset.up, -1); return; }
+        if (e.target.dataset.down !== undefined) { move(+e.target.dataset.down, 1); return; }
+        cur = +n.dataset.i; step = 0; playing = false; renderAll();
       });
     });
+  }
+  function move(i, dir){
+    var j = i + dir; if (j < 0 || j >= state.slides.length) return;
+    var t = state.slides[i]; state.slides[i] = state.slides[j]; state.slides[j] = t;
+    if (i === cur) cur = j; else if (j === cur) cur = i;
+    playing = false; save(); renderAll();
   }
 
   /* ---------- UI: inspector ---------- */
@@ -329,10 +371,10 @@
       f("演讲者备注", '<textarea id="f_notes" style="min-height:80px">'+esc(s.notes)+'</textarea>')+
       '<div class="hint" style="margin-top:16px">提示：选中幻灯片后可用 ↑ ↓ 切换，Ctrl/⌘+D 复制。</div>';
 
-    var bind = function(id, key){ var n=document.getElementById(id); if(n) n.addEventListener("input", function(){ s[key]=n.value; save(); renderList(); renderPreview(); }); };
+    var bind = function(id, key){ var n=document.getElementById(id); if(n) n.addEventListener("input", function(){ s[key]=n.value; playing=false; save(); renderList(); renderPreview(); }); };
     bind("f_title","title"); bind("f_body","body"); bind("f_left","left"); bind("f_right","right");
     bind("f_image","image"); bind("f_bg","background"); bind("f_notes","notes"); bind("f_cls","cls");
-    var lt=document.getElementById("f_layout"); if(lt) lt.addEventListener("change", function(){ s.layout=lt.value; save(); renderAll(); });
+    var lt=document.getElementById("f_layout"); if(lt) lt.addEventListener("change", function(){ s.layout=lt.value; playing=false; save(); renderAll(); });
     var tr=document.getElementById("f_trans"); if(tr) tr.addEventListener("change", function(){ s.transition=tr.value; save(); });
     var ck=document.getElementById("f_clicks"); if(ck) ck.addEventListener("change", function(){ s.clicks=ck.checked; step=0; save(); renderPreview(); });
   }
@@ -344,12 +386,16 @@
     var s = state.slides[cur];
     var canvas = document.getElementById("canvas");
     canvas.classList.toggle("dark", dark);
-    if (!s) { document.getElementById("slide").innerHTML = '<div class="empty-hint">没有幻灯片</div>'; return; }
-    var total = renderSlide(document.getElementById("slide"), s, step);
+    var slideEl = document.getElementById("slide");
     var badge = document.getElementById("notesBadge");
+    if (!s) { slideEl.innerHTML = '<div class="empty-hint">没有幻灯片</div>'; badge.textContent=""; document.getElementById("counter").textContent="0 / 0"; document.getElementById("stepInfo").textContent=""; updateAnimBtn(); return; }
+    // render fully-shown first (so DOM is populated), then re-apply step if scrubbing
+    var total = renderSlide(slideEl, s, 9999);
+    if (playing && s.clicks) applyClicks(slideEl, true, step);
     badge.textContent = s.notes ? "📝 有备注" : "";
     document.getElementById("counter").textContent = (cur+1)+" / "+state.slides.length;
-    document.getElementById("stepInfo").textContent = total ? ("动画 "+Math.min(step,total)+"/"+total) : "";
+    document.getElementById("stepInfo").textContent = s.clicks ? ("动画 " + (playing ? Math.min(step,total) : total) + "/" + total + (playing ? " ·播放中" : "")) : "";
+    updateAnimBtn();
   }
   function renderAll(){ renderList(); renderInspector(); renderPreview(); }
 
@@ -391,9 +437,7 @@
       } else if (s.body) {
         out.push(s.body + "\n");
       }
-      if (s.image && ["image-right","image-left","full"].indexOf(s.layout) < 0 && s.layout !== "cover") {
-        // image not natively placed by these layouts -> append
-      }
+      if (s.image && s.layout !== "two-cols") out.push("![](" + s.image + ")\n");
       if (s.notes) out.push("<!--\n" + s.notes + "\n-->\n");
     });
     return out.join("\n");
@@ -465,25 +509,33 @@
 
   /* ---------- present mode ---------- */
   var pEl = document.getElementById("present");
-  function presentOpen(){ pEl.classList.add("on"); renderPresent(); document.body.requestFullscreen && document.body.requestFullscreen().catch(function(){}); }
-  function presentClose(){ pEl.classList.remove("on"); if (document.fullscreenElement) document.exitFullscreen().catch(function(){}); }
+  function presentOpen(){ playing = true; step = 0; pEl.classList.add("on"); renderPresent(); applyFx(document.getElementById("pslide"), fxName()); document.body.requestFullscreen && document.body.requestFullscreen().catch(function(){}); }
+  function presentClose(){ pEl.classList.remove("on"); playing = false; if (document.fullscreenElement) document.exitFullscreen().catch(function(){}); renderPreview(); }
   function renderPresent(){
     var s = state.slides[cur]; if (!s) return;
     var c = pEl.querySelector(".canvas-wrap"); c.classList.toggle("dark", dark);
-    renderSlide(document.getElementById("pslide"), s, step);
+    var pslide = document.getElementById("pslide");
+    renderSlide(pslide, s, step);
     document.getElementById("pnotes").textContent = s.notes || "";
     pEl.classList.toggle("shownotes", !!s.notes);
   }
+  function renderStage(){ if (pEl.classList.contains("on")) renderPresent(); else renderPreview(); }
+  function fxName(){ var s = state.slides[cur]; return (s && s.transition) || state.transition || ""; }
   function nextStep(){
-    var s = state.slides[cur]; var total = s && s.clicks ? (s.body.match(/^[-*+] /gm)||[]).length : 0;
-    if (s && s.clicks && step < total) { step++; }
-    else if (cur < state.slides.length-1) { cur++; step = 0; }
-    renderAll(); if (pEl.classList.contains("on")) renderPresent();
+    var s = state.slides[cur]; if (!s) return;
+    var total = clickCount();
+    if (s.clicks && !playing) { playing = true; step = 0; renderStage(); updateAnimBtn(); return; }
+    if (s.clicks && step < total) { step++; renderStage(); return; }
+    if (cur < state.slides.length - 1) { cur++; step = 0; playing = false; renderStage(); applyFx(activeSlideEl(), fxName()); }
   }
   function prevStep(){
-    if (step > 0) { step--; }
-    else if (cur > 0) { cur--; step = 0; }
-    renderAll(); if (pEl.classList.contains("on")) renderPresent();
+    var s = state.slides[cur]; if (!s) return;
+    var total = clickCount();
+    if (s.clicks && playing && step > 0) { step--; renderStage(); return; }
+    if (cur > 0) { cur--; step = 0; playing = false; renderStage(); applyFx(activeSlideEl(), fxName()); }
+  }
+  function updateAnimBtn(){
+    var b = document.getElementById("btnReset"); if (b) b.textContent = playing ? "显示全部" : "▶ 逐条预览";
   }
 
   /* ---------- events ---------- */
@@ -491,7 +543,7 @@
   document.getElementById("btnDup").onclick = dup;
   document.getElementById("prev").onclick = prevStep;
   document.getElementById("next").onclick = nextStep;
-  document.getElementById("btnReset").onclick = function(){ step=0; renderAll(); };
+  document.getElementById("btnReset").onclick = function(){ playing = !playing; if (!playing) step = 0; renderStage(); };
   document.getElementById("btnPresent").onclick = presentOpen;
   document.getElementById("btnDark").onclick = function(){ dark=!dark; state.colorSchema = dark?"dark":""; save(); renderAll(); if(pEl.classList.contains("on")) renderPresent(); };
   document.getElementById("deckTitle").oninput = function(){ state.title=this.value; save(); };
