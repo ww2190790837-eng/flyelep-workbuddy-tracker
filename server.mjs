@@ -712,11 +712,23 @@ app.get("/settings", (req, res) => {
 app.get(["/account", "/account.html"], (req, res) => {
   res.redirect("/");
 });
-// 电商脉搏入口兼容：/ecopulse 与 /ecopulse/ 重定向到 ecopulse.html（避免同名目录导致 404）
-app.get(["/ecopulse", "/ecopulse/"], (req, res) => {
-  res.redirect("/ecopulse.html");
+// 电商智能体技能库入口：/skills 直达；兼容旧 /ecopulse 链接（避免外链 404）
+app.get(["/skills", "/skills/", "/ecopulse", "/ecopulse/", "/ecopulse.html"], (req, res) => {
+  res.redirect("/skills.html");
+});
+// 演示文稿：可视化工作室（/studio）与 Slidev 构建产物（/slides）
+app.get(["/studio", "/studio/", "/slide-studio"], (req, res) => {
+  res.redirect("/slide-studio.html");
+});
+// 注意：express.static 对 /slides/ 会 302 回自身造成死循环，故直接指向 index.html
+app.get(["/slides", "/slides/"], (req, res) => {
+  res.redirect("/slides/index.html");
 });
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
+// Slidev SPA 深链回退：/slides/overview、/slides/presenter 等交给前端路由（静态文件已由上面命中）
+app.get("/slides/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "slides", "index.html"));
+});
 
 // ===== Auth 路由 =====
 app.post("/api/auth/send-code", async (req, res) => {

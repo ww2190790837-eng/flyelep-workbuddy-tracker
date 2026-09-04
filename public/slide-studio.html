@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>演示文稿工作室 · 可视化制作 Slidev 幻灯片</title>
+<link rel="icon" href="/logo.svg" type="image/png" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0b0e17;--panel:#121728;--panel-2:#171d31;--line:#232a42;
+    --text:#e8ecf7;--text-2:#9aa3bd;--text-3:#6b7490;
+    --primary:#7c5cff;--primary-2:#9b7cff;--pink:#ff5b9b;--ok:#37d399;--warn:#ffb020;--danger:#ff6b81;
+    --r:10px;
+  }
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  input,select,textarea{font:inherit;color:inherit}
+  .btn{padding:7px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:13px;transition:.15s;white-space:nowrap}
+  .btn:hover{border-color:var(--primary);color:#fff}
+  .btn.primary{background:linear-gradient(135deg,#7c5cff,#ff5b9b);border-color:transparent;color:#fff;font-weight:600}
+  .btn.primary:hover{filter:brightness(1.1)}
+  .btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+  .btn.sm{padding:4px 9px;font-size:12px}
+
+  /* ===== top bar ===== */
+  .bar{height:54px;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .bar .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+  .bar .logo img{width:26px;height:26px;border-radius:7px}
+  .bar .sp{flex:1}
+  .bar input.title{background:transparent;border:1px solid transparent;border-radius:8px;padding:6px 10px;font-weight:600;min-width:220px}
+  .bar input.title:hover{border-color:var(--line)}
+  .bar input.title:focus{outline:none;border-color:var(--primary);background:var(--panel-2)}
+
+  /* ===== main layout ===== */
+  .main{display:grid;grid-template-columns:230px 1fr 330px;height:calc(100% - 54px)}
+  .pane{overflow:auto;padding:14px}
+  .pane.left{border-right:1px solid var(--line);background:var(--panel)}
+  .pane.right{border-left:1px solid var(--line);background:var(--panel)}
+  .stage{background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;overflow:auto}
+
+  .sec-title{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:10px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;color:var(--text-2);margin-bottom:5px;font-weight:600}
+  .field input[type=text],.field select,.field textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;outline:none;transition:.15s
+  }
+  .field textarea{min-height:96px;resize:vertical;line-height:1.6;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);cursor:pointer;user-select:none}
+  .check input{width:16px;height:16px;accent-color:var(--primary)}
+  .hint{font-size:11.5px;color:var(--text-3);margin-top:5px;line-height:1.5}
+
+  /* ===== slide list ===== */
+  .slide-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid transparent;cursor:pointer;transition:.15s;margin-bottom:5px}
+  .slide-item:hover{background:var(--panel-2)}
+  .slide-item.active{background:rgba(124,92,255,.16);border-color:var(--primary)}
+  .slide-item .idx{width:20px;height:20px;flex:0 0 20px;border-radius:6px;background:var(--panel-2);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--text-2)}
+  .slide-item.active .idx{background:var(--primary);color:#fff}
+  .slide-item .meta{flex:1;min-width:0}
+  .slide-item .t{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .slide-item .l{font-size:10.5px;color:var(--text-3)}
+  .slide-item .x{opacity:0;color:var(--text-3);font-size:15px;padding:0 3px}
+  .slide-item:hover .x{opacity:1}
+  .slide-item .x:hover{color:var(--danger)}
+  .add-row{display:flex;gap:6px;margin-top:8px}
+
+  /* ===== preview canvas ===== */
+  .canvas-wrap{position:relative;width:100%;max-width:900px;aspect-ratio:16/9;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .canvas-wrap.dark{background:#111}
+  .slidev{position:absolute;inset:0;display:flex;flex-direction:column;padding:56px 64px;color:#1a1a1a;font-size:22px;line-height:1.5;overflow:hidden}
+  .canvas-wrap.dark .slidev{color:#f0f0f0}
+  .slidev h1{font-size:44px;font-weight:800;line-height:1.15;margin-bottom:20px;letter-spacing:-.5px}
+  .slidev h2{font-size:30px;font-weight:700;margin-bottom:14px}
+  .slidev h3{font-size:24px;font-weight:700;margin-bottom:10px}
+  .slidev p{margin-bottom:12px}
+  .slidev ul,.slidev ol{margin:0 0 12px 26px}
+  .slidev li{margin-bottom:7px}
+  .slidev strong{font-weight:700}
+  .slidev code{background:rgba(125,125,125,.15);padding:2px 6px;border-radius:5px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em}
+  .slidev pre{background:#1e1e2e;color:#e6e6e6;padding:16px 18px;border-radius:10px;overflow:auto;font-size:15px;line-height:1.5;margin-bottom:12px}
+  .slidev pre code{background:none;padding:0;color:inherit}
+  .slidev blockquote{border-left:4px solid var(--primary);padding-left:16px;color:#555;font-style:italic;margin-bottom:12px}
+  .canvas-wrap.dark .slidev blockquote{color:#bbb}
+  .slidev img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+  /* layouts */
+  .slidev.l-cover,.slidev.l-center,.slidev.l-quote,.slidev.l-section,.slidev.l-statement,.slidev.l-end,.slidev.l-fact{align-items:center;justify-content:center;text-align:center}
+  .slidev.l-cover h1{font-size:58px}
+  .slidev.l-quote h1{font-size:38px;font-weight:600;font-style:italic}
+  .slidev.l-section h1{font-size:46px;color:var(--primary)}
+  .slidev.l-statement h1{font-size:40px}
+  .slidev.l-fact h1{font-size:76px;color:var(--primary)}
+  .slidev.l-cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .slidev.l-cols .col{min-width:0}
+  .slidev.l-imgright{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+  .slidev.l-imgleft{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+  .slidev.l-imgleft .imgbox{order:-1}
+  .slidev.l-full{padding:0}
+  .slidev.l-full img{width:100%;height:100%;border-radius:0}
+  .imgbox{display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+  /* click animation */
+  .vclick{opacity:0;transition:opacity .3s}
+  .vclick.shown{opacity:1}
+  .notes-badge{position:absolute;right:12px;bottom:10px;font-size:11px;color:#888;background:rgba(0,0,0,.06);padding:3px 8px;border-radius:6px}
+  .canvas-wrap.dark .notes-badge{color:#888;background:rgba(255,255,255,.08)}
+
+  .nav{display:flex;align-items:center;gap:10px;color:var(--text-2);font-size:13px}
+  .nav .b{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center}
+  .nav .b:hover{border-color:var(--primary);color:#fff}
+
+  /* ===== present overlay ===== */
+  .present{position:fixed;inset:0;z-index:200;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column}
+  .present.on{display:flex}
+  .present .canvas-wrap{max-width:none;width:100vw;height:56.25vw;max-height:100vh;max-width:177.78vh;border-radius:0;box-shadow:none}
+  .present .hintbar{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#666;font-size:12px;opacity:0;transition:.3s}
+  .present:hover .hintbar{opacity:1}
+  .present .notes{position:absolute;bottom:44px;left:50%;transform:translateX(-50%);max-width:70vw;color:#aaa;font-size:14px;background:rgba(255,255,255,.07);padding:10px 16px;border-radius:10px;display:none}
+  .present.shownotes .notes{display:block}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel-2);border:1px solid var(--line);padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:300}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .empty-hint{color:var(--text-3);text-align:center;padding:40px 0}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#2a3150;border-radius:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="logo" href="/"><img src="/logo.svg" alt="" onerror="this.style.display='none'"><span>演示文稿工作室</span></a>
+  <input class="title" id="deckTitle" type="text" placeholder="演示文稿标题" />
+  <span class="sp"></span>
+  <select id="themeSel" class="btn" title="主题">
+    <option value="default">主题：default</option>
+    <option value="seriph">主题：seriph</option>
+    <option value="apple-basic">主题：apple-basic</option>
+  </select>
+  <button class="btn" id="btnDark">🌗 预览配色</button>
+  <button class="btn" id="btnImport">导入 MD</button>
+  <button class="btn" id="btnExport">导出 MD</button>
+  <button class="btn" id="btnSave">保存</button>
+  <button class="btn primary" id="btnPresent">▶ 演示</button>
+  <a class="btn" href="/slides/" target="_blank">线上版 ↗</a>
+</header>
+
+<div class="main">
+  <!-- left: slide list -->
+  <aside class="pane left">
+    <div class="sec-title">幻灯片</div>
+    <div id="list"></div>
+    <div class="add-row">
+      <button class="btn sm" id="btnAdd" style="flex:1">+ 新增</button>
+      <button class="btn sm" id="btnDup">复制</button>
+    </div>
+  </aside>
+
+  <!-- center: preview -->
+  <section class="stage">
+    <div class="canvas-wrap" id="canvas">
+      <div class="slidev" id="slide"></div>
+      <div class="notes-badge" id="notesBadge"></div>
+    </div>
+    <div class="nav">
+      <button class="b" id="prev">‹</button>
+      <span id="counter">1 / 1</span>
+      <button class="b" id="next">›</button>
+      <span style="margin-left:10px" id="stepInfo"></span>
+      <button class="btn sm" id="btnReset" style="margin-left:10px">重置动画</button>
+    </div>
+  </section>
+
+  <!-- right: inspector -->
+  <aside class="pane right" id="inspector"></aside>
+</div>
+
+<!-- present overlay -->
+<div class="present" id="present">
+  <div class="canvas-wrap"><div class="slidev" id="pslide"></div></div>
+  <div class="notes" id="pnotes"></div>
+  <div class="hintbar">← → 切换 · 空格 下一步 · N 备注 · Esc 退出</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<textarea id="importBox" style="display:none"></textarea>
+
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.2/dist/markdown-it.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.8.0/build/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var LAYOUTS = ["cover","default","center","two-cols","image-right","image-left","quote","section","statement","fact","full","end","none"];
+  var LAYOUT_CN = {cover:"封面",default:"默认",center:"居中","two-cols":"双栏","image-right":"图右","image-left":"图左",quote:"引用",section:"章节",statement:"陈述",fact:"数据",full:"整图",end:"结束",none:"空白"};
+  var TRANS = ["","slide-left","slide-right","slide-up","slide-down","fade","fade-out","zoom","none"];
+
+  var STORE = "fleta_deck_v2";
+  var md = window.markdownit ? window.markdownit({html:true, linkify:true, breaks:false,
+      highlight: function(str, lang){ if (window.hljs && lang && hljs.getLanguage(lang)) {
+        try { return '<pre class="hljs"><code>'+hljs.highlight(str,{language:lang,ignoreIllegals:true}).value+'</code></pre>'; } catch(e){}
+      } return ''; }}) : null;
+
+  var state = load() || defaultDeck();
+  var cur = 0, step = 0, dark = false;
+
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+  function defaultDeck(){
+    return { title:"Fleta 电商 AI", theme:"default", transition:"", colorSchema:"",
+      slides:[
+        {id:uid(),layout:"cover",title:"Fleta 电商 AI",body:"用 AI 重新定义电商视觉生产",notes:"开场 30 秒讲清：工厂不缺产能，缺的是货架。",transition:"",background:"",cls:"",image:"",clicks:false,left:"",right:""},
+        {id:uid(),layout:"default",title:"好工厂，为什么卖不动？",body:"- **产品没问题** —— 品质、产能、交期都过关\n- **视觉拖后腿** —— 主图像说明书\n- **转化上不去** —— 买家划走\n- **补拍成本高** —— 一轮几千起",notes:"",transition:"",background:"",cls:"",image:"",clicks:true,left:"",right:""}
+      ]};
+  }
+  function load(){ try{ var r=localStorage.getItem(STORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
+  function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];}); }
+
+  /* ---------- markdown -> html ---------- */
+  function renderMD(src){
+    if (!src) return "";
+    var html = md ? md.render(src) : esc(src).replace(/\n/g,"<br>");
+    // mermaid blocks
+    html = html.replace(/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g, function(m, code){
+      return '<div class="mermaid">'+code.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"')+'</div>';
+    });
+    return html;
+  }
+  function postProcess(root){
+    if (!root) return;
+    // katex
+    if (window.renderMathInElement) { try { renderMathInElement(root, {delimiters:[
+      {left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false},
+      {left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false}]}); } catch(e){} }
+    // mermaid
+    if (window.mermaid && root.querySelector(".mermaid")) {
+      try { mermaid.initialize({startOnLoad:false, theme: dark?"dark":"default", securityLevel:"loose"});
+            mermaid.run({nodes:[].slice.call(root.querySelectorAll(".mermaid"))}); } catch(e){}
+    }
+    if (window.hljs && root.querySelectorAll) {
+      root.querySelectorAll("pre code:not(.hljs)").forEach(function(b){ try{ hljs.highlightElement(b); }catch(e){} });
+    }
+  }
+
+  /* ---------- click-step animation ---------- */
+  function applyClicks(root, clicks, step){
+    if (!clicks) return 0;
+    var items = root.querySelectorAll("li, p, .vclickable");
+    var n = 0;
+    items.forEach(function(el, i){
+      el.classList.add("vclick");
+      if (i < step) el.classList.add("shown"); else el.classList.remove("shown");
+      n++;
+    });
+    return n;
+  }
+
+  /* ---------- render one slide into a container ---------- */
+  function renderSlide(container, s, step){
+    var L = s.layout || "default";
+    var clsMap = {cover:"l-cover",default:"",center:"l-center","two-cols":"l-cols","image-right":"l-imgright","image-left":"l-imgleft",quote:"l-quote",section:"l-section",statement:"l-statement",fact:"l-fact",full:"l-full",end:"l-end",none:""};
+    container.className = "slidev " + (clsMap[L]||"");
+    container.style.background = s.background || "";
+    if (s.background && /gradient|#|rgb/.test(s.background)) container.style.background = s.background;
+
+    var h = "";
+    var title = s.title ? "<h1>"+renderMD(s.title)+"</h1>" : "";
+    var body  = s.body  ? renderMD(s.body) : "";
+
+    if (L === "two-cols") {
+      h = title + '<div class="col">'+renderMD(s.left||"")+'</div><div class="col">'+renderMD(s.right||"")+'</div>';
+    } else if (L === "image-right" || L === "image-left") {
+      var img = s.image ? '<div class="imgbox"><img src="'+esc(s.image)+'" alt=""></div>' : '<div class="imgbox" style="color:#bbb;font-size:14px">（未设置图片）</div>';
+      h = title + '<div>'+body+'</div>' + img;
+    } else if (L === "full") {
+      h = s.image ? '<img src="'+esc(s.image)+'" alt="">' : '<div style="color:#bbb;font-size:14px">（未设置图片）</div>';
+    } else {
+      h = title + body;
+    }
+    container.innerHTML = h;
+    postProcess(container);
+    return applyClicks(container, s.clicks, step);
+  }
+
+  /* ---------- UI: slide list ---------- */
+  function renderList(){
+    var el = document.getElementById("list");
+    el.innerHTML = state.slides.map(function(s,i){
+      return '<div class="slide-item'+(i===cur?" active":"")+'" data-i="'+i+'">'+
+        '<span class="idx">'+(i+1)+'</span>'+
+        '<span class="meta"><div class="t">'+esc(s.title||"（无标题）")+'</div><div class="l">'+esc(LAYOUT_CN[s.layout]||s.layout)+'</div></span>'+
+        '<span class="x" data-del="'+i+'" title="删除">×</span></div>';
+    }).join("");
+    el.querySelectorAll(".slide-item").forEach(function(n){
+      n.addEventListener("click", function(e){
+        if (e.target.dataset.del !== undefined) { del(+e.target.dataset.del); return; }
+        cur = +n.dataset.i; step = 0; renderAll();
+      });
+    });
+  }
+
+  /* ---------- UI: inspector ---------- */
+  function renderInspector(){
+    var s = state.slides[cur]; if (!s) { document.getElementById("inspector").innerHTML = '<div class="empty-hint">没有幻灯片</div>'; return; }
+    var showCols = s.layout === "two-cols";
+    var showImg  = ["image-right","image-left","full"].indexOf(s.layout) >= 0;
+    document.getElementById("inspector").innerHTML =
+      '<div class="sec-title">幻灯片设置</div>'+
+      f("布局", sel("f_layout", LAYOUTS.map(function(l){ return '<option value="'+l+'"'+(s.layout===l?" selected":"")+'>'+LAYOUT_CN[l]+'（'+l+'）</option>'; }).join("")))+
+      f("标题", '<input type="text" id="f_title" value="'+esc(s.title)+'" placeholder="幻灯片标题">')+
+      (showCols ?
+        f("左栏（支持 Markdown）", '<textarea id="f_left">'+esc(s.left)+'</textarea>')+
+        f("右栏（支持 Markdown）", '<textarea id="f_right">'+esc(s.right)+'</textarea>')
+        : f("正文（支持 Markdown）", '<textarea id="f_body" style="min-height:150px">'+esc(s.body)+'</textarea>')+
+          '<div class="hint">支持 Markdown：<b>- 列表</b>、**粗体**、`代码`、```代码块```、```mermaid 图表```、$$ LaTeX $$</div>')+
+      (showImg ? f("图片地址", '<input type="text" id="f_image" value="'+esc(s.image)+'" placeholder="https://...">') : "")+
+      '<div class="field"><label class="check"><input type="checkbox" id="f_clicks"'+(s.clicks?" checked":"")+'>逐条出现（v-clicks 动画）</label></div>'+
+      '<div class="row2">'+
+        f("转场", sel("f_trans", TRANS.map(function(t){ return '<option value="'+t+'"'+(s.transition===t?" selected":"")+'>'+(t||"（跟随全局）")+'</option>'; }).join("")))+
+        f("附加 class", '<input type="text" id="f_cls" value="'+esc(s.cls)+'" placeholder="text-center">')+
+      '</div>'+
+      f("背景", '<input type="text" id="f_bg" value="'+esc(s.background)+'" placeholder="#000 / 渐变 / 图片 URL">')+
+      f("演讲者备注", '<textarea id="f_notes" style="min-height:80px">'+esc(s.notes)+'</textarea>')+
+      '<div class="hint" style="margin-top:16px">提示：选中幻灯片后可用 ↑ ↓ 切换，Ctrl/⌘+D 复制。</div>';
+
+    var bind = function(id, key){ var n=document.getElementById(id); if(n) n.addEventListener("input", function(){ s[key]=n.value; save(); renderList(); renderPreview(); }); };
+    bind("f_title","title"); bind("f_body","body"); bind("f_left","left"); bind("f_right","right");
+    bind("f_image","image"); bind("f_bg","background"); bind("f_notes","notes"); bind("f_cls","cls");
+    var lt=document.getElementById("f_layout"); if(lt) lt.addEventListener("change", function(){ s.layout=lt.value; save(); renderAll(); });
+    var tr=document.getElementById("f_trans"); if(tr) tr.addEventListener("change", function(){ s.transition=tr.value; save(); });
+    var ck=document.getElementById("f_clicks"); if(ck) ck.addEventListener("change", function(){ s.clicks=ck.checked; step=0; save(); renderPreview(); });
+  }
+  function f(label, inner){ return '<div class="field"><label>'+label+'</label>'+inner+'</div>'; }
+  function sel(id, opts){ return '<select id="'+id+'">'+opts+'</select>'; }
+
+  /* ---------- preview ---------- */
+  function renderPreview(){
+    var s = state.slides[cur];
+    var canvas = document.getElementById("canvas");
+    canvas.classList.toggle("dark", dark);
+    if (!s) { document.getElementById("slide").innerHTML = '<div class="empty-hint">没有幻灯片</div>'; return; }
+    var total = renderSlide(document.getElementById("slide"), s, step);
+    var badge = document.getElementById("notesBadge");
+    badge.textContent = s.notes ? "📝 有备注" : "";
+    document.getElementById("counter").textContent = (cur+1)+" / "+state.slides.length;
+    document.getElementById("stepInfo").textContent = total ? ("动画 "+Math.min(step,total)+"/"+total) : "";
+  }
+  function renderAll(){ renderList(); renderInspector(); renderPreview(); }
+
+  /* ---------- generate Slidev markdown ---------- */
+  function toMarkdown(){
+    var out = [];
+    out.push("---");
+    out.push("theme: " + (state.theme||"default"));
+    out.push("title: " + (state.title||"演示文稿"));
+    out.push("titleTemplate: '%s · Fleta'");
+    if (state.transition) out.push("transition: " + state.transition);
+    if (state.colorSchema) out.push("colorSchema: " + state.colorSchema);
+    out.push("highlighter: shiki");
+    out.push("lineNumbers: false");
+    out.push("drawings:\n  persist: false");
+    out.push("mdc: true");
+    out.push("---\n");
+
+    state.slides.forEach(function(s){
+      var fm = [];
+      if (s.layout && s.layout !== "default") fm.push("layout: " + s.layout);
+      if (s.transition) fm.push("transition: " + s.transition);
+      if (s.background) fm.push("background: " + s.background);
+      if (s.cls) fm.push("class: " + s.cls);
+      out.push("---");
+      if (fm.length) out.push(fm.join("\n"));
+      out.push("---\n");
+
+      if (s.title) out.push("# " + s.title + "\n");
+      if (s.layout === "two-cols") {
+        out.push("::left::\n");
+        out.push((s.left||"") + "\n");
+        out.push("::right::\n");
+        out.push((s.right||"") + "\n");
+      } else if (s.clicks && s.body) {
+        out.push("<v-clicks>\n");
+        out.push(s.body + "\n");
+        out.push("</v-clicks>\n");
+      } else if (s.body) {
+        out.push(s.body + "\n");
+      }
+      if (s.image && ["image-right","image-left","full"].indexOf(s.layout) < 0 && s.layout !== "cover") {
+        // image not natively placed by these layouts -> append
+      }
+      if (s.notes) out.push("<!--\n" + s.notes + "\n-->\n");
+    });
+    return out.join("\n");
+  }
+
+  /* ---------- import ---------- */
+  function fromMarkdown(text){
+    try {
+      var parts = text.split(/^---$/m);
+      // crude: first block = headmatter
+      var slides = [];
+      var body = text;
+      var m = body.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+      if (!m) return false;
+      var head = m[1], rest = m[2];
+      var st = { title:"演示文稿", theme:"default", transition:"", colorSchema:"", slides:[] };
+      head.split("\n").forEach(function(line){
+        var kv = line.match(/^(\w[\w-]*):\s*(.*)$/);
+        if (!kv) return;
+        if (kv[1]==="title") st.title = kv[2].replace(/^['"]|['"]$/g,"");
+        if (kv[1]==="theme") st.theme = kv[2].trim();
+        if (kv[1]==="transition") st.transition = kv[2].trim();
+        if (kv[1]==="colorSchema") st.colorSchema = kv[2].trim();
+      });
+      var chunks = rest.split(/\n---\n/);
+      chunks.forEach(function(ch){
+        if (!ch.trim()) return;
+        var s = {id:uid(),layout:"default",title:"",body:"",notes:"",transition:"",background:"",cls:"",image:"",clicks:false,left:"",right:""};
+        var fm = ch.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+        var content = ch;
+        if (fm) {
+          fm[1].split("\n").forEach(function(line){
+            var kv = line.match(/^(\w[\w-]*):\s*(.*)$/);
+            if (!kv) return;
+            if (kv[1]==="layout") s.layout = kv[2].trim();
+            if (kv[1]==="transition") s.transition = kv[2].trim();
+            if (kv[1]==="background") s.background = kv[2].trim();
+            if (kv[1]==="class") s.cls = kv[2].trim();
+          });
+          content = fm[2];
+        }
+        var notes = content.match(/<!--\n?([\s\S]*?)\n?-->/);
+        if (notes) { s.notes = notes[1].trim(); content = content.replace(notes[0], ""); }
+        if (s.layout === "two-cols") {
+          var L = content.match(/::left::\n([\s\S]*?)(?=\n::right::)/);
+          var R = content.match(/::right::\n([\s\S]*)$/);
+          s.left = L ? L[1].trim() : "";
+          s.right = R ? R[1].trim() : "";
+        }
+        var t = content.match(/^#\s+(.+)$/m);
+        if (t) { s.title = t[1].trim(); }
+        var vc = content.match(/<v-clicks>\n?([\s\S]*?)\n?<\/v-clicks>/);
+        if (vc) { s.clicks = true; s.body = vc[1].trim(); }
+        else {
+          s.body = content.replace(/^#\s+.+$/m, "").trim();
+        }
+        slides.push(s);
+      });
+      if (!slides.length) return false;
+      st.slides = slides; state = st; cur = 0; step = 0; save(); renderAll(); return true;
+    } catch(e){ return false; }
+  }
+
+  /* ---------- actions ---------- */
+  function add(){ state.slides.splice(cur+1, 0, {id:uid(),layout:"default",title:"新幻灯片",body:"",notes:"",transition:"",background:"",cls:"",image:"",clicks:false,left:"",right:""}); cur++; step=0; save(); renderAll(); }
+  function dup(){ var c = JSON.parse(JSON.stringify(state.slides[cur])); c.id = uid(); state.slides.splice(cur+1,0,c); cur++; step=0; save(); renderAll(); }
+  function del(i){ if (state.slides.length<=1) { toast("至少保留一页"); return; } state.slides.splice(i,1); if (cur>=state.slides.length) cur=state.slides.length-1; step=0; save(); renderAll(); }
+  function toast(msg){ var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(function(){t.classList.remove("on");},1900); }
+
+  /* ---------- present mode ---------- */
+  var pEl = document.getElementById("present");
+  function presentOpen(){ pEl.classList.add("on"); renderPresent(); document.body.requestFullscreen && document.body.requestFullscreen().catch(function(){}); }
+  function presentClose(){ pEl.classList.remove("on"); if (document.fullscreenElement) document.exitFullscreen().catch(function(){}); }
+  function renderPresent(){
+    var s = state.slides[cur]; if (!s) return;
+    var c = pEl.querySelector(".canvas-wrap"); c.classList.toggle("dark", dark);
+    renderSlide(document.getElementById("pslide"), s, step);
+    document.getElementById("pnotes").textContent = s.notes || "";
+    pEl.classList.toggle("shownotes", !!s.notes);
+  }
+  function nextStep(){
+    var s = state.slides[cur]; var total = s && s.clicks ? (s.body.match(/^[-*+] /gm)||[]).length : 0;
+    if (s && s.clicks && step < total) { step++; }
+    else if (cur < state.slides.length-1) { cur++; step = 0; }
+    renderAll(); if (pEl.classList.contains("on")) renderPresent();
+  }
+  function prevStep(){
+    if (step > 0) { step--; }
+    else if (cur > 0) { cur--; step = 0; }
+    renderAll(); if (pEl.classList.contains("on")) renderPresent();
+  }
+
+  /* ---------- events ---------- */
+  document.getElementById("btnAdd").onclick = add;
+  document.getElementById("btnDup").onclick = dup;
+  document.getElementById("prev").onclick = prevStep;
+  document.getElementById("next").onclick = nextStep;
+  document.getElementById("btnReset").onclick = function(){ step=0; renderAll(); };
+  document.getElementById("btnPresent").onclick = presentOpen;
+  document.getElementById("btnDark").onclick = function(){ dark=!dark; state.colorSchema = dark?"dark":""; save(); renderAll(); if(pEl.classList.contains("on")) renderPresent(); };
+  document.getElementById("deckTitle").oninput = function(){ state.title=this.value; save(); };
+  document.getElementById("themeSel").onchange = function(){ state.theme=this.value; save(); };
+  document.getElementById("btnSave").onclick = function(){ save(); toast("已保存到本浏览器"); };
+  document.getElementById("btnExport").onclick = function(){
+    var text = toMarkdown();
+    var blob = new Blob([text], {type:"text/markdown;charset=utf-8"});
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = (state.title||"slides").replace(/[\\/:*?"<>|]/g,"_") + ".md";
+    a.click(); URL.revokeObjectURL(a.href);
+    toast("已导出 Slidev 可用的 Markdown");
+  };
+  document.getElementById("btnImport").onclick = function(){
+    var t = prompt("粘贴 Slidev Markdown（将覆盖当前内容）：");
+    if (t && t.trim()) { if (fromMarkdown(t)) toast("导入成功"); else toast("导入失败：格式无法识别"); }
+  };
+
+  document.addEventListener("keydown", function(e){
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (pEl.classList.contains("on")) {
+      if (e.key === "Escape") { presentClose(); return; }
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); nextStep(); return; }
+      if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); prevStep(); return; }
+      if (e.key === "n" || e.key === "N") { pEl.classList.toggle("shownotes"); return; }
+    }
+    if (e.key === "ArrowDown") { e.preventDefault(); cur = Math.min(cur+1, state.slides.length-1); step=0; renderAll(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); cur = Math.max(cur-1,0); step=0; renderAll(); }
+    if ((e.metaKey||e.ctrlKey) && e.key === "d") { e.preventDefault(); dup(); }
+  });
+
+  /* ---------- init ---------- */
+  if (window.mermaid) { try { mermaid.initialize({startOnLoad:false, securityLevel:"loose"}); } catch(e){} }
+  document.getElementById("deckTitle").value = state.title || "";
+  document.getElementById("themeSel").value = state.theme || "default";
+  dark = state.colorSchema === "dark";
+  renderAll();
+})();
+</script>
+</body>
+</html>
