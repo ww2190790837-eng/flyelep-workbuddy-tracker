@@ -301,7 +301,9 @@
     }
 
     var h = "";
-    var title = s.title ? "<h1>"+renderMD(s.title)+"</h1>" : "";
+    // render title then strip the outer <p> markdown-it adds for plain text, so the <h1> stays clean
+    function renderTitle(t){ var h = renderMD(t || "").replace(/^<p>([\s\S]*?)<\/p>\s*$/,"$1"); return "<h1>"+h+"</h1>"; }
+    var title = s.title ? renderTitle(s.title) : "";
     var body  = s.body  ? renderMD(s.body) : "";
 
     if (L === "two-cols") {
