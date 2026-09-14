@@ -1306,7 +1306,7 @@
 
       <div id="agvModeFields"></div>
 
-      <p class="agv-hint">说明：Agnes Video 2.5 Flash 固定输出 720P；首帧 / 尾帧 / 参考图片通过本页<b>上传</b>（自动托管为公开链接交给 Agnes，无需自备图床）。文生视频无需任何素材。</p>
+      <p class="agv-hint">说明：Agnes Video 2.5 Flash 固定输出 720P；首帧 / 尾帧 / 参考图片 / 参考音频通过本页<b>上传</b>（自动托管为公开链接交给 Agnes，无需自备图床）。文生视频无需任何素材。</p>
 
       <div class="agv-actions">
         <button class="agv-gen" id="agvGen">生成视频</button>
@@ -1336,7 +1336,7 @@
 
   function setStatus(html){ $("agvStatus").innerHTML = html; }
 
-  function uploadImageFile(file){
+  function uploadFile(file){
     return new Promise(function(resolve,reject){
       var fd = new FormData(); fd.append("file", file);
       var xhr = new XMLHttpRequest();
@@ -1363,7 +1363,7 @@
       var f = inp.files && inp.files[0];
       if(!f){ kf[key]=""; meta.className="agv-meta"; meta.textContent="未选择文件"; prev.innerHTML=""; return; }
       meta.className="agv-meta"; meta.textContent="上传中…";
-      uploadImageFile(f).then(function(url){
+      uploadFile(f).then(function(url){
         kf[key]=url; meta.className="agv-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); prev.innerHTML = '<img src="'+url+'" alt="">';
       }).catch(function(err){ kf[key]=""; meta.className="agv-meta err"; meta.textContent="✗ "+err.message; prev.innerHTML=""; });
     };
@@ -1383,7 +1383,7 @@
         var f = inp.files && inp.files[0];
         if(!f){ refs[i]=""; meta.className="agv-meta"; meta.textContent="未选择文件"; prev.innerHTML=""; return; }
         meta.className="agv-meta"; meta.textContent="上传中…";
-        uploadImageFile(f).then(function(url){ refs[i]=url; meta.className="agv-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); prev.innerHTML='<img src="'+url+'" alt="">'; })
+        uploadFile(f).then(function(url){ refs[i]=url; meta.className="agv-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); prev.innerHTML='<img src="'+url+'" alt="">'; })
           .catch(function(err){ refs[i]=""; meta.className="agv-meta err"; meta.textContent="✗ "+err.message; prev.innerHTML=""; });
       };
       if (refs.length>1){ var x=document.createElement("button"); x.className="pg-clear"; x.textContent="✕";
@@ -1397,12 +1397,19 @@
     var box = $("agvAudBox"); if(!box) return;
     box.innerHTML = "";
     auds.forEach(function(v,i){
-      var row = document.createElement("div"); row.className="agv-urlrow";
-      var inp = document.createElement("input"); inp.type="text"; inp.className="agv-input"; inp.placeholder="音频 URL "+(i+1);
-      inp.value = v; inp.oninput = function(){ auds[i]=inp.value.trim(); };
-      row.appendChild(inp);
+      var row = document.createElement("div"); row.className="agv-uprow";
+      var inp = document.createElement("input"); inp.type="file"; inp.accept="audio/*";
+      var meta = document.createElement("div"); meta.className="agv-meta"; meta.textContent = v ? "✓ 已上传" : "未选择文件";
+      inp.onchange = function(){
+        var f = inp.files && inp.files[0];
+        if(!f){ auds[i]=""; meta.className="agv-meta"; meta.textContent="未选择文件"; return; }
+        meta.className="agv-meta"; meta.textContent="上传中…";
+        uploadFile(f).then(function(url){ auds[i]=url; meta.className="agv-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); })
+          .catch(function(err){ auds[i]=""; meta.className="agv-meta err"; meta.textContent="✗ "+err.message; });
+      };
       if (auds.length>1){ var x=document.createElement("button"); x.className="pg-clear"; x.textContent="✕";
         x.onclick = function(){ auds.splice(i,1); renderAudRows(); }; row.appendChild(x); }
+      row.appendChild(inp); row.appendChild(meta);
       box.appendChild(row);
     });
   }
@@ -1420,9 +1427,9 @@
       modeFields.innerHTML =
         '<div class="agv-field"><label class="agv-label">参考图片 <small>（最多 5 张，上传）</small></label><div id="agvImgBox"></div>'+
         '<a class="agv-addlink" id="agvAddImg">+ 添加图片</a></div>'+
-        '<div class="agv-field"><label class="agv-label">参考音频 <small>（最多 3 段，HTTPS 链接，可选）</small></label><div id="agvAudBox"></div>'+
+        '<div class="agv-field"><label class="agv-label">参考音频 <small>（最多 3 段，上传，可选）</small></label><div id="agvAudBox"></div>'+
         '<a class="agv-addlink" id="agvAddAud">+ 添加音频</a></div>'+
-        '<p class="agv-hint">参考图片会上传到本站后交给 Agnes 用于风格一致的生成；音频仍用公开链接。</p>';
+        '<p class="agv-hint">参考图片与参考音频都会上传到本站后交给 Agnes，用于风格与节奏一致的生成。</p>';
       refs = [""]; auds = [""];
       renderImgRows(); renderAudRows();
       $("agvAddImg").onclick = function(){ if(refs.length<5){ refs.push(""); renderImgRows(); } };

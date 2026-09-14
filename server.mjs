@@ -783,8 +783,8 @@ const agnesUpload = multer({
     destination: (req, file, cb) => cb(null, UPLOAD_DIR),
     filename: (req, file, cb) => cb(null, nanoid(16) + (path.extname(file.originalname) || "").toLowerCase().slice(0, 10))
   }),
-  limits: { fileSize: 12 * 1024 * 1024 }, // 12MB
-  fileFilter: (req, file, cb) => cb(null, /^image\//.test(file.mimetype))
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB(图片/音频)
+  fileFilter: (req, file, cb) => cb(null, /^(image|audio)\//.test(file.mimetype))
 }).single("file");
 app.post("/api/agnes-upload", (req, res) => {
   agnesUpload(req, res, (err) => {
