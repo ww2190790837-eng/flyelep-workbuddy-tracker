@@ -712,20 +712,7 @@ app.get("/settings", (req, res) => {
 app.get(["/account", "/account.html"], (req, res) => {
   res.redirect("/");
 });
-// 电商智能体技能库入口：/skills 直达；兼容旧 /ecopulse 链接（避免外链 404）
-app.get(["/skills", "/skills/", "/ecopulse", "/ecopulse/", "/ecopulse.html"], (req, res) => {
-  res.redirect("/skills.html");
-});
-// 演示文稿：Slidev 构建产物（/slides）
-// 注意：express.static 对 /slides/ 会 302 回自身造成死循环，故直接指向 index.html
-app.get(["/slides", "/slides/"], (req, res) => {
-  res.redirect("/slides/index.html");
-});
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
-// Slidev SPA 深链回退：/slides/overview、/slides/presenter 等交给前端路由（静态文件已由上面命中）
-app.get("/slides/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "slides", "index.html"));
-});
 
 // ===== Agnes Video 2.5 Flash 代理(API Key 仅存服务端,绝不暴露给前端) =====
 // 前端页 /agnes-video 通过这两个接口间接调用 Agnes,避免密钥泄露
