@@ -71,7 +71,7 @@
   .section-note .ic{color:var(--primary-2)}
 
   /* === 全屏背景层 (大厂级动态) === */
-  .bg-stage{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   /* Canvas 流场粒子 */
   .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.28;mix-blend-mode:screen}
   /* 噪点纹理 */
@@ -121,7 +121,7 @@
 
   /* === Hero (大厂级动态) === */
   .hero{padding:100px 0 80px;text-align:center;position:relative;z-index:1;color:#fff;min-height:auto;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden}
-  .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:200px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
+  .hero::after{display:none}
   .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:999px;background:rgba(255,255,255,.12);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:500;color:rgba(255,255,255,.05);margin-bottom:32px;box-shadow:0 4px 24px rgba(0,0,0,.35)}
   .hero-eyebrow .pulse{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success);animation:dot 2s ease-in-out infinite}
   @keyframes dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
@@ -381,7 +381,7 @@
     0%{background-position:0% 0%,0% 100%}
     100%{background-position:100% 0%,0% 0%}
   }
-  [data-theme="light"] .hero::after{background:linear-gradient(to bottom,transparent,var(--bg))}
+  [data-theme="light"] .hero::after{display:none}
   [data-theme="light"] .hero h1{color:var(--text);text-shadow:none}
   [data-theme="light"] .hero h1 .grad{background:linear-gradient(135deg,#6c4ff7 0%,#e83a82 60%,#e85a20 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   [data-theme="light"] .hero p.sub{color:var(--text-2);font-weight:400}
@@ -437,7 +437,8 @@
   [data-theme="light"] .bg-canvas{opacity:.42;mix-blend-mode:normal}
   [data-theme="light"] .bg-grid{background-image:linear-gradient(to right,rgba(108,79,247,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(108,79,247,.08) 1px,transparent 1px);mask-image:radial-gradient(ellipse 85% 65% at 50% 30%,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse 85% 65% at 50% 30%,#000 20%,transparent 75%)}
   [data-theme="light"] section{background:transparent}
-  [data-theme="light"] footer{background:var(--bg-2);border-top:1px solid var(--border)}
+  footer{position:relative;z-index:2}
+  [data-theme="light"] footer{background:rgba(255,255,255,.6);border-top:1px solid var(--border);backdrop-filter:blur(16px)}
   [data-theme="light"] .bg-noise{opacity:.035}
 
   /* 主题切换按钮 */
@@ -853,6 +854,16 @@
 </head>
 <body>
 
+<!-- 全站统一动态背景：固定满屏，滚动时不动，所有区块共用同一套背景 -->
+<div class="bg-stage">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <canvas class="bg-canvas" id="bgCanvas"></canvas>
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+</div>
+
 <div class="scroll-bar" id="scrollBar"></div>
 
 ﻿
@@ -977,14 +988,6 @@
 </div>
 
 <header class="hero" id="heroSection">
-  <div class="bg-stage">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-    <canvas class="bg-canvas" id="bgCanvas"></canvas>
-    <div class="bg-grid"></div>
-    <div class="bg-noise"></div>
-  </div>
   <div class="wrap hero-grid">
     <!-- 左侧：主内容 -->
     <div class="hero-left">
@@ -1210,8 +1213,6 @@
      ============================================ -->
 <style>
   #agnes-video{overflow:hidden}
-  #agnes-video .agv-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.6;mix-blend-mode:screen}
-  [data-theme="light"] #agnes-video .agv-canvas{opacity:.8;mix-blend-mode:normal}
   #agnes-video .agv-wrap{position:relative;z-index:2}
   .agv-card{position:relative;z-index:2;max-width:900px;margin:0 auto;background:rgba(17,21,36,.72);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 24px 60px -24px rgba(0,0,0,.6)}
   [data-theme="light"] .agv-card{background:rgba(255,255,255,.86);box-shadow:0 24px 60px -30px rgba(30,20,80,.25)}
@@ -1260,7 +1261,6 @@
 </style>
 
 <section id="agnes-video">
-  <canvas class="agv-canvas" id="agvCanvas"></canvas>
   <div class="wrap agv-wrap">
     <div class="section-head">
       <span class="section-eyebrow reveal"><svg class="ic" viewBox="0 0 24 24" style="margin-right:6px"><path d="M3 5h13l4 3v8l-4 3H3z"/><path d="M7 8v6M11 8v6M15 8.5v5M19 9.5v3"/></svg>/ Agnes Video 2.5 Flash</span>
@@ -1521,104 +1521,7 @@
 })();
 </script>
 
-<script>
-/* Agnes 区块动态粒子/极光背景（仿主页 bg-home.js，按主题自适应） */
-(function(){
-  var canvas = document.getElementById("agvCanvas");
-  if (!canvas) return;
-  var ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var W=0,H=0,DPR=1,raf=null,last=0;
-  var orbs=[], parts=[];
-  var COLORS=[[124,92,255],[255,91,155],[34,160,255],[0,212,224]];
-  var mouse={x:-9999,y:-9999};
-  function rand(a,b){return a+Math.random()*(b-a);}
-  function isLight(){return document.documentElement.getAttribute("data-theme")==="light";}
-  function init(){
-    orbs=COLORS.map(function(c,i){
-      return {c:c,r:Math.max(W,H)*rand(0.3,0.5),x:W*[0.2,0.78,0.5,0.86][i],y:H*[0.25,0.3,0.8,0.72][i],vx:rand(-26,26),vy:rand(-20,20),ph:rand(0,6.28),br:rand(.5,1)};
-    });
-    var n=Math.round((W*H)/16000); n=Math.max(36,Math.min(110,n));
-    parts=[];
-    for(var i=0;i<n;i++){parts.push({x:Math.random()*W,y:Math.random()*H,r:rand(.5,2.2),vx:rand(-14,14),vy:rand(-22,-6),a:rand(.25,.9),tw:rand(.8,3)});}
-  }
-  function resize(){
-    DPR=Math.min(window.devicePixelRatio||1,2);
-    W=canvas.clientWidth; H=canvas.clientHeight;
-    if(!W||!H) return;
-    canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR);
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    init();
-  }
-  function draw(t){
-    var light=isLight();
-    ctx.clearRect(0,0,W,H);
-    ctx.globalCompositeOperation = light ? "source-over" : "screen";
-    var am = light ? 0.5 : 1;
-    var i,j;
-    for(i=0;i<orbs.length;i++){
-      var b=orbs[i];
-      b.x+=b.vx*(t?0.016:0); b.y+=b.vy*(t?0.016:0);
-      if(b.x<-b.r)b.x=W+b.r; if(b.x>W+b.r)b.x=-b.r;
-      if(b.y<-b.r)b.y=H+b.r; if(b.y>H+b.r)b.y=-b.r;
-      var breathe=0.82+0.18*Math.sin((t||0)*0.0006*b.br+b.ph);
-      var rr=b.r*breathe, c=b.c;
-      var g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,rr);
-      g.addColorStop(0,"rgba("+c[0]+","+c[1]+","+c[2]+","+(0.3*am).toFixed(3)+")");
-      g.addColorStop(0.5,"rgba("+c[0]+","+c[1]+","+c[2]+","+(0.13*am).toFixed(3)+")");
-      g.addColorStop(1,"rgba("+c[0]+","+c[1]+","+c[2]+",0)");
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(b.x,b.y,rr,0,6.283); ctx.fill();
-    }
-    for(j=0;j<parts.length;j++){
-      var p=parts[j];
-      p.x+=p.vx*(t?0.016:0); p.y+=p.vy*(t?0.016:0);
-      var dx=p.x-mouse.x, dy=p.y-mouse.y, d2=dx*dx+dy*dy;
-      if(d2<14400){ var d=Math.sqrt(d2)||1; p.x+=dx/d*0.6; p.y+=dy/d*0.6; }
-      if(p.y<-6){p.y=H+6;p.x=Math.random()*W;}
-      if(p.x<-6)p.x=W+6; if(p.x>W+6)p.x=-6;
-      var tw=0.5+0.5*Math.sin((t||0)*0.002*p.tw+p.x);
-      var al=(p.a*tw*(light?0.5:1)).toFixed(3);
-      ctx.fillStyle=(light?"rgba(90,60,200,":"rgba(255,255,255,")+al+")";
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill();
-    }
-    ctx.globalCompositeOperation = light ? "source-over" : "screen";
-    for(i=0;i<parts.length;i++){
-      for(j=i+1;j<parts.length;j++){
-        var pa=parts[i], pb=parts[j];
-        var lx=pa.x-pb.x, ly=pa.y-pb.y, ld=lx*lx+ly*ly;
-        if(ld<5200){
-          var lo=((1-ld/5200)*(light?0.1:0.16)).toFixed(3);
-          ctx.strokeStyle=(light?"rgba(120,80,220,":"rgba(160,180,255,")+lo+")";
-          ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
-        }
-      }
-    }
-  }
-  function frame(t){
-    if(!last) last=t;
-    draw(t);
-    raf=requestAnimationFrame(frame);
-  }
-  function start(){
-    resize();
-    if(reduce){ draw(0); return; }
-    if(raf) cancelAnimationFrame(raf);
-    last=0; raf=requestAnimationFrame(frame);
-  }
-  canvas.parentElement.addEventListener("mousemove", function(e){
-    var r=canvas.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top;
-  });
-  canvas.parentElement.addEventListener("mouseleave", function(){ mouse.x=-9999; mouse.y=-9999; });
-  var rz=null; window.addEventListener("resize", function(){ clearTimeout(rz); rz=setTimeout(resize,200); });
-  document.addEventListener("visibilitychange", function(){
-    if(document.hidden){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
-    else if(!reduce && !raf){ last=0; raf=requestAnimationFrame(frame); }
-  });
-  window.addEventListener("load", start);
-  if(document.readyState==="complete") start();
-})();
-</script>
+<!-- Agnes 区块原有独立背景脚本已移除：全站统一使用 body 内的 #bgCanvas 背景 -->
 
 <!-- ===== Video-Use 智能视频助手盒子（默认隐藏，仅 ?vu=1 测试模式显示） ===== -->
 <section id="video-use" style="display:none">
