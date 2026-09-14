@@ -48,6 +48,13 @@
   .urlrow{display:flex;gap:8px;margin-bottom:8px}
   .urlrow input{flex:1}
   .addlink{color:var(--pink);font-size:13px;margin-top:2px;display:inline-block}
+  .uprow{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+  .uprow input[type=file]{flex:1;min-width:160px;font-size:12px;color:var(--text-2)}
+  .up-prev{width:54px;height:54px;border-radius:8px;border:1px solid var(--line);overflow:hidden;background:var(--panel-2);flex:none;display:flex;align-items:center;justify-content:center}
+  .up-prev img{width:100%;height:100%;object-fit:cover}
+  .up-meta{font-size:12px;color:var(--text-3);min-width:84px}
+  .up-meta.ok{color:var(--ok)} .up-meta.err{color:var(--danger)}
+  .upwrap .up-prev{margin-top:6px}
 
   #status{margin-top:16px;font-size:13px;color:var(--text-2);min-height:20px}
   #status .pill{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);margin-right:6px}
@@ -112,7 +119,7 @@
     <div id="modeFields"></div>
 
     <div class="hint">
-      说明：Agnes Video 2.5 Flash 固定输出 720P；首帧/尾帧/参考图片需为 <b>可被 Agnes 公开访问的 HTTPS 链接</b>（生成全程保持有效）。文生视频无需任何素材。
+      说明：Agnes Video 2.5 Flash 固定输出 720P；首帧 / 尾帧 / 参考图片通过本页<b>上传</b>（自动托管为公开链接交给 Agnes，无需你自备图床）。文生视频无需任何素材。
     </div>
 
     <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
@@ -131,8 +138,9 @@
 (function(){
   "use strict";
   var MODE = "text";
-  var refs = [];   // reference images
-  var auds = [];   // reference audios
+  var refs = [];   // reference images (uploaded public URLs)
+  var auds = [];   // reference audios (URLs)
+  var kf = { first_frame: "", last_frame: "" }; // keyframe uploaded public URLs
   var history = [];
   var pollTimer = null;
 
@@ -146,34 +154,77 @@
     modeFields.innerHTML = "";
     if (MODE === "keyframe") {
       modeFields.innerHTML =
-        '<div class="field"><label>首帧图片 URL（可选）</label><input type="text" id="first_frame" placeholder="https://... 首帧图"></div>'+
-        '<div class="field"><label>尾帧图片 URL（可选）</label><input type="text" id="last_frame" placeholder="https://... 尾帧图"></div>'+
-        '<div class="hint">首尾帧控制：至少提供首帧或尾帧之一，Agnes 会据此生成过渡视频。</div>';
+        '<div class="field"><label>首帧图片（上传，可选）</label><div class="upwrap" id="ffWrap"></div></div>'+
+        '<div class="field"><label>尾帧图片（上传，可选）</label><div class="upwrap" id="lfWrap"></div></div>'+
+        '<div class="hint">首尾帧控制：至少提供首帧或尾帧之一。图片将上传到本站后交给 Agnes 生成过渡视频。</div>';
+      setupUpload(document.getElementById("ffWrap"), "first_frame");
+      setupUpload(document.getElementById("lfWrap"), "last_frame");
     } else if (MODE === "reference") {
       modeFields.innerHTML =
-        '<div class="field"><label>参考图片（最多 5 张，HTTPS 公开链接）</label><div id="imgBox"></div>'+
+        '<div class="field"><label>参考图片（最多 5 张，上传）</label><div id="imgBox"></div>'+
         '<a class="addlink" id="addImg">+ 添加图片</a></div>'+
-        '<div class="field"><label>参考音频（最多 3 段，可选）</label><div id="audBox"></div>'+
+        '<div class="field"><label>参考音频（最多 3 段，HTTPS 链接，可选）</label><div id="audBox"></div>'+
         '<a class="addlink" id="addAud">+ 添加音频</a></div>'+
-        '<div class="hint">参考图片/音频会被 Agnes 用于生成风格一致的视频。</div>';
+        '<div class="hint">参考图片会上传到本站后交给 Agnes 用于风格一致的生成；音频仍用公开链接。</div>';
       refs = [""]; auds = [""];
       renderImgRows(); renderAudRows();
       document.getElementById("addImg").onclick = function(){ if(refs.length<5){ refs.push(""); renderImgRows(); } };
       document.getElementById("addAud").onclick = function(){ if(auds.length<3){ auds.push(""); renderAudRows(); } };
     } else {
-      refs = []; auds = []; // text 模式不传素材
+      refs = []; auds = [];
+      kf.first_frame = ""; kf.last_frame = ""; // text 模式清空首尾帧
     }
+  }
+  function uploadImageFile(file){
+    return new Promise(function(resolve,reject){
+      var fd = new FormData(); fd.append("file", file);
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/agnes-upload");
+      xhr.onload = function(){
+        try { var j = JSON.parse(xhr.responseText); if (j.ok && j.url) resolve(j.url); else reject(new Error(j.error||"上传失败")); }
+        catch(e){ reject(new Error("上传返回无法解析")); }
+      };
+      xhr.onerror = function(){ reject(new Error("网络错误")); };
+      xhr.send(fd);
+    });
+  }
+  function setupUpload(wrap, key){
+    if(!wrap) return;
+    wrap.innerHTML = "";
+    var inp = document.createElement("input"); inp.type="file"; inp.accept="image/*";
+    var prev = document.createElement("div"); prev.className="up-prev";
+    var meta = document.createElement("div"); meta.className="up-meta"; meta.textContent = kf[key] ? "✓ 已上传" : "未选择文件";
+    if (kf[key]) prev.innerHTML = '<img src="'+kf[key]+'" alt="">';
+    inp.onchange = function(){
+      var f = inp.files && inp.files[0];
+      if(!f){ kf[key]=""; meta.className="up-meta"; meta.textContent="未选择文件"; prev.innerHTML=""; return; }
+      meta.className="up-meta"; meta.textContent="上传中…";
+      uploadImageFile(f).then(function(url){
+        kf[key]=url; meta.className="up-meta ok"; meta.textContent="✓ "+(f.name||"已上传");
+        prev.innerHTML = '<img src="'+url+'" alt="">';
+      }).catch(function(err){ kf[key]=""; meta.className="up-meta err"; meta.textContent="✗ "+err.message; prev.innerHTML=""; });
+    };
+    wrap.appendChild(inp); wrap.appendChild(prev); wrap.appendChild(meta);
   }
   function renderImgRows(){
     var box = document.getElementById("imgBox"); if(!box) return;
     box.innerHTML = "";
     refs.forEach(function(v,i){
-      var row = document.createElement("div"); row.className="urlrow";
-      var inp = document.createElement("input"); inp.type="text"; inp.placeholder="图片 URL "+(i+1);
-      inp.value = v; inp.oninput = function(){ refs[i]=inp.value.trim(); };
-      row.appendChild(inp);
+      var row = document.createElement("div"); row.className="uprow";
+      var inp = document.createElement("input"); inp.type="file"; inp.accept="image/*";
+      var prev = document.createElement("div"); prev.className="up-prev";
+      var meta = document.createElement("div"); meta.className="up-meta"; meta.textContent = v ? "✓ 已上传" : "未选择文件";
+      if (v){ prev.innerHTML = '<img src="'+v+'" alt="">'; }
+      inp.onchange = function(){
+        var f = inp.files && inp.files[0];
+        if(!f){ refs[i]=""; meta.className="up-meta"; meta.textContent="未选择文件"; prev.innerHTML=""; return; }
+        meta.className="up-meta"; meta.textContent="上传中…";
+        uploadImageFile(f).then(function(url){ refs[i]=url; meta.className="up-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); prev.innerHTML='<img src="'+url+'" alt="">'; })
+          .catch(function(err){ refs[i]=""; meta.className="up-meta err"; meta.textContent="✗ "+err.message; prev.innerHTML=""; });
+      };
       if (refs.length>1){ var x=document.createElement("button"); x.className="btn sm"; x.textContent="✕";
         x.onclick = function(){ refs.splice(i,1); renderImgRows(); }; row.appendChild(x); }
+      row.appendChild(inp); row.appendChild(prev); row.appendChild(meta);
       box.appendChild(row);
     });
   }
@@ -216,8 +267,8 @@
     var seed = document.getElementById("seed").value.trim();
     body.seed = seed ? seed : "";
     if (MODE === "keyframe"){
-      body.first_frame = (document.getElementById("first_frame")||{}).value.trim();
-      body.last_frame = (document.getElementById("last_frame")||{}).value.trim();
+      body.first_frame = kf.first_frame || "";
+      body.last_frame = kf.last_frame || "";
     } else if (MODE === "reference"){
       body.images = (refs||[]).map(function(x){return x.trim();}).filter(Boolean);
       body.audios = (auds||[]).map(function(x){return x.trim();}).filter(Boolean);

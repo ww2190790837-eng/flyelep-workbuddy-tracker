@@ -774,6 +774,29 @@ app.get("/api/agnes-video/status", async (req, res) => {
   }
 });
 
+// ===== Agnes 图片上传(首帧/尾帧/参考图) =====
+// Agnes 要求素材必须是其服务可公开访问的 HTTPS URL，故本站接收文件后落地 public/uploads/ 并以公网 URL 返回
+const UPLOAD_DIR = path.join(__dirname, "public", "uploads");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const agnesUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+    filename: (req, file, cb) => cb(null, nanoid(16) + (path.extname(file.originalname) || "").toLowerCase().slice(0, 10))
+  }),
+  limits: { fileSize: 12 * 1024 * 1024 }, // 12MB
+  fileFilter: (req, file, cb) => cb(null, /^image\//.test(file.mimetype))
+}).single("file");
+app.post("/api/agnes-upload", (req, res) => {
+  agnesUpload(req, res, (err) => {
+    if (err) return res.status(400).json({ ok: false, error: err.message || "上传失败" });
+    if (!req.file) return res.status(400).json({ ok: false, error: "未收到文件" });
+    const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0].trim();
+    const host = req.get("host");
+    const url = proto + "://" + host + "/uploads/" + req.file.filename;
+    res.json({ ok: true, url, name: req.file.originalname });
+  });
+});
+
 // ===== Auth 路由 =====
 app.post("/api/auth/send-code", async (req, res) => {
   const email = String((req.body || {}).email || "").trim().toLowerCase();
