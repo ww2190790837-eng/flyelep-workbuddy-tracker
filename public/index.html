@@ -978,7 +978,7 @@
 <!-- 版本更新通知 -->
 <div id="versionModal" style="display:none;position:fixed;inset:0;z-index:220;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeVersionModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative">
-    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(91,59,255,.4)">v1.2.0</div>
+    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(91,59,255,.4)">v1.3.0</div>
     <h3 id="versionTitle" style="margin:8px 0 6px;font-size:19px;font-weight:700;color:var(--text)">版本更新</h3>
     <p style="margin:0 0 16px;font-size:13px;color:var(--text-2)">本次更新内容</p>
     <ul id="versionItems" style="margin:0 0 22px;padding-left:20px;color:var(--text-2);font-size:14px;line-height:1.9"></ul>
@@ -2054,12 +2054,13 @@
 
   // ===== 版本更新通知(进入网页自动检测,版本变化才弹) =====
   var RELEASE = {
-    version: "1.2.0",
-    title: "AI 写代码助手上线",
+    version: "1.3.0",
+    title: "Fleta 重大更新 · AI 视频生成上线",
     items: [
-      "右下角新增 AI 智能代码助手，随时点击展开，与 AI 实时对话",
-      "内置 Build Your Own X 知识库，可帮你从零实现数据库、操作系统、编程语言、Web 服务器等 30+ 技术系统",
-      "支持多轮上下文对话、代码块高亮展示，提问越具体回答越精准"
+      "新增 Agnes Video 2.5 Flash 视频生成：支持文生视频、首尾帧控制、图片参考生成，素材一键本地上传",
+      "顶部导航栏全新改版：提示词 / 视频反推 / Agnes 视频 / 联系我，锚点平滑滚动，主页内跳转不跳独立页",
+      "全站统一动态粒子极光背景，深浅主题自适应，视觉更连贯",
+      "下线三个旧模块：文稿工作室、智能体技能库、演示文稿，页面更聚焦、加载更轻"
     ]
   };
   function checkVersion(){
