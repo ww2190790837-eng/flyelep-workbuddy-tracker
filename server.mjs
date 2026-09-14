@@ -773,6 +773,66 @@ app.get("/slides/*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "slides", "index.html"));
 });
 
+// ===== Agnes Video 2.5 Flash 代理(API Key 仅存服务端,绝不暴露给前端) =====
+// 前端页 /agnes-video 通过这两个接口间接调用 Agnes,避免密钥泄露
+app.get(["/agnes-video", "/agnes-video/"], (req, res) => {
+  res.redirect("/agnes-video.html");
+});
+app.post("/api/agnes-video/create", express.json({ limit: "2mb" }), async (req, res) => {
+  const { mode, prompt, seconds, aspect_ratio, seed, first_frame, last_frame, images, audios } = req.body || {};
+  if (!prompt || !String(prompt).trim()) return res.status(400).json({ ok: false, error: "请填写视频描述" });
+  const body = {
+    model: AGNES_VIDEO_MODEL,
+    mode: mode || "text",
+    prompt: String(prompt).trim(),
+    seconds: String(seconds || "5"), // Flash 仅支持 4–12 秒
+    size: "720P", // Flash 固定 720P,其它值会被 400 拒绝
+    aspect_ratio: aspect_ratio || "16:9",
+    n: 1
+  };
+  if (seed !== undefined && seed !== null && seed !== "") body.seed = Number(seed);
+  if (body.mode === "keyframe") {
+    if (first_frame) body.first_frame = first_frame;
+    if (last_frame) body.last_frame = last_frame;
+  } else if (body.mode === "reference") {
+    if (Array.isArray(images)) body.images = images.filter(Boolean).slice(0, 5);
+    if (Array.isArray(audios)) body.audios = audios.filter(Boolean).slice(0, 3);
+  }
+  try {
+    const r = await fetch(AGNES_BASE_URL + "/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + AGNES_API_KEY },
+      body: JSON.stringify(body)
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || (j && j.error))
+      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: (j && j.error && j.error.message) || ("Agnes 创建失败 (" + r.status + ")") });
+    res.json({ ok: true, video_id: (j && (j.video_id || j.id)) || null, raw: j });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+app.get("/api/agnes-video/status", async (req, res) => {
+  const { video_id } = req.query || {};
+  if (!video_id) return res.status(400).json({ ok: false, error: "缺少 video_id" });
+  try {
+    const url = AGNES_RETRIEVE_URL + "?video_id=" + encodeURIComponent(video_id) + "&model_name=" + encodeURIComponent(AGNES_VIDEO_MODEL);
+    const r = await fetch(url, { headers: { Authorization: "Bearer " + AGNES_API_KEY } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || (j && j.error))
+      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: (j && j.error && j.error.message) || ("Agnes 查询失败 (" + r.status + ")") });
+    res.json({
+      ok: true,
+      status: (j && j.status) || "unknown",
+      progress: (j && j.progress) || 0,
+      video_url: (j && j.metadata && j.metadata.url) || (j && j.url) || null,
+      raw: j
+    });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+
 // ===== Auth 路由 =====
 app.post("/api/auth/send-code", async (req, res) => {
   const email = String((req.body || {}).email || "").trim().toLowerCase();
@@ -1623,6 +1683,13 @@ const AI_MODEL = (() => {
   return envModel;
 })();
 const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : AI_PROVIDER === "zhipu" ? "https://open.bigmodel.cn/api/paas/v4" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
+
+// ===== Agnes Video 2.5 Flash (OpenAI Videos 兼容, 异步任务) =====
+// Render Blueprint 不注入自定义环境变量, 故写死兜底; key 优先用 env
+const AGNES_API_KEY = process.env.AGNES_API_KEY || "sk-TCGmv3tVN26nxDKTiVgPrxHMFztSfNtXoWhiN5jEaAHzVaFH";
+const AGNES_BASE_URL = process.env.AGNES_BASE_URL || "https://apihub.agnes-ai.com/v1";
+const AGNES_VIDEO_MODEL = process.env.AGNES_VIDEO_MODEL || "agnes-video-2.5-flash";
+const AGNES_RETRIEVE_URL = "https://apihub.agnes-ai.com/agnesapi";
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
 
 // OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)

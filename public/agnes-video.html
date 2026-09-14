@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agnes Video 2.5 Flash · AI 视频生成</title>
+<link rel="icon" href="/logo.svg" type="image/png" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0b0e17;--panel:#121728;--panel-2:#171d31;--line:#232a42;
+    --text:#e8ecf7;--text-2:#9aa3bd;--text-3:#6b7490;
+    --primary:#7c5cff;--primary-2:#9b7cff;--pink:#ff5b9b;--ok:#37d399;--warn:#ffb020;--danger:#ff6b81;--r:10px;
+  }
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  input,select,textarea{font:inherit;color:inherit}
+  .btn{padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);font-size:13px;transition:.15s;white-space:nowrap}
+  .btn:hover{border-color:var(--primary);color:#fff}
+  .btn.primary{background:linear-gradient(135deg,#7c5cff,#ff5b9b);border-color:transparent;color:#fff;font-weight:700}
+  .btn.primary:hover{filter:brightness(1.1)}
+  .btn.sm{padding:5px 10px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .bar{height:54px;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .bar .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+  .bar .logo img{width:26px;height:26px;border-radius:7px}
+  .bar .sp{flex:1}
+  .badge{font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(255,91,155,.15);color:var(--pink);border:1px solid rgba(255,91,155,.4)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:22px 16px 60px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);font-size:13px;color:var(--text-2);transition:.15s}
+  .tab.active{background:rgba(255,91,155,.18);border-color:var(--pink);color:#fff;font-weight:700}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:600}
+  .field textarea,.field input[type=text],.field select{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;transition:.15s
+  }
+  .field textarea{min-height:96px;resize:vertical;line-height:1.6}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary)}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .hint{font-size:11.5px;color:var(--text-3);margin-top:6px;line-height:1.5}
+
+  .urlrow{display:flex;gap:8px;margin-bottom:8px}
+  .urlrow input{flex:1}
+  .addlink{color:var(--pink);font-size:13px;margin-top:2px;display:inline-block}
+
+  #status{margin-top:16px;font-size:13px;color:var(--text-2);min-height:20px}
+  #status .pill{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);margin-right:6px}
+  #status .pill.done{background:rgba(55,211,153,.15);border-color:var(--ok);color:var(--ok)}
+  #status .pill.fail{background:rgba(255,107,129,.15);border-color:var(--danger);color:var(--danger)}
+  #status .pill.run{background:rgba(124,92,255,.15);border-color:var(--primary);color:var(--primary-2)}
+
+  #result{margin-top:18px}
+  #result video{width:100%;max-width:560px;border-radius:12px;background:#000;display:block}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .card video{width:100%;border-radius:8px;background:#000;display:block;margin-bottom:6px}
+  .card .meta{font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .section-title{font-size:12px;font-weight:800;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin:26px 0 12px}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="logo" href="/"><img src="/logo.svg" alt="Fleta" onerror="this.style.display='none'"><span>Fleta</span></a>
+  <span class="badge">Agnes Video 2.5 Flash</span>
+  <span class="sp"></span>
+  <a class="btn sm" href="/">← 返回首页</a>
+</header>
+
+<div class="wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-mode="text">文生视频</button>
+    <button class="tab" data-mode="keyframe">首尾帧控制</button>
+    <button class="tab" data-mode="reference">图片参考生成</button>
+  </div>
+
+  <div class="panel">
+    <div class="field">
+      <label>视频描述（prompt）</label>
+      <textarea id="prompt" placeholder="例如：雨后的未来城市街道，霓虹灯倒映在地面，一辆银色跑车缓慢驶过，电影级运镜，自然环境声"></textarea>
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>时长（秒，4–12）</label>
+        <select id="seconds"></select>
+      </div>
+      <div class="field">
+        <label>画幅</label>
+        <select id="aspect">
+          <option value="16:9">16:9（横屏）</option>
+          <option value="9:16">9:16（竖屏）</option>
+          <option value="1:1">1:1（方形）</option>
+          <option value="3:4">3:4</option>
+          <option value="4:3">4:3</option>
+          <option value="2:3">2:3</option>
+          <option value="3:2">3:2</option>
+          <option value="21:9">21:9（超宽）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>随机种子（可选）</label>
+        <input type="text" id="seed" placeholder="留空随机" />
+      </div>
+    </div>
+
+    <div id="modeFields"></div>
+
+    <div class="hint">
+      说明：Agnes Video 2.5 Flash 固定输出 720P；首帧/尾帧/参考图片需为 <b>可被 Agnes 公开访问的 HTTPS 链接</b>（生成全程保持有效）。文生视频无需任何素材。
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+      <button class="btn primary" id="gen">生成视频</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div id="result"></div>
+
+  <div class="section-title">本会话生成记录</div>
+  <div class="gallery" id="history"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var MODE = "text";
+  var refs = [];   // reference images
+  var auds = [];   // reference audios
+  var history = [];
+  var pollTimer = null;
+
+  // ---- 时长选项 4..12 ----
+  var secSel = document.getElementById("seconds");
+  for (var s=4; s<=12; s++){ var o=document.createElement("option"); o.value=String(s); o.textContent=s+" 秒"; if(s===5) o.selected=true; secSel.appendChild(o); }
+
+  // ---- 模式字段渲染 ----
+  var modeFields = document.getElementById("modeFields");
+  function renderModeFields(){
+    modeFields.innerHTML = "";
+    if (MODE === "keyframe") {
+      modeFields.innerHTML =
+        '<div class="field"><label>首帧图片 URL（可选）</label><input type="text" id="first_frame" placeholder="https://... 首帧图"></div>'+
+        '<div class="field"><label>尾帧图片 URL（可选）</label><input type="text" id="last_frame" placeholder="https://... 尾帧图"></div>'+
+        '<div class="hint">首尾帧控制：至少提供首帧或尾帧之一，Agnes 会据此生成过渡视频。</div>';
+    } else if (MODE === "reference") {
+      modeFields.innerHTML =
+        '<div class="field"><label>参考图片（最多 5 张，HTTPS 公开链接）</label><div id="imgBox"></div>'+
+        '<a class="addlink" id="addImg">+ 添加图片</a></div>'+
+        '<div class="field"><label>参考音频（最多 3 段，可选）</label><div id="audBox"></div>'+
+        '<a class="addlink" id="addAud">+ 添加音频</a></div>'+
+        '<div class="hint">参考图片/音频会被 Agnes 用于生成风格一致的视频。</div>';
+      refs = [""]; auds = [""];
+      renderImgRows(); renderAudRows();
+      document.getElementById("addImg").onclick = function(){ if(refs.length<5){ refs.push(""); renderImgRows(); } };
+      document.getElementById("addAud").onclick = function(){ if(auds.length<3){ auds.push(""); renderAudRows(); } };
+    } else {
+      refs = []; auds = []; // text 模式不传素材
+    }
+  }
+  function renderImgRows(){
+    var box = document.getElementById("imgBox"); if(!box) return;
+    box.innerHTML = "";
+    refs.forEach(function(v,i){
+      var row = document.createElement("div"); row.className="urlrow";
+      var inp = document.createElement("input"); inp.type="text"; inp.placeholder="图片 URL "+(i+1);
+      inp.value = v; inp.oninput = function(){ refs[i]=inp.value.trim(); };
+      row.appendChild(inp);
+      if (refs.length>1){ var x=document.createElement("button"); x.className="btn sm"; x.textContent="✕";
+        x.onclick = function(){ refs.splice(i,1); renderImgRows(); }; row.appendChild(x); }
+      box.appendChild(row);
+    });
+  }
+  function renderAudRows(){
+    var box = document.getElementById("audBox"); if(!box) return;
+    box.innerHTML = "";
+    auds.forEach(function(v,i){
+      var row = document.createElement("div"); row.className="urlrow";
+      var inp = document.createElement("input"); inp.type="text"; inp.placeholder="音频 URL "+(i+1);
+      inp.value = v; inp.oninput = function(){ auds[i]=inp.value.trim(); };
+      row.appendChild(inp);
+      if (auds.length>1){ var x=document.createElement("button"); x.className="btn sm"; x.textContent="✕";
+        x.onclick = function(){ auds.splice(i,1); renderAudRows(); }; row.appendChild(x); }
+      box.appendChild(row);
+    });
+  }
+
+  // ---- tabs ----
+  document.getElementById("tabs").addEventListener("click", function(e){
+    var b = e.target.closest(".tab"); if(!b) return;
+    MODE = b.dataset.mode;
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){ t.classList.toggle("active", t===b); });
+    renderModeFields();
+  });
+
+  // ---- 状态显示 ----
+  var statusEl = document.getElementById("status");
+  function setStatus(html){ statusEl.innerHTML = html; }
+
+  // ---- 生成 ----
+  document.getElementById("gen").onclick = function(){ gen(); };
+  function gen(){
+    if (pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+    var body = {
+      mode: MODE,
+      prompt: document.getElementById("prompt").value.trim(),
+      seconds: document.getElementById("seconds").value,
+      aspect_ratio: document.getElementById("aspect").value
+    };
+    var seed = document.getElementById("seed").value.trim();
+    body.seed = seed ? seed : "";
+    if (MODE === "keyframe"){
+      body.first_frame = (document.getElementById("first_frame")||{}).value.trim();
+      body.last_frame = (document.getElementById("last_frame")||{}).value.trim();
+    } else if (MODE === "reference"){
+      body.images = (refs||[]).map(function(x){return x.trim();}).filter(Boolean);
+      body.audios = (auds||[]).map(function(x){return x.trim();}).filter(Boolean);
+    }
+    if (!body.prompt){ setStatus('<span class="pill fail">请填写视频描述</span>'); return; }
+    var btn = document.getElementById("gen"); btn.disabled = true;
+    setStatus('<span class="pill run">提交中…</span>');
+    fetch("/api/agnes-video/create", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) })
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(o){
+        if (!o.ok || !o.j.ok){ btn.disabled=false; setStatus('<span class="pill fail">创建失败：'+(o.j.error||"未知错误")+'</span>'); return; }
+        var vid = o.j.video_id;
+        setStatus('<span class="pill run">任务已创建，排队生成中…</span> video_id='+vid);
+        pollStatus(vid);
+      })
+      .catch(function(e){ btn.disabled=false; setStatus('<span class="pill fail">请求失败：'+e.message+'</span>'); });
+  }
+
+  function pollStatus(vid){
+    var btn = document.getElementById("gen");
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function(){
+      fetch("/api/agnes-video/status?video_id="+encodeURIComponent(vid))
+        .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+        .then(function(o){
+          var j = o.j || {};
+          var st = (j.status||"").toLowerCase();
+          var prog = (j.progress!=null) ? Math.round(j.progress*100)+"%" : "";
+          if (!o.ok || !j.ok){
+            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            setStatus('<span class="pill fail">查询失败：'+(j.error||"未知")+'</span>');
+            return;
+          }
+          if (st === "completed" || st === "success" || st === "done"){
+            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            var url = j.video_url || (j.raw && (j.raw.metadata && j.raw.metadata.url) ) || null;
+            if (url){ showResult(url, vid); setStatus('<span class="pill done">生成完成 ✓</span>'); }
+            else setStatus('<span class="pill done">生成完成，但未返回视频地址（原始：'+JSON.stringify(j.raw).slice(0,200)+'）</span>');
+          } else if (st === "failed" || st === "error" || st === "cancelled"){
+            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            setStatus('<span class="pill fail">生成失败：'+(j.error||j.raw&&j.raw.error&&j.raw.error.message||st)+'</span>');
+          } else {
+            setStatus('<span class="pill run">状态：'+st+' '+prog+'</span>');
+          }
+        })
+        .catch(function(e){ /* 网络抖动忽略，下一轮继续 */ });
+    }, 1800);
+  }
+
+  function showResult(url, vid){
+    var result = document.getElementById("result");
+    result.innerHTML = '<div class="card"><video src="'+url+'" controls autoplay muted playsinline></video>'+
+      '<div class="meta">video_id='+vid+'</div></div>';
+    history.unshift({ url:url, vid:vid, mode:MODE });
+    if (history.length>12) history.pop();
+    var h = document.getElementById("history");
+    h.innerHTML = history.map(function(it){
+      return '<div class="card"><video src="'+it.url+'" controls muted playsinline></video><div class="meta">'+it.mode+' · '+it.vid.slice(0,12)+'…</div></div>';
+    }).join("");
+  }
+
+  renderModeFields();
+})();
+</script>
+</body>
+</html>
