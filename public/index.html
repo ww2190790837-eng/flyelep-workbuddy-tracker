@@ -96,16 +96,19 @@
 
   /* === 顶部导航 (大厂级玻璃态) === */
   .top-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(24px) saturate(200%);-webkit-backdrop-filter:blur(24px) saturate(200%);background:rgba(10,10,30,.45);border-bottom:1px solid rgba(255,255,255,.07);transition:all .3s}
+  .top-nav::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(124,92,255,.55),rgba(255,91,155,.5),transparent);opacity:.75}
   .top-nav:hover{background:rgba(10,10,30,.6);border-bottom-color:rgba(255,255,255,.11)}
-  .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+  .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0}
   .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px;color:#fff;transition:opacity .2s}
   .nav-logo:hover{opacity:.9}
   .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 20px rgba(124,92,255,.25)}
-  .nav-links{display:flex;gap:32px;align-items:center}
-  .nav-links a{color:rgba(255,255,255,.7);font-size:14px;font-weight:500;transition:all .25s;position:relative}
-  .nav-links a::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--gradient);border-radius:1px;transition:width .25s}
-  .nav-links a:hover{color:#fff}
-  .nav-links a:hover::after{width:100%}
+  .nav-links{display:flex;gap:4px;align-items:center;padding:5px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .nav-links a{display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,.72);font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:999px;transition:all .25s;position:relative;white-space:nowrap}
+  .nav-links a:hover{color:#fff;background:rgba(255,255,255,.08)}
+  .nav-links a.active{color:#fff;background:linear-gradient(135deg,rgba(124,92,255,.42),rgba(255,91,155,.3));box-shadow:0 4px 16px rgba(124,92,255,.32),inset 0 1px 0 rgba(255,255,255,.14)}
+  .nav-links a.active .ic{color:#fff}
+  .nav-links a.nav-agnes{color:#ff9ec4}
+  .nav-links a.nav-agnes:hover,.nav-links a.nav-agnes.active{color:#fff}
   .nav-cta{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .3s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 16px rgba(91,59,255,.35);position:relative;overflow:hidden}
   .nav-cta::before{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transition:left .5s}
   .nav-cta:hover::before{left:150%}
@@ -360,9 +363,14 @@
   }
   [data-theme="light"] html{background:var(--bg)}
   [data-theme="light"] .top-nav{background:rgba(255,255,255,.78);border-bottom-color:var(--border);box-shadow:0 1px 0 rgba(0,0,0,.04)}
+  [data-theme="light"] .top-nav::after{opacity:.5}
   [data-theme="light"] .nav-logo{color:var(--text)}
+  [data-theme="light"] .nav-links{background:rgba(108,79,247,.06);border-color:rgba(108,79,247,.14);box-shadow:none}
   [data-theme="light"] .nav-links a{color:var(--text-2)}
-  [data-theme="light"] .nav-links a:hover{color:var(--text)}
+  [data-theme="light"] .nav-links a:hover{color:var(--text);background:rgba(108,79,247,.1)}
+  [data-theme="light"] .nav-links a.active{color:var(--text);background:linear-gradient(135deg,rgba(108,79,247,.18),rgba(232,58,130,.14));box-shadow:none}
+  [data-theme="light"] .nav-links a.active .ic{color:var(--primary)}
+  [data-theme="light"] .nav-links a.nav-agnes{color:#e83a82}
   [data-theme="light"] .hero{background:
     radial-gradient(ellipse 80% 55% at 50% 0%, rgba(108,79,247,.08) 0%, transparent 60%),
     radial-gradient(ellipse 60% 40% at 20% 30%, rgba(232,58,130,.05) 0%, transparent 55%),
@@ -855,10 +863,10 @@
       <span>Fleta</span>
     </a>
     <div class="nav-links">
-      <a href="#prompt-gen" style="color:var(--primary-2);display:inline-flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.8L19 9l-4 3.3.9 5L12 15l-3.9 2.3.9-5L4 9l5.1-1.2z"/></svg>提示词</a>
-      <a href="#video-reverse" style="display:inline-flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>视频反推</a>
-      <a href="/agnes-video" style="display:inline-flex;align-items:center;gap:6px;color:#ff5b9b"><svg class="ic" viewBox="0 0 24 24"><path d="M3 5h13l4 3v8l-4 3H3z"/><path d="M7 8v6M11 8v6M15 8.5v5M19 9.5v3"/></svg>Agnes 视频</a>
-      <a href="https://www.douyin.com/user/self?from_tab_name=main" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v12H5.17L4 17.17z"/><path d="M8 9h8M8 13h5"/></svg>联系我</a>
+      <a href="#prompt-gen" data-nav="prompt-gen"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.8L19 9l-4 3.3.9 5L12 15l-3.9 2.3.9-5L4 9l5.1-1.2z"/></svg>提示词</a>
+      <a href="#video-reverse" data-nav="video-reverse"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>视频反推</a>
+      <a href="#agnes-video" data-nav="agnes-video" class="nav-agnes"><svg class="ic" viewBox="0 0 24 24"><path d="M3 5h13l4 3v8l-4 3H3z"/><path d="M7 8v6M11 8v6M15 8.5v5M19 9.5v3"/></svg>Agnes 视频</a>
+      <a href="https://www.douyin.com/user/self?from_tab_name=main" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v12H5.17L4 17.17z"/><path d="M8 9h8M8 13h5"/></svg>联系我</a>
     </div>
     <div class="nav-actions">
       <div style="position:relative;display:inline-flex">
@@ -1196,6 +1204,414 @@
     <p class="pg-hint reveal d3" style="margin-top:16px">上传一段已生成的视频，AI 会逐帧分析画面内容，然后反推出可用于重新生成的完整五段式提示词。支持对反推结果进行二次编辑和微调。</p>
   </div>
 </section>
+
+<!-- ============================================
+     Agnes Video 2.5 Flash：文生视频 / 首尾帧控制 / 图片参考生成
+     ============================================ -->
+<style>
+  #agnes-video{overflow:hidden}
+  #agnes-video .agv-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.6;mix-blend-mode:screen}
+  [data-theme="light"] #agnes-video .agv-canvas{opacity:.8;mix-blend-mode:normal}
+  #agnes-video .agv-wrap{position:relative;z-index:2}
+  .agv-card{position:relative;z-index:2;max-width:900px;margin:0 auto;background:rgba(17,21,36,.72);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 24px 60px -24px rgba(0,0,0,.6)}
+  [data-theme="light"] .agv-card{background:rgba(255,255,255,.86);box-shadow:0 24px 60px -30px rgba(30,20,80,.25)}
+  .agv-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .agv-tab{padding:9px 18px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-size:13px;font-weight:600;color:var(--text-2);transition:all .2s;cursor:pointer;font-family:inherit}
+  .agv-tab:hover{color:var(--text);border-color:var(--border-2)}
+  .agv-tab.active{background:linear-gradient(135deg,rgba(124,92,255,.4),rgba(255,91,155,.3));border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(124,92,255,.3)}
+  [data-theme="light"] .agv-tab.active{color:var(--text)}
+  .agv-field{margin-bottom:14px}
+  .agv-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .agv-label{display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:7px}
+  .agv-label small{font-weight:400;opacity:.65}
+  .agv-input,.agv-textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:11px;padding:11px 13px;font-size:13.5px;color:var(--text);outline:none;transition:border .2s,box-shadow .2s;font-family:inherit}
+  [data-theme="light"] .agv-input,[data-theme="light"] .agv-textarea{background:rgba(255,255,255,.9)}
+  .agv-input:focus,.agv-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,92,255,.15)}
+  .agv-textarea{min-height:92px;resize:vertical;line-height:1.6}
+  .agv-hint{font-size:12px;color:var(--text-3);line-height:1.6;margin:4px 0 0}
+  .agv-actions{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+  .agv-gen{padding:13px 30px;border-radius:12px;background:var(--gradient);color:#fff;font-size:14.5px;font-weight:700;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(124,92,255,.4);transition:all .25s;font-family:inherit}
+  .agv-gen:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(124,92,255,.55)}
+  .agv-gen:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .agv-status{font-size:13px;color:var(--text-2)}
+  .agv-status .pill{display:inline-block;padding:3px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--border);margin-right:6px}
+  .agv-status .pill.run{border-color:var(--primary);color:var(--primary-2)}
+  .agv-status .pill.done{border-color:var(--success);color:var(--success)}
+  .agv-status .pill.fail{border-color:#ff6b81;color:#ff6b81}
+  .agv-uprow{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+  .agv-uprow input[type=file]{flex:1;min-width:160px;font-size:12px;color:var(--text-2)}
+  .agv-prev{width:56px;height:56px;border-radius:9px;border:1px solid var(--border);overflow:hidden;background:rgba(255,255,255,.04);flex:none;display:flex;align-items:center;justify-content:center}
+  .agv-prev img{width:100%;height:100%;object-fit:cover}
+  .agv-meta{font-size:12px;color:var(--text-3);min-width:86px}
+  .agv-meta.ok{color:var(--success)} .agv-meta.err{color:#ff6b81}
+  .agv-addlink{color:var(--pink);font-size:13px;margin-top:2px;display:inline-block;cursor:pointer}
+  .agv-urlrow{display:flex;gap:8px;margin-bottom:8px}
+  .agv-urlrow input{flex:1}
+  .agv-result{margin-top:18px}
+  .agv-result video{width:100%;max-width:560px;border-radius:14px;background:#000;display:block;box-shadow:0 20px 50px -20px rgba(0,0,0,.7)}
+  .agv-result .meta{font-size:11.5px;color:var(--text-3);margin-top:8px;word-break:break-all}
+  .agv-gallery-title{text-align:center;font-size:13px;color:var(--text-3);margin:34px 0 14px;letter-spacing:.06em}
+  .agv-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;max-width:900px;margin:0 auto}
+  .agv-gallery .card{background:rgba(17,21,36,.7);border:1px solid var(--border);border-radius:14px;padding:10px}
+  [data-theme="light"] .agv-gallery .card{background:rgba(255,255,255,.85)}
+  .agv-gallery video{width:100%;border-radius:9px;background:#000;display:block;margin-bottom:6px}
+  .agv-gallery .meta{font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media(max-width:640px){.agv-row3{grid-template-columns:1fr}}
+</style>
+
+<section id="agnes-video">
+  <canvas class="agv-canvas" id="agvCanvas"></canvas>
+  <div class="wrap agv-wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal"><svg class="ic" viewBox="0 0 24 24" style="margin-right:6px"><path d="M3 5h13l4 3v8l-4 3H3z"/><path d="M7 8v6M11 8v6M15 8.5v5M19 9.5v3"/></svg>/ Agnes Video 2.5 Flash</span>
+      <h2 class="section-title reveal"><em>Agnes</em> AI 视频生成</h2>
+      <p class="section-sub reveal">文生视频 · 首尾帧控制 · 图片参考生成 —— 三模式一体，素材直接上传</p>
+    </div>
+
+    <div class="agv-card reveal">
+      <div class="agv-tabs" id="agvTabs">
+        <button class="agv-tab active" data-mode="text">文生视频</button>
+        <button class="agv-tab" data-mode="keyframe">首尾帧控制</button>
+        <button class="agv-tab" data-mode="reference">图片参考生成</button>
+      </div>
+
+      <div class="agv-field">
+        <label class="agv-label">视频描述 <small>prompt</small></label>
+        <textarea id="agvPrompt" class="agv-textarea" placeholder="例如：雨后的未来城市街道，霓虹灯倒映在地面，一辆银色跑车缓慢驶过，电影级运镜，自然环境声"></textarea>
+      </div>
+
+      <div class="agv-row3">
+        <div class="agv-field">
+          <label class="agv-label">时长（秒，4–12）</label>
+          <select id="agvSeconds" class="agv-input"></select>
+        </div>
+        <div class="agv-field">
+          <label class="agv-label">画幅</label>
+          <select id="agvAspect" class="agv-input">
+            <option value="16:9">16:9（横屏）</option>
+            <option value="9:16">9:16（竖屏）</option>
+            <option value="1:1">1:1（方形）</option>
+            <option value="3:4">3:4</option>
+            <option value="4:3">4:3</option>
+            <option value="2:3">2:3</option>
+            <option value="3:2">3:2</option>
+            <option value="21:9">21:9（超宽）</option>
+          </select>
+        </div>
+        <div class="agv-field">
+          <label class="agv-label">随机种子（可选）</label>
+          <input type="text" id="agvSeed" class="agv-input" placeholder="留空随机" />
+        </div>
+      </div>
+
+      <div id="agvModeFields"></div>
+
+      <p class="agv-hint">说明：Agnes Video 2.5 Flash 固定输出 720P；首帧 / 尾帧 / 参考图片通过本页<b>上传</b>（自动托管为公开链接交给 Agnes，无需自备图床）。文生视频无需任何素材。</p>
+
+      <div class="agv-actions">
+        <button class="agv-gen" id="agvGen">生成视频</button>
+        <span class="agv-status" id="agvStatus"></span>
+      </div>
+
+      <div class="agv-result" id="agvResult"></div>
+    </div>
+
+    <div class="agv-gallery-title">本会话生成记录</div>
+    <div class="agv-gallery" id="agvHistory"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.getElementById("agnes-video");
+  if (!root) return;
+  var MODE = "text";
+  var refs = [""], auds = [""], kf = { first_frame: "", last_frame: "" };
+  var history = [], pollTimer = null;
+  function $(id){ return document.getElementById(id); }
+
+  var secSel = $("agvSeconds");
+  for (var s=4; s<=12; s++){ var o=document.createElement("option"); o.value=String(s); o.textContent=s+" 秒"; if(s===5) o.selected=true; secSel.appendChild(o); }
+
+  function setStatus(html){ $("agvStatus").innerHTML = html; }
+
+  function uploadImageFile(file){
+    return new Promise(function(resolve,reject){
+      var fd = new FormData(); fd.append("file", file);
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/agnes-upload");
+      xhr.onload = function(){
+        try { var j = JSON.parse(xhr.responseText); if (j.ok && j.url) resolve(j.url); else reject(new Error(j.error||"上传失败")); }
+        catch(e){ reject(new Error("上传返回无法解析")); }
+      };
+      xhr.onerror = function(){ reject(new Error("网络错误")); };
+      xhr.send(fd);
+    });
+  }
+
+  var modeFields = $("agvModeFields");
+
+  function setupUpload(wrap, key){
+    if(!wrap) return;
+    wrap.innerHTML = "";
+    var inp = document.createElement("input"); inp.type="file"; inp.accept="image/*";
+    var prev = document.createElement("div"); prev.className="agv-prev";
+    var meta = document.createElement("div"); meta.className="agv-meta"; meta.textContent = kf[key] ? "✓ 已上传" : "未选择文件";
+    if (kf[key]) prev.innerHTML = '<img src="'+kf[key]+'" alt="">';
+    inp.onchange = function(){
+      var f = inp.files && inp.files[0];
+      if(!f){ kf[key]=""; meta.className="agv-meta"; meta.textContent="未选择文件"; prev.innerHTML=""; return; }
+      meta.className="agv-meta"; meta.textContent="上传中…";
+      uploadImageFile(f).then(function(url){
+        kf[key]=url; meta.className="agv-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); prev.innerHTML = '<img src="'+url+'" alt="">';
+      }).catch(function(err){ kf[key]=""; meta.className="agv-meta err"; meta.textContent="✗ "+err.message; prev.innerHTML=""; });
+    };
+    wrap.appendChild(inp); wrap.appendChild(prev); wrap.appendChild(meta);
+  }
+
+  function renderImgRows(){
+    var box = $("agvImgBox"); if(!box) return;
+    box.innerHTML = "";
+    refs.forEach(function(v,i){
+      var row = document.createElement("div"); row.className="agv-uprow";
+      var inp = document.createElement("input"); inp.type="file"; inp.accept="image/*";
+      var prev = document.createElement("div"); prev.className="agv-prev";
+      var meta = document.createElement("div"); meta.className="agv-meta"; meta.textContent = v ? "✓ 已上传" : "未选择文件";
+      if (v){ prev.innerHTML = '<img src="'+v+'" alt="">'; }
+      inp.onchange = function(){
+        var f = inp.files && inp.files[0];
+        if(!f){ refs[i]=""; meta.className="agv-meta"; meta.textContent="未选择文件"; prev.innerHTML=""; return; }
+        meta.className="agv-meta"; meta.textContent="上传中…";
+        uploadImageFile(f).then(function(url){ refs[i]=url; meta.className="agv-meta ok"; meta.textContent="✓ "+(f.name||"已上传"); prev.innerHTML='<img src="'+url+'" alt="">'; })
+          .catch(function(err){ refs[i]=""; meta.className="agv-meta err"; meta.textContent="✗ "+err.message; prev.innerHTML=""; });
+      };
+      if (refs.length>1){ var x=document.createElement("button"); x.className="pg-clear"; x.textContent="✕";
+        x.onclick = function(){ refs.splice(i,1); renderImgRows(); }; row.appendChild(x); }
+      row.appendChild(inp); row.appendChild(prev); row.appendChild(meta);
+      box.appendChild(row);
+    });
+  }
+
+  function renderAudRows(){
+    var box = $("agvAudBox"); if(!box) return;
+    box.innerHTML = "";
+    auds.forEach(function(v,i){
+      var row = document.createElement("div"); row.className="agv-urlrow";
+      var inp = document.createElement("input"); inp.type="text"; inp.className="agv-input"; inp.placeholder="音频 URL "+(i+1);
+      inp.value = v; inp.oninput = function(){ auds[i]=inp.value.trim(); };
+      row.appendChild(inp);
+      if (auds.length>1){ var x=document.createElement("button"); x.className="pg-clear"; x.textContent="✕";
+        x.onclick = function(){ auds.splice(i,1); renderAudRows(); }; row.appendChild(x); }
+      box.appendChild(row);
+    });
+  }
+
+  function renderModeFields(){
+    modeFields.innerHTML = "";
+    if (MODE === "keyframe") {
+      modeFields.innerHTML =
+        '<div class="agv-field"><label class="agv-label">首帧图片 <small>（上传，可选）</small></label><div class="agv-upwrap" id="agvFfWrap"></div></div>'+
+        '<div class="agv-field"><label class="agv-label">尾帧图片 <small>（上传，可选）</small></label><div class="agv-upwrap" id="agvLfWrap"></div></div>'+
+        '<p class="agv-hint">首尾帧控制：至少提供首帧或尾帧之一，图片将上传到本站后交给 Agnes 生成过渡视频。</p>';
+      setupUpload($("agvFfWrap"), "first_frame");
+      setupUpload($("agvLfWrap"), "last_frame");
+    } else if (MODE === "reference") {
+      modeFields.innerHTML =
+        '<div class="agv-field"><label class="agv-label">参考图片 <small>（最多 5 张，上传）</small></label><div id="agvImgBox"></div>'+
+        '<a class="agv-addlink" id="agvAddImg">+ 添加图片</a></div>'+
+        '<div class="agv-field"><label class="agv-label">参考音频 <small>（最多 3 段，HTTPS 链接，可选）</small></label><div id="agvAudBox"></div>'+
+        '<a class="agv-addlink" id="agvAddAud">+ 添加音频</a></div>'+
+        '<p class="agv-hint">参考图片会上传到本站后交给 Agnes 用于风格一致的生成；音频仍用公开链接。</p>';
+      refs = [""]; auds = [""];
+      renderImgRows(); renderAudRows();
+      $("agvAddImg").onclick = function(){ if(refs.length<5){ refs.push(""); renderImgRows(); } };
+      $("agvAddAud").onclick = function(){ if(auds.length<3){ auds.push(""); renderAudRows(); } };
+    } else {
+      refs = []; auds = [];
+      kf.first_frame = ""; kf.last_frame = "";
+    }
+  }
+
+  $("agvTabs").addEventListener("click", function(e){
+    var b = e.target.closest(".agv-tab"); if(!b) return;
+    MODE = b.dataset.mode;
+    Array.prototype.forEach.call(root.querySelectorAll(".agv-tab"), function(t){ t.classList.toggle("active", t===b); });
+    renderModeFields();
+  });
+
+  function pollStatus(vid){
+    var btn = $("agvGen");
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function(){
+      fetch("/api/agnes-video/status?video_id="+encodeURIComponent(vid))
+        .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+        .then(function(o){
+          var j = o.j || {};
+          var st = (j.status||"").toLowerCase();
+          var prog = (j.progress!=null) ? Math.round(j.progress*100)+"%" : "";
+          if (!o.ok || !j.ok){
+            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            setStatus('<span class="pill fail">查询失败：'+(j.error||"未知")+'</span>'); return;
+          }
+          if (st === "completed" || st === "success" || st === "done"){
+            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            var url = j.video_url || (j.raw && j.raw.metadata && j.raw.metadata.url) || null;
+            if (url){ showResult(url, vid); setStatus('<span class="pill done">生成完成 ✓</span>'); }
+            else setStatus('<span class="pill done">生成完成，但未返回视频地址</span>');
+          } else if (st === "failed" || st === "error" || st === "cancelled"){
+            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            setStatus('<span class="pill fail">生成失败：'+(j.error || (j.raw && j.raw.error && j.raw.error.message) || st)+'</span>');
+          } else {
+            setStatus('<span class="pill run">状态：'+st+' '+prog+'</span>');
+          }
+        })
+        .catch(function(){ /* 网络抖动忽略，下一轮继续 */ });
+    }, 1800);
+  }
+
+  function showResult(url, vid){
+    $("agvResult").innerHTML = '<div class="card"><video src="'+url+'" controls autoplay muted playsinline></video><div class="meta">video_id='+vid+'</div></div>';
+    history.unshift({ url:url, vid:vid, mode:MODE });
+    if (history.length>12) history.pop();
+    $("agvHistory").innerHTML = history.map(function(it){
+      return '<div class="card"><video src="'+it.url+'" controls muted playsinline></video><div class="meta">'+it.mode+' · '+String(it.vid).slice(0,12)+'…</div></div>';
+    }).join("");
+  }
+
+  $("agvGen").onclick = function(){
+    if (pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+    var body = {
+      mode: MODE,
+      prompt: $("agvPrompt").value.trim(),
+      seconds: $("agvSeconds").value,
+      aspect_ratio: $("agvAspect").value
+    };
+    var seed = $("agvSeed").value.trim();
+    body.seed = seed ? seed : "";
+    if (MODE === "keyframe"){
+      body.first_frame = kf.first_frame || "";
+      body.last_frame = kf.last_frame || "";
+    } else if (MODE === "reference"){
+      body.images = (refs||[]).map(function(x){return (x||"").trim();}).filter(Boolean);
+      body.audios = (auds||[]).map(function(x){return (x||"").trim();}).filter(Boolean);
+    }
+    if (!body.prompt){ setStatus('<span class="pill fail">请填写视频描述</span>'); return; }
+    var btn = $("agvGen"); btn.disabled = true;
+    setStatus('<span class="pill run">提交中…</span>');
+    fetch("/api/agnes-video/create", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) })
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(o){
+        if (!o.ok || !o.j.ok){ btn.disabled=false; setStatus('<span class="pill fail">创建失败：'+(o.j.error||"未知错误")+'</span>'); return; }
+        var vid = o.j.video_id;
+        setStatus('<span class="pill run">任务已创建，排队生成中…</span> video_id='+vid);
+        pollStatus(vid);
+      })
+      .catch(function(e){ btn.disabled=false; setStatus('<span class="pill fail">请求失败：'+e.message+'</span>'); });
+  };
+
+  renderModeFields();
+})();
+</script>
+
+<script>
+/* Agnes 区块动态粒子/极光背景（仿主页 bg-home.js，按主题自适应） */
+(function(){
+  var canvas = document.getElementById("agvCanvas");
+  if (!canvas) return;
+  var ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var W=0,H=0,DPR=1,raf=null,last=0;
+  var orbs=[], parts=[];
+  var COLORS=[[124,92,255],[255,91,155],[34,160,255],[0,212,224]];
+  var mouse={x:-9999,y:-9999};
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function isLight(){return document.documentElement.getAttribute("data-theme")==="light";}
+  function init(){
+    orbs=COLORS.map(function(c,i){
+      return {c:c,r:Math.max(W,H)*rand(0.3,0.5),x:W*[0.2,0.78,0.5,0.86][i],y:H*[0.25,0.3,0.8,0.72][i],vx:rand(-26,26),vy:rand(-20,20),ph:rand(0,6.28),br:rand(.5,1)};
+    });
+    var n=Math.round((W*H)/16000); n=Math.max(36,Math.min(110,n));
+    parts=[];
+    for(var i=0;i<n;i++){parts.push({x:Math.random()*W,y:Math.random()*H,r:rand(.5,2.2),vx:rand(-14,14),vy:rand(-22,-6),a:rand(.25,.9),tw:rand(.8,3)});}
+  }
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=canvas.clientWidth; H=canvas.clientHeight;
+    if(!W||!H) return;
+    canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    init();
+  }
+  function draw(t){
+    var light=isLight();
+    ctx.clearRect(0,0,W,H);
+    ctx.globalCompositeOperation = light ? "source-over" : "screen";
+    var am = light ? 0.5 : 1;
+    var i,j;
+    for(i=0;i<orbs.length;i++){
+      var b=orbs[i];
+      b.x+=b.vx*(t?0.016:0); b.y+=b.vy*(t?0.016:0);
+      if(b.x<-b.r)b.x=W+b.r; if(b.x>W+b.r)b.x=-b.r;
+      if(b.y<-b.r)b.y=H+b.r; if(b.y>H+b.r)b.y=-b.r;
+      var breathe=0.82+0.18*Math.sin((t||0)*0.0006*b.br+b.ph);
+      var rr=b.r*breathe, c=b.c;
+      var g=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,rr);
+      g.addColorStop(0,"rgba("+c[0]+","+c[1]+","+c[2]+","+(0.3*am).toFixed(3)+")");
+      g.addColorStop(0.5,"rgba("+c[0]+","+c[1]+","+c[2]+","+(0.13*am).toFixed(3)+")");
+      g.addColorStop(1,"rgba("+c[0]+","+c[1]+","+c[2]+",0)");
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(b.x,b.y,rr,0,6.283); ctx.fill();
+    }
+    for(j=0;j<parts.length;j++){
+      var p=parts[j];
+      p.x+=p.vx*(t?0.016:0); p.y+=p.vy*(t?0.016:0);
+      var dx=p.x-mouse.x, dy=p.y-mouse.y, d2=dx*dx+dy*dy;
+      if(d2<14400){ var d=Math.sqrt(d2)||1; p.x+=dx/d*0.6; p.y+=dy/d*0.6; }
+      if(p.y<-6){p.y=H+6;p.x=Math.random()*W;}
+      if(p.x<-6)p.x=W+6; if(p.x>W+6)p.x=-6;
+      var tw=0.5+0.5*Math.sin((t||0)*0.002*p.tw+p.x);
+      var al=(p.a*tw*(light?0.5:1)).toFixed(3);
+      ctx.fillStyle=(light?"rgba(90,60,200,":"rgba(255,255,255,")+al+")";
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill();
+    }
+    ctx.globalCompositeOperation = light ? "source-over" : "screen";
+    for(i=0;i<parts.length;i++){
+      for(j=i+1;j<parts.length;j++){
+        var pa=parts[i], pb=parts[j];
+        var lx=pa.x-pb.x, ly=pa.y-pb.y, ld=lx*lx+ly*ly;
+        if(ld<5200){
+          var lo=((1-ld/5200)*(light?0.1:0.16)).toFixed(3);
+          ctx.strokeStyle=(light?"rgba(120,80,220,":"rgba(160,180,255,")+lo+")";
+          ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+        }
+      }
+    }
+  }
+  function frame(t){
+    if(!last) last=t;
+    draw(t);
+    raf=requestAnimationFrame(frame);
+  }
+  function start(){
+    resize();
+    if(reduce){ draw(0); return; }
+    if(raf) cancelAnimationFrame(raf);
+    last=0; raf=requestAnimationFrame(frame);
+  }
+  canvas.parentElement.addEventListener("mousemove", function(e){
+    var r=canvas.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top;
+  });
+  canvas.parentElement.addEventListener("mouseleave", function(){ mouse.x=-9999; mouse.y=-9999; });
+  var rz=null; window.addEventListener("resize", function(){ clearTimeout(rz); rz=setTimeout(resize,200); });
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
+    else if(!reduce && !raf){ last=0; raf=requestAnimationFrame(frame); }
+  });
+  window.addEventListener("load", start);
+  if(document.readyState==="complete") start();
+})();
+</script>
 
 <!-- ===== Video-Use 智能视频助手盒子（默认隐藏，仅 ?vu=1 测试模式显示） ===== -->
 <section id="video-use" style="display:none">
@@ -3248,6 +3664,30 @@
   pet.addEventListener('touchstart', onStart, {passive:false});
   document.addEventListener('touchmove', onMove, {passive:false});
   document.addEventListener('touchend', onEnd);
+})();
+</script>
+
+<script>
+/* 顶部导航：锚点滚动高亮（scroll-spy），不跳独立页 */
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[data-nav]'));
+  if(!links.length) return;
+  var map = {};
+  links.forEach(function(a){ var el = document.getElementById(a.dataset.nav); if(el) map[a.dataset.nav] = el; });
+  var ticking = false;
+  function update(){
+    ticking = false;
+    var cur = null;
+    links.forEach(function(a){
+      var el = map[a.dataset.nav]; if(!el) return;
+      if (el.getBoundingClientRect().top <= window.innerHeight * 0.38) cur = a.dataset.nav;
+    });
+    links.forEach(function(a){ a.classList.toggle('active', a.dataset.nav === cur); });
+  }
+  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  update();
 })();
 </script>
 

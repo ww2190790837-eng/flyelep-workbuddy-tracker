@@ -715,9 +715,9 @@ app.get(["/account", "/account.html"], (req, res) => {
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
 
 // ===== Agnes Video 2.5 Flash 代理(API Key 仅存服务端,绝不暴露给前端) =====
-// 前端页 /agnes-video 通过这两个接口间接调用 Agnes,避免密钥泄露
-app.get(["/agnes-video", "/agnes-video/"], (req, res) => {
-  res.redirect("/agnes-video.html");
+// 已并入主页区块(#agnes-video),不再有独立页;旧 /agnes-video 链接兼容跳到主页锚点
+app.get(["/agnes-video", "/agnes-video.html"], (req, res) => {
+  res.redirect("/#agnes-video");
 });
 app.post("/api/agnes-video/create", express.json({ limit: "2mb" }), async (req, res) => {
   const { mode, prompt, seconds, aspect_ratio, seed, first_frame, last_frame, images, audios } = req.body || {};
