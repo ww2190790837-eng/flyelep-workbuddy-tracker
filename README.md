@@ -1,26 +1,47 @@
-﻿# Fleta + UTM 后台
+﻿# Fleta — 抖音引流落地页 + 用户系统 + UTM 后台 + AI 工具
+
+Fleta（原 Flyelep / 飞象）是一个跨境电商 AI 设计智能体。本仓库是它的**抖音软广引流落地页**，
+集成了 UTM 跟踪后台、邮箱验证码用户系统，以及若干 AI 创作工具（提示词生成、视频反推、Agnes 视频生成）。
+
+线上地址：https://flyelep-wb-tracker.onrender.com
+
+## 首页功能
+
+顶部导航（均为**页内锚点滚动**，不跳独立页）：`提示词` / `视频反推` / `Agnes 视频` / `联系我`
+
+- **AI 视频提示词生成器**：五段式结构（主体 + 风格 + 时间线 + BGM + 限制），支持「一句话描述 + 上传参考图」，
+  由 LLM 生成专业提示词（默认 `glm-4-air`，LLM 不可用时回退本地模板）。生成记录匿名入库用于持续训练。
+- **视频反推**：上传视频 → 自动抽帧 → AI 反推完整五段式提示词。
+- **Agnes 视频生成**（Agnes Video 2.5 Flash）：三模式 —— 文生视频 / 首尾帧控制 / 图片参考生成。
+  首帧、尾帧、参考图片、参考音频均为**本地上传**（服务端托管为公开 URL 后交给 Agnes）。
+- **留言板**、**免费积分邀请码**、**用户系统**（邮箱验证码注册/登录，支持自定义头像与昵称）。
+
+全站共用一套**固定满屏动态背景**（光团 + 动态 Canvas + 网格 + 噪点），滚动时不动。
 
 ## 项目结构
 
 ```
 codex电商/
-├── server.mjs       # Express 后端(静态服务 + UTM 跟踪 + 用户系统 + 管理后台)
+├── server.mjs            # Express 后端（静态服务 + 用户系统 + UTM 跟踪 + AI 代理 + 管理后台）
 ├── package.json
-├── render.yaml      # Render.com 一键部署配置
-├── Dockerfile       # 通用 Docker 部署
-├── vercel.json      # Vercel 部署配置
-├── start.ps1        # 本地一键启动(Windows)
-├── publish.ps1      # 一键发布到 Render(需联网 + gh 已登录)
-├── public/
-│   ├── index.html   # 抖音落地页(含 UTM 跟踪 + 注册/登录弹窗)
-│   ├── admin.html   # UTM 后台仪表盘
-│   ├── account.html # 用户账户页
-│   ├── ecopulse.html      # 电商脉搏:全球电商政策/活动/热点大图轮播页
-│   ├── ecopulse-data.js   # 电商脉搏数据源(资讯 + 配图路径)
-│   └── ecopulse/          # 资讯配图(从各新闻页下载,图文一一配套)
+├── render.yaml           # Render.com 部署配置
+├── Dockerfile            # 通用 Docker 部署
+├── vercel.json           # Vercel 部署配置
+├── start.ps1             # 本地一键启动（Windows）
+├── publish.ps1           # 旧发布脚本（git push 已失效，见「部署」）
 ├── scripts/
-│   └── ecopulse-refresh.mjs  # 抓取最新资讯与配图,自动写回数据源
-└── data/            # 运行时生成(users.json / db.json / events.json),已被 .gitignore 排除
+│   └── ghpush.mjs        # 一键发布：走 GitHub Git Data API 推代码并触发 Render 部署
+├── public/
+│   ├── index.html        # 落地页（导航 / 提示词 / 视频反推 / Agnes 视频 / 留言板 / 登录弹窗）
+│   ├── login.html        # 登录页
+│   ├── settings.html     # 账户设置（头像 / 昵称 / 改密）
+│   ├── account.html      # 旧账户页（已重定向回首页，保留兼容）
+│   ├── admin.html        # UTM 后台仪表盘（token 登录）
+│   ├── admin-login.html  # 后台登录页
+│   ├── bg-home.js        # 全站动态背景（固定满屏 Canvas）
+│   ├── bg-aurora.js      # 登录页动态背景
+│   └── logo.* / wechat-qr.png / favicon.png ...
+└── data/                 # 运行时生成（users.json / db.json 等），已被 .gitignore 排除
 ```
 
 ## 本地运行
@@ -29,52 +50,55 @@ codex电商/
 npm install
 node server.mjs
 # 访问 http://localhost:8080
-# 后台:http://localhost:8080/admin/?token=codex2026
-#   (若用 start.ps1 启动,默认 token 为 admin123)
+# 后台 http://localhost:8080/admin/?token=codex2026
+#   （若用 start.ps1 启动，默认 token 为 admin123）
 ```
 
-## 永久部署(任选一种)
+## 部署
 
-### 方案 A · Surge.sh(最简单,5 分钟搞定)
+主部署在 **Render.com**（服务 `srv-d9k5uvnavr4c73a97rrg`）。
+
+一键发布（**推荐**）：
 
 ```bash
-npm install -g surge
-surge login   # 用你的邮箱注册
-surge ./public your-name.surge.sh
-# 永久链接:https://your-name.surge.sh
+git add -A && git commit -m "说明"
+node scripts/ghpush.mjs "说明"
 ```
 
-### 方案 B · Render.com(全栈,免费)
-
-1. 把这个目录推到 GitHub
-2. 登录 render.com → New Web Service → 连 GitHub
-3. Render 会自动读 render.yaml 部署
-4. 永久链接:https://你的项目名.onrender.com
-
-### 方案 C · 自己的服务器 / NAS
-
-```bash
-docker build -t tracker .
-docker run -d -p 8080:8080 \
-  -e ADMIN_PASSWORD=你的密码 \
-  -e SESSION_SECRET=随机字符串 \
-  --name tracker \
-  --restart always \
-  tracker
-```
+`ghpush.mjs` 通过 GitHub Git Data API（`api.github.com`）推送并自动触发 Render 部署。
+⚠️ 不要用 `git push` / `publish.ps1`——本机到 `github.com:443` 不通，会超时失败。
 
 ## 环境变量
 
-| 变量 | 必填 | 说明 |
-|---|---|---|
-| `PORT` | 否 | 监听端口,默认 8080 |
-| `ADMIN_PASSWORD` | 是 | 后台登录密码 |
-| `SESSION_SECRET` | 是 | cookie 签名密钥 |
-| `PUBLIC_URL` | 否 | 用于后台展示 |
+| 变量 | 必填 | 默认 | 说明 |
+|---|---|---|---|
+| `PORT` | 否 | `8080` | 监听端口 |
+| `ADMIN_PASSWORD` | 否 | `codex2026` | 后台登录 token |
+| `SESSION_SECRET` | 否 | — | session 签名密钥 |
+| `USERS_GIST_TOKEN` / `USERS_GIST_ID` | 否 | — | 用户数据存 GitHub 私有 Gist（跨设备/重启不丢，**线上默认**）|
+| `MONGODB_URI` | 否 | — | 若配置则优先用 MongoDB Atlas |
+| `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | 否 | — | 提示词生成所用 LLM |
+| `AGNES_API_KEY` / `AGNES_BASE_URL` / `AGNES_VIDEO_MODEL` | 否 | — | Agnes 视频生成（默认 `agnes-video-2.5-flash`）|
 
-## UTM 参数说明
+> ⚠️ 该服务由 `render.yaml`（Blueprint）托管，**自定义环境变量不会自动注入**；
+> 因此需要的配置都在 `server.mjs` 里写了硬编码兜底，可用环境变量覆盖。
 
-链接模板:
+## 数据存储
+
+- 用户数据：GitHub 私有 Gist 优先，其次 MongoDB，最后本地 JSON（`data/users.json`，重启会丢）。
+- 留言板 / 提示词语料 / UTM 跟踪 / 邀请码：Gist + 本地 JSON 兜底。
+- 头像以 base64 data URL 存在用户文档中（不落文件）。
+- Agnes 上传的素材临时落在 `public/uploads/`（运行时生成，已被 `.gitignore` 排除）。
+
+## 后台
+
+`/admin/?token=<ADMIN_PASSWORD>`：查看 PV/点击、UTM 来源分布、用户列表、邀请码库存、
+提示词语料，支持导出 CSV 与重置。
+
+## UTM 参数
+
+链接模板：
+
 ```
 https://你的域名/?utm_source=douyin&utm_medium=video&utm_campaign=fleta_ai&utm_content=v1
 ```
@@ -85,26 +109,10 @@ https://你的域名/?utm_source=douyin&utm_medium=video&utm_campaign=fleta_ai&u
 | utm_medium | 媒介 | video / live / bio / story |
 | utm_campaign | 活动 | fleta_ai_v1 / q3_launch |
 | utm_content | 内容 | 60s_hero / 30s_lite |
-| utm_term | 关键词(选填) | amazon / tiktok |
+| utm_term | 关键词（选填） | amazon / tiktok |
 
-## 数据存储
+## 历史 / 已删除的功能
 
-数据保存在 `app/data/db.json`,纯 JSON 文件,无外部依赖。
-建议部署时挂载持久卷,避免重启丢数据。
-
-## 电商脉搏(/ecopulse)
-
-国内外电商平台的政策调整、活动计划与每日热点,全屏大图轮播(Ken Burns 动效),左下角显示事件的**日期 / 时间 / 内容摘要**,点击大图或「阅读原文」跳转新闻源页面。
-
-- 页面:`public/ecopulse.html`,首页导航栏已加「电商脉搏」入口
-- 数据:`public/ecopulse-data.js`(每条资讯的 `image` 都指向 `public/ecopulse/` 下从对应新闻页下载的配图)
-- 分类:全部 / 每日热点 / 平台政策 / 海外跨境 / 活动计划,支持箭头、缩略图、键盘、滑动切换与自动播放
-
-刷新资讯(抓取电商派 + 雨果跨境最新文章,连同配图一起下载并按 url 去重):
-
-```bash
-npm run refresh:ecopulse          # 每个源最多新增 8 条
-node scripts/ecopulse-refresh.mjs --max=5   # 自定义每个源的新增上限
-```
-
-数据最多保留 40 条,手写条目与「大促倒计时」配置会完整保留。
+- 文稿工作室 `/studio`、智能体技能库 `/skills`（含旧 `/ecopulse`）、Slidev 演示文稿 `/slides` 三个功能已**完整删除**（页面、路由、数据、脚本，含仓库外的 Slidev 源码）。
+  旧链接 `/agnes-video` 仍保留 302 跳转到 `/#agnes-video` 作兼容。
+- 早期文档提到的「电商脉搏 / ecopulse」页面已不存在。
