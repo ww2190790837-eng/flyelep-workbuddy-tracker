@@ -984,6 +984,60 @@
   [data-theme="light"] .sec-no{-webkit-text-stroke:1px rgba(10,14,20,.10)}
   section{position:relative}
   section>.wrap{position:relative;z-index:1}
+
+  /* ==========================================================================
+     10) 天蓝强调色统一 + 原生控件修色（下拉框 / 滚动条）
+     ========================================================================== */
+
+  /* 10.1 天蓝强调色：导航下划线、悬停、聚焦、按钮主色 */
+  :root{
+    --accent:#38bdf8; --accent-2:#7dd3fc; --pink:#0ea5e9;
+    --gradient:linear-gradient(135deg,#bae6fd 0%,#4cc2f8 52%,#0ea5e9 100%);
+    --glow:0 0 32px rgba(56,189,248,.28);
+    color-scheme:dark;          /* 关键：原生下拉列表/滚动条按深色渲染 */
+  }
+  [data-theme="light"]{
+    --accent:#0369a1; --accent-2:#0284c7; --pink:#0c4a6e;
+    --gradient:linear-gradient(135deg,#0369a1 0%,#0284c7 55%,#0c4a6e 100%);
+    color-scheme:light;
+  }
+
+  /* 10.2 皮肤里残留的「冷白强调」全部换成天蓝 */
+  .nav-auth:hover,.theme-toggle:hover{border-color:var(--accent);background:rgba(56,189,248,.09)}
+  .nav-cta:hover{box-shadow:0 0 0 1px rgba(56,189,248,.55),0 8px 26px rgba(56,189,248,.3)!important}
+  .nav-links a::after{background:var(--accent)}
+  .hero-kicker{color:var(--accent-2)}
+  .hero-kicker::before{background:var(--accent)}
+  .scroll-cue .chev{border-color:var(--accent)}
+  .scroll-cue{color:var(--accent-2)}
+  .hero-side a:hover{border-color:var(--accent);background:rgba(56,189,248,.1);color:#fff}
+  .hud-frame span{border-color:rgba(125,211,252,.45)}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(56,189,248,.22)!important}
+  .btn-ghost:hover{background:rgba(56,189,248,.09);border-color:var(--accent)}
+  .section-eyebrow{color:var(--accent-2)}
+  .pg-upload-zone:hover,.pg-upload-zone.drag-over{border-color:var(--accent);background:rgba(56,189,248,.06)}
+  .pg-upload-text strong,.pg-template,.pg-copy,.pg-manual-toggle:hover,.tl-add-btn{color:var(--accent)}
+  .pg-num{background:var(--gradient)}
+  .scroll-bar{background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+
+  /* 10.3 下拉框：深色列表 + 天蓝选中态（修「白底浅字看不见」） */
+  option{background-color:#0e1116;color:#edf0f3}
+  option:checked,option:hover{background-color:#0b5f85;color:#fff}
+  [data-theme="light"] option{background-color:#fff;color:#101418}
+  [data-theme="light"] option:checked,[data-theme="light"] option:hover{background-color:#0284c7;color:#fff}
+
+  /* 10.4 滚动条：全站统一细条深色（修「白色系统滚动条」） */
+  *{scrollbar-width:thin;scrollbar-color:rgba(125,211,252,.35) transparent}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}
+  ::-webkit-scrollbar-thumb{background:rgba(125,211,252,.3);border-radius:6px;
+    border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(125,211,252,.55);background-clip:content-box}
+  ::-webkit-scrollbar-corner{background:transparent}
+  ::-webkit-scrollbar-button{display:none;width:0;height:0}
+  [data-theme="light"]{scrollbar-color:rgba(2,132,199,.35) transparent}
+  [data-theme="light"] ::-webkit-scrollbar-track{background:rgba(10,14,20,.05)}
+  [data-theme="light"] ::-webkit-scrollbar-thumb{background:rgba(2,132,199,.32);background-clip:content-box}
 </style>
 </head>
 <body>
