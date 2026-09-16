@@ -41,33 +41,53 @@
       'precision mediump float;',
       'uniform vec2 uRes;uniform float uTime;uniform vec2 uMouse;uniform float uScroll;',
       'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}',
+      'float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);',
+      '  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}',
+      'float fbm(vec2 p){float a=0.5;float s=0.0;for(int i=0;i<3;i++){s+=a*noise(p);p*=2.03;a*=0.5;}return s;}',
       'void main(){',
+      '  vec2 asp=vec2(uRes.x/uRes.y,1.0);',
       '  vec2 uv=gl_FragCoord.xy/uRes.xy;',
       '  vec2 q=(gl_FragCoord.xy-0.5*uRes.xy)/uRes.y;',
       '  float t=uTime;',
-      // 细网格
-      '  vec2 gu=uv*vec2(uRes.x/uRes.y,1.0)*26.0;',
-      '  vec2 gw=abs(fract(gu)-0.5);',
+      '  float rad=length(q);',
+      // 1) 流动等值线：fbm 等值线持续漂移 —— 背景「活着」的主要来源
+      '  vec2 fp=q*1.7+vec2(t*0.035,-t*0.022);',
+      '  float n=fbm(fp);',
+      '  float band=abs(fract(n*7.0)-0.5);',
+      '  float cline=smoothstep(0.055,0.0,band)*smoothstep(0.10,0.85,rad)*smoothstep(1.35,0.75,rad);',
+      // 2) 缓慢旋转的亮度瓣（正弦包络：连续无缝，绝不会出现硬边光锥）
+      '  float ang=atan(q.y,q.x);',
+      '  float lob=0.5+0.5*sin(ang-0.25*t);',
+      '  float radar=pow(lob,2.5)*smoothstep(1.7,0.05,rad);',
+      // 3) 呼吸同心环
+      '  float rings=0.0;',
+      '  for(int i=1;i<=4;i++){',
+      '    float fi=float(i);',
+      '    float rr=fi*0.26+0.012*sin(t*0.8+fi*1.7);',
+      '    rings+=smoothstep(0.0035,0.0,abs(rad-rr));',
+      '  }',
+      // 4) 细网格 + 扫描线
+      '  vec2 gw=abs(fract(uv*asp*26.0)-0.5);',
       '  float grid=max(smoothstep(0.497,0.5,gw.x),smoothstep(0.497,0.5,gw.y));',
-      // 扫描线（缓慢下移）
-      '  float scan=0.5+0.5*sin((gl_FragCoord.y*0.9+t*26.0));',
-      // 横向扫光（缓慢划过）
-      '  float sx=fract(t*0.035);',
-      '  float sweep=exp(-pow((uv.x-sx)*7.0,2.0));',
-      '  float sweep2=exp(-pow((uv.x-fract(t*0.035+0.5))*11.0,2.0))*0.5;',
-      // 鼠标补光
-      '  vec2 mo=vec2(uMouse.x,uMouse.y);',
-      '  float halo=exp(-pow(length((uv-mo)*vec2(uRes.x/uRes.y,1.0))*2.6,2.0))*0.5;',
-      // 颗粒
-      '  float n=hash(gl_FragCoord.xy*0.7+fract(t)*vec2(37.0,17.0));',
-      // 暗角 + 滚动呼吸
-      '  float vig=smoothstep(1.25+uScroll*0.06,0.22,length(q*vec2(1.0,1.12)));',
+      '  float scan=0.5+0.5*sin(gl_FragCoord.y*0.9+t*26.0);',
+      // 5) 横向扫光
+      '  float swoosh=exp(-pow((uv.x-fract(t*0.045))*7.0,2.0));',
+      '  float swoosh2=exp(-pow((uv.x-fract(t*0.045+0.5))*11.0,2.0))*0.5;',
+      // 6) 鼠标补光
+      '  float halo=exp(-pow(length((uv-uMouse)*asp)*2.6,2.0));',
+      // 7) 颗粒
+      '  float g=hash(gl_FragCoord.xy*0.7+fract(t)*vec2(37.0,17.0));',
+      '  float vig=smoothstep(1.32+uScroll*0.05,0.20,length(q*vec2(1.0,1.12)));',
+      '  vec3 sky=vec3(0.22,0.72,0.97);',
       '  vec3 col=vec3(0.0);',
-      '  col+=vec3(0.60,0.73,0.87)*grid*0.03;',
-      '  col+=vec3(0.52,0.66,0.80)*scan*0.010;',
-      '  col+=vec3(0.22,0.72,0.97)*(sweep+sweep2)*0.032;',
-      '  col+=vec3(0.30,0.70,0.96)*halo*0.055;',
-      '  col+=vec3(n)*0.026;',
+      '  col+=sky*cline*0.26;',
+      '  col+=sky*radar*0.20;',
+      '  col+=sky*rings*0.20;',
+      '  col+=sky*grid*0.055;',
+      '  col+=sky*scan*0.022;',
+      '  col+=sky*(swoosh+swoosh2)*0.06;',
+      '  col+=sky*halo*0.11;',
+      '  col+=vec3(g)*0.032;',
       '  col*=vig;',
       '  gl_FragColor=vec4(col,1.0);',
       '}'
@@ -76,14 +96,20 @@
     function sh(type, src) {
       var s = gl.createShader(type);
       gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { return null; }
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.warn('[bg-gl] shader compile failed: ' + gl.getShaderInfoLog(s));
+        return null;
+      }
       return s;
     }
     var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
     if (!vs || !fs) { canvas.style.display = 'none'; return; }
     var prog = gl.createProgram();
     gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { canvas.style.display = 'none'; return; }
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      console.warn('[bg-gl] program link failed: ' + gl.getProgramInfoLog(prog));
+      canvas.style.display = 'none'; return;
+    }
     gl.useProgram(prog);
 
     var buf = gl.createBuffer();
@@ -98,12 +124,15 @@
     var uMouse = gl.getUniformLocation(prog, 'uMouse');
     var uScroll = gl.getUniformLocation(prog, 'uScroll');
 
-    var DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    /* 内部按 0.7 分辨率渲染再由 CSS 拉伸：这是柔性辉光/线条层，肉眼看不出模糊，
+       但像素量少一半以上——这是既明显又流畅的关键。 */
+    var GLSCALE = 0.7, GLMAXW = 1600;
     var W = 0, H = 0;
     function resize() {
       W = window.innerWidth; H = window.innerHeight;
-      canvas.width = Math.max(1, Math.floor(W * DPR));
-      canvas.height = Math.max(1, Math.floor(H * DPR));
+      var s = Math.min(GLSCALE, GLMAXW / Math.max(1, W));
+      canvas.width = Math.max(1, Math.floor(W * s));
+      canvas.height = Math.max(1, Math.floor(H * s));
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
     }
@@ -141,6 +170,10 @@
       raf = requestAnimationFrame(draw);
     }
   }
+
+  /* 启动 WebGL 背景层（独立于 GSAP；无 WebGL 环境会静默退出）
+     ⚠️ 这一行不能少：函数定义≠执行，漏掉就会出现「背景一动不动」且无任何报错。 */
+  initGL();
 
   /* ==========================================================================
    * 2) 预加载：计数 + 进度条 → 揭幕
@@ -215,24 +248,21 @@
   }
 
   /* ------------------------------------------------------------------
-   * 3.5 首屏揭幕时间轴（预加载 → 字标拆字 → 其余元素跟进）
+   * 3.5 预加载 + 首屏揭幕
+   *   预加载不依赖字体；字标拆字必须等字体就绪，
+   *   否则 SplitText 会告警、且按错误字体度量换行（导致错位）。
    * ---------------------------------------------------------------- */
-  var heroChars = null;
-  if (hasSplit) {
-    var word = document.querySelector('.hero-word');
-    if (word) {
-      var sp = new SplitText(word, { type: 'chars', charsClass: 'hc' });
-      heroChars = sp.chars;
-      /* 让拆出的字走 3D 入场 */
-      word.style.perspective = '700px';
-      gsap.set(heroChars, { yPercent: 120, opacity: 0, rotateX: -70, transformOrigin: '50% 100%' });
-    }
+  function whenFonts(cb) {
+    var done = false;
+    function go() { if (done) return; done = true; cb(); }
+    setTimeout(go, 2000);                                   /* 兜底：最多等 2s */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(go)['catch'](go);
+    } else { go(); }
   }
 
-  var bootTl = gsap.timeline();
   var prog = { v: 0 };
-
-  bootTl
+  gsap.timeline()
     .to(prog, {
       v: 100, duration: 1.5, ease: EASE_INOUT,
       onUpdate: function () {
@@ -241,25 +271,39 @@
         if (bootBar) bootBar.style.width = v + '%';
       }
     })
-    /* 预加载揭幕：交给 GSAP 统一驱动（与其余动效同一时钟，避免 CSS 过渡不可控） */
+    /* 预加载揭幕：交给 GSAP 统一驱动（CSS 过渡不受控） */
     .to(boot || {}, {
       yPercent: -100, duration: 0.85, ease: 'power3.inOut',
       onComplete: function () { if (boot) boot.style.display = 'none'; }
-    }, '+=0.1')
-    /* 字标：慢入慢出 + 重叠跟进（follow-through） */
-    .to(heroChars || [], {
-      yPercent: 0, opacity: 1, rotateX: 0,
-      duration: 1.05, ease: 'power4.out', stagger: 0.055
-    }, '-=0.45')
-    .from('.hero-kicker', { y: 14, opacity: 0, duration: 0.5, ease: EASE }, '-=0.85')
-    .from('.hero .hero-sub', { y: 16, opacity: 0, duration: 0.5, ease: EASE }, '-=0.78')
-    .from('.hero .hero-url', { y: 12, opacity: 0, duration: 0.45, ease: EASE }, '-=0.72')
-    .from('.hero .cta-row .btn', {
-      y: 18, opacity: 0, scale: 0.97, duration: 0.5, ease: 'back.out(1.6)', stagger: 0.09
-    }, '-=0.66')
-    .from('.hero-top, .hero-foot', { opacity: 0, duration: 0.6, ease: EASE }, '-=0.6')
-    .from('.hero-side a', { x: 18, opacity: 0, duration: 0.45, ease: EASE, stagger: 0.07 }, '-=0.5')
-    .from('.hud-frame span', { scale: 0, opacity: 0, duration: 0.4, ease: 'back.out(2)', stagger: 0.05 }, '-=0.5');
+    }, '+=0.1');
+
+  whenFonts(function () {
+    var heroChars = [];
+    if (hasSplit) {
+      var word = document.querySelector('.hero-word');
+      if (word) {
+        var sp = new SplitText(word, { type: 'chars', charsClass: 'hc' });
+        heroChars = sp.chars;
+        word.style.perspective = '700px';
+        gsap.set(heroChars, { yPercent: 120, opacity: 0, rotateX: -70, transformOrigin: '50% 100%' });
+      }
+    }
+    gsap.timeline({ delay: 0.15 })
+      /* 字标：慢入慢出 + 重叠跟进（follow-through） */
+      .to(heroChars, {
+        yPercent: 0, opacity: 1, rotateX: 0,
+        duration: 1.05, ease: 'power4.out', stagger: 0.055
+      })
+      .from('.hero-kicker', { y: 14, opacity: 0, duration: 0.5, ease: EASE }, '-=0.85')
+      .from('.hero .hero-sub', { y: 16, opacity: 0, duration: 0.5, ease: EASE }, '-=0.78')
+      .from('.hero .hero-url', { y: 12, opacity: 0, duration: 0.45, ease: EASE }, '-=0.72')
+      .from('.hero .cta-row .btn', {
+        y: 18, opacity: 0, scale: 0.97, duration: 0.5, ease: 'back.out(1.6)', stagger: 0.09
+      }, '-=0.66')
+      .from('.hero-top, .hero-foot', { opacity: 0, duration: 0.6, ease: EASE }, '-=0.6')
+      .from('.hero-side a', { x: 18, opacity: 0, duration: 0.45, ease: EASE, stagger: 0.07 }, '-=0.5')
+      .from('.hud-frame span', { scale: 0, opacity: 0, duration: 0.4, ease: 'back.out(2)', stagger: 0.05 }, '-=0.5');
+  });
 
   /* ------------------------------------------------------------------
    * 3.6 滚动揭示：.reveal 批量入场（staging：先标题后内容）
@@ -285,18 +329,10 @@
       });
     });
 
-    /* 区块标题：逐行遮罩揭幕（SplitText lines） */
-    if (hasSplit) {
-      document.querySelectorAll('.section-title').forEach(function (el) {
-        var host = el.parentElement;
-        var split = new SplitText(el, { type: 'lines', linesClass: 'mask' });
-        gsap.set(split.lines, { yPercent: 110, opacity: 0 });
-        gsap.to(split.lines, {
-          yPercent: 0, opacity: 1, duration: 0.8, ease: 'power4.out', stagger: 0.08,
-          scrollTrigger: { trigger: host, start: 'top 85%', once: true }
-        });
-      });
-    }
+    /* 区块标题已带 .reveal，由上面的 batch 统一揭示。
+       不要再对 .section-title 做 SplitText：① 与 .reveal 重复叠加会互相打架；
+       ② 想用 linesClass 做遮罩但 SplitText 不会生成外层包裹元素，
+          overflow:hidden 落在行自身上等于无效，行会整体下移错位。 */
   }
 
   /* ------------------------------------------------------------------
@@ -313,6 +349,24 @@
         duration: 34, ease: 'sine.inOut', repeat: -1, yoyo: true
       });
     }
+    /* 线稿主环阵持续自转 + 呼吸缩放（雷达/仪表感） */
+    var ringG = document.querySelector('.bg-draw svg g');
+    if (ringG) {
+      gsap.to(ringG, { rotation: 360, duration: 240, ease: 'none', repeat: -1, transformOrigin: '50% 50%' });
+      gsap.to(ringG, { scale: 1.06, duration: 11, ease: 'sine.inOut', repeat: -1, yoyo: true, transformOrigin: '50% 50%' });
+    }
+    /* 背景漂浮光团（纯 transform，GPU 合成） */
+    gsap.utils.toArray('.bg-glow').forEach(function (el, i) {
+      gsap.to(el, {
+        xPercent: i % 2 ? -18 : 16,
+        yPercent: i % 2 ? 14 : -12,
+        scale: i % 2 ? 0.88 : 1.22,
+        duration: 22 + i * 9,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true
+      });
+    });
     if (drawSvg) {
       gsap.set(drawSvg, { willChange: 'transform' });
       var qx = gsap.quickTo(drawSvg, 'x', { duration: 1.1, ease: 'power2.out' });

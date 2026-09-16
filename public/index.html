@@ -1038,6 +1038,20 @@
   [data-theme="light"]{scrollbar-color:rgba(2,132,199,.35) transparent}
   [data-theme="light"] ::-webkit-scrollbar-track{background:rgba(10,14,20,.05)}
   [data-theme="light"] ::-webkit-scrollbar-thumb{background:rgba(2,132,199,.32);background-clip:content-box}
+
+  /* 10.5 背景漂浮光团 + 扫描线加强：让「背景在动」一眼可见
+     光团只用 transform 位移/缩放（GPU 合成、无重绘），扫描线本就只动 transform。 */
+  .bg-glow{position:absolute;width:62vmax;height:62vmax;border-radius:50%;
+    pointer-events:none;will-change:transform}
+  .bg-glow.g1{left:-14vmax;top:-18vmax;
+    background:radial-gradient(circle,rgba(56,189,248,.20),rgba(56,189,248,.06) 42%,transparent 66%)}
+  .bg-glow.g2{right:-18vmax;bottom:-22vmax;
+    background:radial-gradient(circle,rgba(125,211,252,.15),rgba(14,165,233,.05) 44%,transparent 68%)}
+  [data-theme="light"] .bg-glow.g1{background:radial-gradient(circle,rgba(2,132,199,.11),transparent 66%)}
+  [data-theme="light"] .bg-glow.g2{background:radial-gradient(circle,rgba(14,165,233,.09),transparent 68%)}
+  .bg-scan{background:linear-gradient(180deg,transparent,rgba(56,189,248,.08),transparent);
+    animation-duration:8s}
+  @media (prefers-reduced-motion:reduce){.bg-glow{display:none}}
 </style>
 </head>
 <body>
@@ -1055,6 +1069,8 @@
      全部只用 transform/opacity 合成，无 canvas 逐帧重绘、无大面积 blur。 -->
 <div class="bg-stage" aria-hidden="true">
   <div class="bg-base"></div>
+  <div class="bg-glow g1"></div>
+  <div class="bg-glow g2"></div>
   <div class="bg-draw">
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" fill="none"
          stroke="rgba(255,255,255,.5)" stroke-width="1" stroke-linecap="square">
@@ -2326,7 +2342,7 @@
     title: "Fleta 全新改版 · HUD 单色风 + 电影级动效",
     items: [
       "全站视觉改版：近单色黑白 + 冷光的 HUD 风格，双语导航、巨幅字标、技术线稿背景",
-      "新增电影级动效系统：平滑滚动、字标拆字入场、滚动驱动揭示与视差、WebGL 颗粒/扫描/扫光层、开屏加载动画",
+      "新增电影级动效系统：平滑滚动、字标拆字入场、滚动驱动揭示与视差、开屏加载动画，以及持续流动的 WebGL 动态技术背景（流动等值线 / 旋转扫掠 / 呼吸环阵 / 扫描线 / 漂浮光团）",
       "性能大修：移除逐帧重绘的动态背景与全部背景模糊，动效只走 GPU 合成（transform/opacity）",
       "浅色模式改为「蓝图纸」风格，深浅主题均可正常阅读"
     ]
