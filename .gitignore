@@ -18,5 +18,6 @@ public/uploads/
 _checkinline.mjs
 _mkshot.py
 _retint.py
+_tweak.py
 public/_shot*.html
 shot_*.png

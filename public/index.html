@@ -712,144 +712,6 @@
   [data-theme="light"] .vu-custom-copy{background:rgba(158,196,228,.04)!important;border-color:rgba(158,196,228,.12)!important}
   [data-theme="light"] .vu-result{background:#fafbff!important}
   [data-theme="light"] .vu-result pre{color:#333!important}
-  /* === 机器人宠物 AI 写代码助手 === */
-  .fleta-pet{
-    position:fixed; left:22px; bottom:92px; z-index:999;
-    width:64px; height:70px; cursor:pointer; user-select:none; touch-action:none;
-    filter:drop-shadow(0 8px 20px rgba(158,196,228,.35));
-    transition:transform .15s, filter .15s;
-  }
-  .fleta-pet:hover{ filter:drop-shadow(0 12px 28px rgba(158,196,228,.55)); transform:scale(1.05); }
-  .fleta-pet:active{ cursor:grabbing; transform:scale(.98); }
-  .fleta-pet.dragging{ transition:none; cursor:grabbing; }
-  .pet-float{
-    animation:pet-float 3s ease-in-out infinite;
-    transform-style:preserve-3d;
-  }
-  @keyframes pet-float{
-    0%,100%{ transform:translateY(0) rotateY(-5deg); }
-    50%{ transform:translateY(-8px) rotateY(5deg); }
-  }
-  /* 机器人外发光环 */
-  .pet-glow{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:76px; height:76px; border-radius:50%;
-    background:radial-gradient(circle, rgba(158,196,228,.22) 0%, rgba(158,196,228,.06) 45%, transparent 70%);
-    animation:glow-pulse 2.4s ease-in-out infinite;
-    pointer-events:none;
-  }
-  @keyframes glow-pulse{ 0%,100%{ transform:translate(-50%,-50%) scale(1); opacity:.8 } 50%{ transform:translate(-50%,-50%) scale(1.15); opacity:1 } }
-  .pet-head{
-    width:46px; height:40px;
-    background:linear-gradient(145deg,#6a8cff 0%,#8b7cff 45%,#d67bff 100%);
-    border-radius:20px 20px 18px 18px; position:absolute; left:9px; top:2px;
-    box-shadow:
-      inset -4px -4px 10px rgba(0,0,0,.2),
-      inset 4px 4px 10px rgba(255,255,255,.28),
-      0 6px 16px rgba(158,196,228,.38);
-    transform-style:preserve-3d;
-  }
-  /* 小耳朵 */
-  .pet-ear{
-    position:absolute; top:-6px; width:10px; height:14px;
-    background:linear-gradient(180deg,#8b7cff,#6a8cff);
-    border-radius:6px 6px 0 0;
-  }
-  .pet-ear.left{ left:6px; transform:rotate(-18deg); }
-  .pet-ear.right{ right:6px; transform:rotate(18deg); }
-  .pet-eyes{ position:absolute; top:15px; left:10px; width:26px; display:flex; justify-content:space-between; }
-  .pet-eye{
-    width:9px; height:9px; background:#fff; border-radius:50%;
-    box-shadow:inset 0 0 2px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.15);
-    position:relative; animation:blink 4s infinite;
-  }
-  .pet-eye::after{ content:''; position:absolute; width:4px; height:4px; background:#1a1c29; border-radius:50%; top:2px; left:3px; }
-  @keyframes blink{ 0%,48%,52%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(.1); } }
-  .pet-mouth{
-    position:absolute; bottom:9px; left:50%; transform:translateX(-50%);
-    width:12px; height:5px;
-    border-bottom:2px solid rgba(255,255,255,.92);
-    border-radius:0 0 12px 12px;
-  }
-  .pet-body{
-    width:40px; height:34px;
-    background:linear-gradient(145deg,#5a7dff 0%,#9ec4e0 55%,#e070ff 100%);
-    border-radius:16px 16px 14px 14px; position:absolute; left:12px; top:34px;
-    box-shadow:
-      inset -5px -5px 10px rgba(0,0,0,.25),
-      inset 5px 5px 10px rgba(255,255,255,.28),
-      0 8px 18px rgba(158,196,228,.38);
-    transform-style:preserve-3d;
-  }
-  /* 胸口小屏幕 */
-  .pet-screen{
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:22px; height:14px; border-radius:5px;
-    background:rgba(0,0,0,.25);
-    box-shadow:inset 0 1px 2px rgba(0,0,0,.2);
-    overflow:hidden;
-  }
-  .pet-screen::after{
-    content:''; position:absolute; left:-6px; top:0; width:10px; height:100%;
-    background:linear-gradient(90deg,transparent,rgba(124,255,200,.5),transparent);
-    animation:screen-scan 1.8s linear infinite;
-  }
-  @keyframes screen-scan{ to{ transform:translateX(30px); } }
-  .pet-arm{
-    position:absolute; top:6px; width:10px; height:18px;
-    background:linear-gradient(180deg,#8b7cff,#6a8cff);
-    border-radius:8px; transform-origin:top center;
-  }
-  .pet-arm.left{ left:-6px; transform:rotate(22deg); animation:wave-left 2.4s ease-in-out infinite; }
-  .pet-arm.right{ right:-6px; transform:rotate(-22deg); animation:wave-right 2.4s ease-in-out infinite; }
-  @keyframes wave-left{ 0%,100%{ transform:rotate(22deg); } 50%{ transform:rotate(36deg); } }
-  @keyframes wave-right{ 0%,100%{ transform:rotate(-22deg); } 50%{ transform:rotate(-36deg); } }
-  .pet-bubble{
-    position:absolute; left:74px; top:-18px;
-    min-width:170px; max-width:260px;
-    background:rgba(17,21,36,.94);
-    border:1px solid rgba(158,196,228,.38);
-    border-radius:16px 16px 16px 6px;
-    padding:11px 13px;
-    font-size:12.5px; line-height:1.55; color:var(--text);
-    backdrop-filter:blur(14px) saturate(180%);
-    -webkit-backdrop-filter:blur(14px) saturate(180%);
-    box-shadow:0 8px 32px rgba(0,0,0,.4), 0 0 20px rgba(158,196,228,.18);
-    opacity:0; transform:translateY(10px) scale(.92);
-    transition:all .35s cubic-bezier(.34,1.56,.64,1);
-    pointer-events:none;
-  }
-  .pet-bubble.show{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
-  .pet-bubble::before{
-    content:''; position:absolute; left:-8px; top:24px;
-    width:0; height:0;
-    border-top:8px solid transparent;
-    border-bottom:8px solid transparent;
-    border-right:10px solid rgba(158,196,228,.38);
-  }
-  .pet-bubble::after{
-    content:''; position:absolute; left:-6px; top:25px;
-    width:0; height:0;
-    border-top:7px solid transparent;
-    border-bottom:7px solid transparent;
-    border-right:8px solid rgba(17,21,36,.94);
-  }
-  .pet-bubble b{ color:var(--primary-2); }
-  .pet-bubble code{ background:rgba(158,196,228,.18); padding:1px 4px; border-radius:4px; font-size:11px; color:var(--primary-3); }
-  .pet-bubble small{ display:block; margin-top:6px; color:var(--text-3); font-size:10.5px; }
-  .pet-hint{
-    position:absolute; bottom:-18px; left:50%; transform:translateX(-50%);
-    font-size:9px; color:var(--text-3); white-space:nowrap;
-    opacity:.55; transition:opacity .3s;
-  }
-  .fleta-pet:hover .pet-hint{ opacity:1; }
-  @media (max-width:768px){
-    .fleta-pet{ left:10px; bottom:78px; }
-    .pet-bubble{ left:68px; min-width:150px; max-width:200px; font-size:11.5px; }
-  }
-  @media (prefers-reduced-motion:reduce){
-    .pet-float,.pet-eye,.pet-glow,.pet-screen::after,.pet-arm{ animation:none; }
-  }
 
   /* ==========================================================================
      FLETA · HUD 单色风皮肤 (v1.4.0)
@@ -919,7 +781,7 @@
   .top-nav:hover{background:rgba(7,8,10,.94)}
   .top-nav-inner{padding:12px 0}
   .nav-logo{gap:12px}
-  .nav-logo img{width:30px;height:30px;border-radius:5px;box-shadow:none;filter:grayscale(1) brightness(1.35) contrast(1.05)}
+  .nav-logo img{width:30px;height:30px;border-radius:5px;box-shadow:0 0 18px rgba(56,189,248,.38)}
   .logo-text{display:flex;flex-direction:column;line-height:1}
   .logo-text b{font-family:var(--disp);font-size:17px;font-weight:600;letter-spacing:.26em;color:#fff;text-transform:uppercase}
   .logo-text i{font-style:normal;font-size:9px;letter-spacing:.34em;color:var(--text-3);margin-top:4px;text-transform:uppercase}
@@ -1027,8 +889,7 @@
   .pg-loading,.pg-spinner{border-radius:50%}
   footer{position:relative;z-index:2;border-top:1px solid var(--line);background:rgba(7,8,10,.6)}
   .foot-col h5{font-family:var(--mono);letter-spacing:.22em;color:var(--text-3)}
-  .foot-brand img{border-radius:4px;filter:grayscale(1) brightness(1.3)}
-  .fleta-pet{filter:grayscale(1) brightness(1.06) contrast(1.05)}
+  .foot-brand img{border-radius:4px;box-shadow:0 0 16px rgba(56,189,248,.30)}
   .scroll-bar{background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:none;height:2px}
 
   /* ---- 7) 浅色主题 = 蓝图纸 ---- */
@@ -1050,7 +911,6 @@
   [data-theme="light"] .bg-grid{opacity:.5}
   [data-theme="light"] .bg-vig{background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 46%,rgba(20,26,34,.16) 100%)}
   [data-theme="light"] .top-nav,[data-theme="light"] .top-nav:hover{background:rgba(236,238,240,.92);border-bottom-color:var(--line)}
-  [data-theme="light"] .nav-logo img,[data-theme="light"] .foot-brand img{filter:grayscale(1) brightness(.9) contrast(1.2)}
   [data-theme="light"] .logo-text b,[data-theme="light"] .nav-links a:hover b,[data-theme="light"] .nav-links a.active b{color:var(--text)}
   [data-theme="light"] .nav-cta{background:#141a20!important;color:#f4f7fa!important}
   [data-theme="light"] .nav-auth:hover,[data-theme="light"] .theme-toggle:hover{color:var(--text);background:rgba(10,14,20,.05)}
@@ -1060,7 +920,6 @@
   [data-theme="light"] #msgSendBtn,[data-theme="light"] .pg-num{background:var(--gradient)!important;color:#fff!important}
   [data-theme="light"] .card,[data-theme="light"] .pg-card{background:rgba(255,255,255,.7)}
   [data-theme="light"] footer{background:rgba(236,238,240,.7)}
-  [data-theme="light"] .fleta-pet{filter:grayscale(1) brightness(.98) contrast(1.1)}
 
   /* ---- 8) 弹窗主按钮对比度修正：浅色渐变底配深字，避免白字发灰 ---- */
   #versionModal button:not(#versionClose),
@@ -1996,7 +1855,6 @@
   </div>
 </section>
 
-
 <footer>
   <div class="wrap">
     <div class="foot-grid">
@@ -2092,7 +1950,6 @@
   }catch(e){}
 })();
 </script>
-
 
 <script>
 (function(){
@@ -3851,107 +3708,6 @@
     </div>
   </div>
 </div>
-
-<!-- AI 写代码助手 机器人宠物 -->
-<div class="fleta-pet pet-float" id="fletaPet" title="点击打开 AI 写代码助手 · 拖动我到任意位置">
-  <div class="pet-glow"></div>
-  <div class="pet-head">
-    <div class="pet-ear left"></div>
-    <div class="pet-ear right"></div>
-    <div class="pet-eyes"><div class="pet-eye"></div><div class="pet-eye"></div></div>
-    <div class="pet-mouth"></div>
-  </div>
-  <div class="pet-body">
-    <div class="pet-screen"></div>
-    <div class="pet-arm left"></div>
-    <div class="pet-arm right"></div>
-  </div>
-  <div class="pet-bubble" id="petBubble">
-    <span id="petBubbleText">你好！我是 AI 写代码助手</span>
-    <small>点击我打开对话，或拖动到不挡内容的位置</small>
-  </div>
-  <div class="pet-hint">AI 写代码助手</div>
-</div>
-<script>
-(function(){
-  var pet = document.getElementById('fletaPet');
-  var bubble = document.getElementById('petBubble');
-  var bubbleText = document.getElementById('petBubbleText');
-  if(!pet || !bubble || !bubbleText) return;
-
-  var tips = [
-    "你好！我是 <b>AI 写代码助手</b><br><small>点击我或拖动到任意位置</small>",
-    "我可以帮你从零实现 <b>Web 服务器</b>、<b>数据库</b>、<b>编程语言</b>等系统",
-    "试试问我：<code>从零写一个 Web 服务器</code>",
-    "需要提示词？用 <b>提示词生成器</b>，上传图片就出 Seedance 提示词",
-    "有视频素材？用 <b>视频反推</b> 拆镜头学 prompt",
-    "测试模式入口：<code>?vu=1</code> 可体验智能剪辑（内部测试）",
-    "拖动我可以放到不挡内容的位置哦"
-  ];
-  var tipIdx = 0, bubbleTimer = null;
-
-  function showTip(forceIdx){
-    if(forceIdx !== undefined) tipIdx = forceIdx % tips.length;
-    bubbleText.innerHTML = tips[tipIdx];
-    bubble.classList.add('show');
-    tipIdx = (tipIdx + 1) % tips.length;
-    clearTimeout(bubbleTimer);
-    bubbleTimer = setTimeout(function(){ bubble.classList.remove('show'); }, 5200);
-  }
-
-  // initial + cycle
-  setTimeout(function(){ showTip(0); }, 1400);
-  setInterval(function(){ showTip(); }, 9000);
-
-  // click pet body to open AI chat (drag should not trigger click)
-  var petMoved = false;
-  pet.addEventListener('click', function(e){
-    if(e.target.closest('.pet-bubble')) return;
-    if(petMoved) return;
-    if(typeof toggleChat === 'function') toggleChat();
-  });
-
-  // drag logic (mouse + touch)
-  var dragging = false, startX, startY, initLeft, initTop;
-  function getClient(e){ return e.touches && e.touches.length ? e.touches[0] : e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : e; }
-  function onStart(e){
-    if(e.target.closest('.pet-bubble')) return;
-    dragging = true; petMoved = false;
-    pet.classList.add('dragging');
-    pet.classList.remove('pet-float'); // pause float while dragging
-    var c = getClient(e);
-    startX = c.clientX; startY = c.clientY;
-    initLeft = pet.offsetLeft; initTop = pet.offsetTop;
-    e.preventDefault();
-  }
-  function onMove(e){
-    if(!dragging) return;
-    var c = getClient(e);
-    var dx = c.clientX - startX, dy = c.clientY - startY;
-    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) petMoved = true;
-    pet.style.left = (initLeft + dx) + 'px';
-    pet.style.top = (initTop + dy) + 'px';
-    pet.style.bottom = 'auto'; pet.style.right = 'auto';
-    e.preventDefault();
-  }
-  function onEnd(e){
-    if(!dragging) return;
-    dragging = false;
-    pet.classList.remove('dragging');
-    var c = getClient(e);
-    var dx = c.clientX - startX, dy = c.clientY - startY;
-    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) petMoved = true;
-    // resume float after a short delay
-    setTimeout(function(){ if(!dragging) pet.classList.add('pet-float'); }, 200);
-  }
-  pet.addEventListener('mousedown', onStart);
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-  pet.addEventListener('touchstart', onStart, {passive:false});
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('touchend', onEnd);
-})();
-</script>
 
 <script>
 /* 顶部导航：锚点滚动高亮（scroll-spy），不跳独立页 */
