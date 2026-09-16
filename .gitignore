@@ -13,3 +13,10 @@ gh-extract/
 
 # Agnes 上传的临时图片(运行时生成,勿提交)
 public/uploads/
+
+# 本地开发/验证用脚本与临时产物(勿提交)
+_checkinline.mjs
+_mkshot.py
+_retint.py
+public/_shot*.html
+shot_*.png

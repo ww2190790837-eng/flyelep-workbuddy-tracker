@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#5b3bff" />
+<meta name="theme-color" content="#7ea9cc" />
 <title>登录 Fleta</title>
 <link rel="icon" href="/logo.svg" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,11 +12,12 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --primary:#5b3bff;--primary-2:#7c5cff;--pink:#ff5b9b;
-    --text:#0a0a25;--text-2:#4a4a6a;--text-3:#8a8aa8;
-    --surface:#fff;--border:rgba(15,15,40,.10);
-    --gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);
+    --primary:#3f6d92;--primary-2:#5b86aa;--pink:#4a7396;
+    --text:#0a0f14;--text-2:#49515b;--text-3:#828b95;
+    --surface:#fff;--border:rgba(10,16,24,.10);
+    --gradient:linear-gradient(135deg,#2a323b 0%,#4a555f 55%,#6d7a86 100%);
     --danger:#ef4444;--success:#22c55e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
   }
   html,body{height:100%}
   body{
@@ -28,11 +29,22 @@
   }
   ::selection{background:var(--primary);color:#fff}
 
-  /* ===== 极光背景(canvas 动态) ===== */
-  .bg-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;display:block;background:
-    radial-gradient(120% 120% at 80% -10%, #2a1b6b 0%, transparent 55%),
-    radial-gradient(120% 120% at 0% 100%, #3a1b5e 0%, transparent 50%),
-    #0b0820;}
+  /* ===== 背景：静态渐变 + 缓慢漂移线稿(纯 SVG)，无 canvas 逐帧重绘 ===== */
+  .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#07080a}
+  .bg-base{position:absolute;inset:-12%;background:
+    radial-gradient(58% 44% at 20% 16%, rgba(150,190,225,.12), transparent 62%),
+    radial-gradient(52% 44% at 82% 28%, rgba(120,158,190,.09), transparent 62%),
+    radial-gradient(70% 58% at 52% 112%, rgba(88,110,134,.10), transparent 62%)}
+  .bg-draw{position:absolute;inset:-12% -8%;opacity:.4;will-change:transform;animation:drawDrift 140s ease-in-out infinite}
+  .bg-draw svg{width:100%;height:100%;display:block}
+  @keyframes drawDrift{0%,100%{transform:translate3d(0,0,0) scale(1.02)}50%{transform:translate3d(-1.6%,-1.2%,0) scale(1.05) rotate(.5deg)}}
+  .bg-grid{position:absolute;inset:0;opacity:.12;
+    background-image:linear-gradient(to right,rgba(255,255,255,.13) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.13) 1px,transparent 1px);
+    background-size:104px 104px;
+    -webkit-mask-image:radial-gradient(ellipse 82% 72% at 50% 38%,#000 22%,transparent 82%);
+    mask-image:radial-gradient(ellipse 82% 72% at 50% 38%,#000 22%,transparent 82%)}
+  .bg-vig{position:absolute;inset:0;background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 42%,rgba(0,0,0,.6) 100%)}
+  @media (prefers-reduced-motion:reduce){.bg-draw{animation:none}}
 
   /* ===== 布局 ===== */
   .stage{position:relative;z-index:1;flex:1;display:grid;grid-template-columns:1.05fr .95fr;min-height:100vh}
@@ -41,7 +53,7 @@
   /* 左侧品牌区 */
   .brand-pane{padding:56px 56px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;position:relative}
   .brand-top{display:flex;align-items:center;gap:12px}
-  .brand-logo{width:44px;height:44px;border-radius:12px;box-shadow:0 8px 24px rgba(124,92,255,.5);background:#fff;padding:4px}
+  .brand-logo{width:44px;height:44px;border-radius:12px;box-shadow:0 8px 24px rgba(158,196,228,.5);background:#fff;padding:4px;filter:grayscale(1) brightness(1.15)}
   .brand-name{font-weight:800;font-size:19px;letter-spacing:-.3px}
   .brand-mid{max-width:420px}
   .brand-mid h1{font-size:40px;line-height:1.15;font-weight:800;letter-spacing:-1px;margin-bottom:18px}
@@ -53,10 +65,10 @@
   .brand-foot{color:rgba(255,255,255,.5);font-size:12px}
 
   /* 右侧表单区 */
-  .form-pane{display:flex;align-items:center;justify-content:center;padding:32px 24px;background:rgba(255,255,255,.96);backdrop-filter:blur(20px)}
+  .form-pane{display:flex;align-items:center;justify-content:center;padding:32px 24px;background:rgba(255,255,255,.97)}
   .card{width:100%;max-width:400px}
   .card-head{text-align:center;margin-bottom:26px}
-  .card-logo{width:54px;height:54px;border-radius:14px;margin:0 auto 14px;display:block;box-shadow:0 8px 24px rgba(91,59,255,.3)}
+  .card-logo{width:54px;height:54px;border-radius:14px;margin:0 auto 14px;display:block;box-shadow:0 8px 24px rgba(124,164,200,.3);filter:grayscale(1) brightness(1.15)}
   .card-head h2{font-size:23px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
   .card-head p{font-size:13px;color:var(--text-3)}
 
@@ -72,7 +84,7 @@
   .field label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
   .input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:11px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s;color:var(--text)}
   .input::placeholder{color:#b9b9cf}
-  .input:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(91,59,255,.1)}
+  .input:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(124,164,200,.1)}
   .pw-wrap{position:relative}
   .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-3);font-size:13px;user-select:none}
   .row{display:flex;align-items:center;justify-content:space-between;margin:6px 0 18px;font-size:13px}
@@ -81,8 +93,8 @@
   .forgot{color:var(--primary);font-weight:600;text-decoration:none}
   .forgot:hover{text-decoration:underline}
 
-  .submit{width:100%;padding:14px;border:none;border-radius:11px;background:var(--gradient);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:-.1px;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 8px 24px rgba(91,59,255,.4)}
-  .submit:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(91,59,255,.5)}
+  .submit{width:100%;padding:14px;border:none;border-radius:11px;background:var(--gradient);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:-.1px;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 8px 24px rgba(124,164,200,.4)}
+  .submit:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(124,164,200,.5)}
   .submit:disabled{opacity:.7;cursor:default;transform:none}
   .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -106,7 +118,29 @@
 </style>
 </head>
 <body>
-  <canvas id="bgCanvas" class="bg-canvas"></canvas>
+  <div class="bg-stage" aria-hidden="true">
+    <div class="bg-base"></div>
+    <div class="bg-draw">
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1" stroke-linecap="square">
+        <circle cx="1180" cy="360" r="300"/>
+        <circle cx="1180" cy="360" r="240" stroke-dasharray="2 7"/>
+        <circle cx="1180" cy="360" r="182"/>
+        <circle cx="1180" cy="360" r="98" stroke-dasharray="14 11"/>
+        <circle cx="1180" cy="360" r="7"/>
+        <path d="M1180 120V600M940 360H1420"/>
+        <path d="M1084 150v46M1090 150v46M1096 150v46M1102 150v46M1108 150v46M1114 150v46M1120 150v46M1126 150v46M1132 150v46M1138 150v46M1144 150v46M1150 150v46"/>
+        <path d="M0 792 640 250"/>
+        <path d="M96 640A300 300 0 0 1 596 300" stroke-dasharray="3 8"/>
+        <path d="M120 300h180v180H120z"/>
+        <path d="M120 300l180 180M300 300 120 480"/>
+        <circle cx="210" cy="390" r="26"/>
+        <path d="M300 640h210M300 660h150M300 680h186M300 700h120"/>
+        <path d="M360 250v-60M420 250v-40M480 250v-58M540 250v-34"/>
+      </svg>
+    </div>
+    <div class="bg-grid"></div>
+    <div class="bg-vig"></div>
+  </div>
   <a class="back-home" href="/">← 返回首页</a>
 
   <div class="stage">
@@ -167,7 +201,7 @@
             <label>邮箱验证码</label>
             <div style="display:flex;gap:10px">
               <input class="input" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位验证码" style="flex:1;min-width:0;text-align:center;letter-spacing:3px" />
-              <button type="button" id="sendCodeBtn" style="flex:0 0 auto;white-space:nowrap;padding:0 18px;background:rgba(124,92,255,.12);color:var(--primary,#7c5cff);border:1px solid rgba(124,92,255,.4);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">获取验证码</button>
+              <button type="button" id="sendCodeBtn" style="flex:0 0 auto;white-space:nowrap;padding:0 18px;background:rgba(158,196,228,.12);color:var(--primary,#9ec4e0);border:1px solid rgba(158,196,228,.4);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">获取验证码</button>
             </div>
             <p id="otpHint" style="display:none;margin-top:8px;font-size:12px;color:var(--text-3);line-height:1.6"></p>
           </div>
@@ -376,6 +410,5 @@
   if (sendCodeBtn) sendCodeBtn.addEventListener("click", sendCode);
 })();
 </script>
-<script src="/bg-aurora.js"></script>
 </body>
 </html>

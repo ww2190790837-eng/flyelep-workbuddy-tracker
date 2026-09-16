@@ -38,9 +38,26 @@ codex电商/
 │   ├── account.html      # 旧账户页（已重定向回首页，保留兼容）
 │   ├── admin.html        # UTM 后台仪表盘（token 登录）
 │   ├── admin-login.html  # 后台登录页
-│   ├── bg-home.js        # 全站动态背景（固定满屏 Canvas）
-│   ├── bg-aurora.js      # 登录页动态背景
-│   └── logo.* / wechat-qr.png / favicon.png ...
+│   ├── motion.js         # 高级动效层（Lenis 平滑滚动 + GSAP 时间轴 + WebGL 颗粒层 + 预加载 + 光标）
+│   ├── vendor/           # 本地内置动效库（无外链依赖，避免 CDN 不可用）
+│   │   ├── gsap.min.js / ScrollTrigger.min.js / SplitText.min.js
+│   │   └── lenis.min.js
+│   └── logo.* / wechat-qr.png ...
+│   # 说明：动态背景已改为「纯 CSS/SVG/WebGL 轻量层」，内联在 index.html / login.html 中，
+│   #      原 bg-home.js（逐帧重绘 Canvas）与 bg-aurora.js（O(n²) 粒子连线）已删除。
+
+## 前端动效栈（v1.4.0）
+
+- **视觉**：近单色黑白 + 冷光（HUD/军工风），锐角、细线框、双语导航、巨幅字标、技术线稿背景。
+- **动效**：`public/motion.js` + `public/vendor/`（本地内置，不走 CDN）
+  - **Lenis** 平滑惯性滚动（`lenis.on('scroll', ScrollTrigger.update)`，由 `gsap.ticker` 驱动）
+  - **GSAP + ScrollTrigger**：开屏加载计数、字标 SplitText 逐字入场、`.reveal` 批量揭示、章节大编号视差
+  - **WebGL 片元着色器**：细网格 / 扫描线 / 横向扫光 / 鼠标补光 / 颗粒（约 30fps，`mix-blend-mode:screen` 叠加）
+- **性能纪律**：只动 `transform` / `opacity`；`backdrop-filter` 全站禁用；
+  颗粒层 DPR ≤ 1.5；隐藏页暂停；`prefers-reduced-motion` 时整体降级为静态。
+- **降级安全**：脚本/库缺失时不会白屏——内容默认可见，只有拿到库才加 `.motion-ready` 隐藏待入场元素。
+- **配套技能**：`web-motion-design`（来自 GitHub `dylantarre/animation-principles`），随项目存放于
+  `.workbuddy/skills/web-motion-design/`（同时也在用户级 `~/.workbuddy/skills/`）。
 └── data/                 # 运行时生成（users.json / db.json 等），已被 .gitignore 排除
 ```
 
