@@ -27,153 +27,51 @@
   var EASE_INOUT = 'power2.inOut';
 
   /* ==========================================================================
-   * 1) WebGL 颗粒层（独立于 GSAP，最先启动；无 WebGL 则静默退出）
+   * 1) 动态背景：Vanta.js NET —— 成熟开源库（MIT），基于 three.js / GPU 渲染
+   *    不用手写着色器：观感稳定、维护成本低。库缺失或无 WebGL 时静默跳过。
    * ======================================================================== */
-  function initGL() {
-    var canvas = document.getElementById('glCanvas');
-    if (!canvas) return;
-    var gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false })
-          || canvas.getContext('experimental-webgl');
-    if (!gl) { canvas.style.display = 'none'; return; }
+  var VANTA_EFFECT = 'NET';   /* 换风格只改这里（配套 vendor/vanta/vanta.<name>.min.js + 对应配置） */
+  var vanta = null;
 
-    var VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
-    var FS = [
-      'precision mediump float;',
-      'uniform vec2 uRes;uniform float uTime;uniform vec2 uMouse;uniform float uScroll;',
-      'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}',
-      'float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);',
-      '  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}',
-      'float fbm(vec2 p){float a=0.5;float s=0.0;for(int i=0;i<3;i++){s+=a*noise(p);p*=2.03;a*=0.5;}return s;}',
-      'void main(){',
-      '  vec2 asp=vec2(uRes.x/uRes.y,1.0);',
-      '  vec2 uv=gl_FragCoord.xy/uRes.xy;',
-      '  vec2 q=(gl_FragCoord.xy-0.5*uRes.xy)/uRes.y;',
-      '  float t=uTime;',
-      '  float rad=length(q);',
-      // 1) 流动等值线：fbm 等值线持续漂移 —— 背景「活着」的主要来源
-      '  vec2 fp=q*1.7+vec2(t*0.035,-t*0.022);',
-      '  float n=fbm(fp);',
-      '  float band=abs(fract(n*7.0)-0.5);',
-      '  float cline=smoothstep(0.055,0.0,band)*smoothstep(0.10,0.85,rad)*smoothstep(1.35,0.75,rad);',
-      // 2) 缓慢旋转的亮度瓣（正弦包络：连续无缝，绝不会出现硬边光锥）
-      '  float ang=atan(q.y,q.x);',
-      '  float lob=0.5+0.5*sin(ang-0.25*t);',
-      '  float radar=pow(lob,2.5)*smoothstep(1.7,0.05,rad);',
-      // 3) 呼吸同心环
-      '  float rings=0.0;',
-      '  for(int i=1;i<=4;i++){',
-      '    float fi=float(i);',
-      '    float rr=fi*0.26+0.012*sin(t*0.8+fi*1.7);',
-      '    rings+=smoothstep(0.0035,0.0,abs(rad-rr));',
-      '  }',
-      // 4) 细网格 + 扫描线
-      '  vec2 gw=abs(fract(uv*asp*26.0)-0.5);',
-      '  float grid=max(smoothstep(0.497,0.5,gw.x),smoothstep(0.497,0.5,gw.y));',
-      '  float scan=0.5+0.5*sin(gl_FragCoord.y*0.9+t*26.0);',
-      // 5) 横向扫光
-      '  float swoosh=exp(-pow((uv.x-fract(t*0.045))*7.0,2.0));',
-      '  float swoosh2=exp(-pow((uv.x-fract(t*0.045+0.5))*11.0,2.0))*0.5;',
-      // 6) 鼠标补光
-      '  float halo=exp(-pow(length((uv-uMouse)*asp)*2.6,2.0));',
-      // 7) 颗粒
-      '  float g=hash(gl_FragCoord.xy*0.7+fract(t)*vec2(37.0,17.0));',
-      '  float vig=smoothstep(1.32+uScroll*0.05,0.20,length(q*vec2(1.0,1.12)));',
-      '  vec3 sky=vec3(0.22,0.72,0.97);',
-      '  vec3 col=vec3(0.0);',
-      '  col+=sky*cline*0.26;',
-      '  col+=sky*radar*0.20;',
-      '  col+=sky*rings*0.20;',
-      '  col+=sky*grid*0.055;',
-      '  col+=sky*scan*0.022;',
-      '  col+=sky*(swoosh+swoosh2)*0.06;',
-      '  col+=sky*halo*0.11;',
-      '  col+=vec3(g)*0.032;',
-      '  col*=vig;',
-      '  gl_FragColor=vec4(col,1.0);',
-      '}'
-    ].join('\n');
-
-    function sh(type, src) {
-      var s = gl.createShader(type);
-      gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-        console.warn('[bg-gl] shader compile failed: ' + gl.getShaderInfoLog(s));
-        return null;
-      }
-      return s;
-    }
-    var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
-    if (!vs || !fs) { canvas.style.display = 'none'; return; }
-    var prog = gl.createProgram();
-    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.warn('[bg-gl] program link failed: ' + gl.getProgramInfoLog(prog));
-      canvas.style.display = 'none'; return;
-    }
-    gl.useProgram(prog);
-
-    var buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    var loc = gl.getAttribLocation(prog, 'p');
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-
-    var uRes = gl.getUniformLocation(prog, 'uRes');
-    var uTime = gl.getUniformLocation(prog, 'uTime');
-    var uMouse = gl.getUniformLocation(prog, 'uMouse');
-    var uScroll = gl.getUniformLocation(prog, 'uScroll');
-
-    /* 内部按 0.7 分辨率渲染再由 CSS 拉伸：这是柔性辉光/线条层，肉眼看不出模糊，
-       但像素量少一半以上——这是既明显又流畅的关键。 */
-    var GLSCALE = 0.7, GLMAXW = 1600;
-    var W = 0, H = 0;
-    function resize() {
-      W = window.innerWidth; H = window.innerHeight;
-      var s = Math.min(GLSCALE, GLMAXW / Math.max(1, W));
-      canvas.width = Math.max(1, Math.floor(W * s));
-      canvas.height = Math.max(1, Math.floor(H * s));
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.uniform2f(uRes, canvas.width, canvas.height);
-    }
-    resize();
-
-    var rz = null;
-    window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(resize, 180); }, { passive: true });
-
-    var mx = 0.5, my = 0.5, tx = 0.5, ty = 0.5;
-    if (!COARSE) {
-      window.addEventListener('mousemove', function (e) {
-        tx = e.clientX / window.innerWidth; ty = 1 - e.clientY / window.innerHeight;
-      }, { passive: true });
-    }
-
-    var t0 = performance.now(), frame = 0, raf = null;
-    function draw(now) {
-      raf = requestAnimationFrame(draw);
-      frame++;
-      if (frame % 2) return;                       /* 颗粒层约 30fps 足够，省一半 GPU */
-      if (document.hidden) return;
-      mx += (tx - mx) * 0.06; my += (ty - my) * 0.06;
-      gl.uniform1f(uTime, (now - t0) / 1000);
-      gl.uniform2f(uMouse, mx, my);
-      gl.uniform1f(uScroll, Math.min((window.scrollY || 0) / Math.max(1, window.innerHeight), 3));
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }
-
-    if (REDUCE) {
-      gl.uniform1f(uTime, 3.0);
-      gl.uniform2f(uMouse, 0.7, 0.4);
-      gl.uniform1f(uScroll, 0);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    } else {
-      raf = requestAnimationFrame(draw);
+  function initVanta() {
+    var host = document.getElementById('bgVanta');
+    var V = window.VANTA && window.VANTA[VANTA_EFFECT];
+    if (!host || !V) return;
+    try {
+      vanta = V({
+        el: host,
+        mouseControls: true,
+        touchControls: false,
+        gyroControls: false,
+        minHeight: 200,
+        minWidth: 200,
+        scale: 0.85,
+        scaleMobile: 0.6,
+        backgroundColor: 0x06070a,
+        color: 0x368fc0,
+        points: 8.0,
+        maxDistance: 22.0,    /* 与 spacing 接近 -> 连线成网但不糊成一片 */
+        spacing: 22.0,        /* 比默认 15 稀 -> 留白更多，不压正文 */
+        showDots: true
+      });
+    } catch (e) {
+      console.warn('[bg-vanta] init failed: ' + e.message);
+      vanta = null;
     }
   }
+  initVanta();
 
-  /* 启动 WebGL 背景层（独立于 GSAP；无 WebGL 环境会静默退出）
-     ⚠️ 这一行不能少：函数定义≠执行，漏掉就会出现「背景一动不动」且无任何报错。 */
-  initGL();
+  /* 隐藏页暂停，省电省 GPU */
+  document.addEventListener('visibilitychange', function () {
+    if (!vanta) return;
+    if (document.hidden) { if (vanta.pause) vanta.pause(); }
+    else { if (vanta.play) vanta.play(); }
+  });
+  var vrz = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(vrz);
+    vrz = setTimeout(function () { if (vanta && vanta.resize) vanta.resize(); }, 200);
+  }, { passive: true });
 
   /* ==========================================================================
    * 2) 预加载：计数 + 进度条 → 揭幕
@@ -336,25 +234,11 @@
   }
 
   /* ------------------------------------------------------------------
-   * 3.7 背景层动效：漂移 + 鼠标视差 + 滚动视差
+   * 3.7 背景层动效：漂浮光团 + 底色视差
+   *     （原手绘 SVG 线稿层已移除，动态部分交给 Vanta NET）
    * ---------------------------------------------------------------- */
-  var drawSvg = document.querySelector('.bg-draw svg');
   var base = document.querySelector('.bg-base');
   if (!REDUCE) {
-    /* 线稿层缓慢漂移（长时间、不可察觉的位移，制造「活着」的感觉） */
-    var draw = document.querySelector('.bg-draw');
-    if (draw) {
-      gsap.to(draw, {
-        x: '-1.4%', y: '-1%', scale: 1.04, rotate: 0.4,
-        duration: 34, ease: 'sine.inOut', repeat: -1, yoyo: true
-      });
-    }
-    /* 线稿主环阵持续自转 + 呼吸缩放（雷达/仪表感） */
-    var ringG = document.querySelector('.bg-draw svg g');
-    if (ringG) {
-      gsap.to(ringG, { rotation: 360, duration: 240, ease: 'none', repeat: -1, transformOrigin: '50% 50%' });
-      gsap.to(ringG, { scale: 1.06, duration: 11, ease: 'sine.inOut', repeat: -1, yoyo: true, transformOrigin: '50% 50%' });
-    }
     /* 背景漂浮光团（纯 transform，GPU 合成） */
     gsap.utils.toArray('.bg-glow').forEach(function (el, i) {
       gsap.to(el, {
@@ -367,23 +251,6 @@
         yoyo: true
       });
     });
-    if (drawSvg) {
-      gsap.set(drawSvg, { willChange: 'transform' });
-      var qx = gsap.quickTo(drawSvg, 'x', { duration: 1.1, ease: 'power2.out' });
-      var qy = gsap.quickTo(drawSvg, 'y', { duration: 1.1, ease: 'power2.out' });
-      if (!COARSE) {
-        window.addEventListener('mousemove', function (e) {
-          qx(((e.clientX / window.innerWidth) - 0.5) * -26);
-          qy(((e.clientY / window.innerHeight) - 0.5) * -18);
-        }, { passive: true });
-      }
-      if (hasST) {
-        gsap.fromTo(drawSvg, { yPercent: 0 }, {
-          yPercent: 4, ease: 'none',
-          scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: true }
-        });
-      }
-    }
     if (base && hasST) {
       gsap.fromTo(base, { yPercent: 0 }, {
         yPercent: 3, ease: 'none',

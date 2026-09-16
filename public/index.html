@@ -752,14 +752,15 @@
       radial-gradient(52% 44% at 82% 28%, rgba(120,158,190,.075), transparent 62%),
       radial-gradient(70% 58% at 52% 112%, rgba(88,110,134,.09), transparent 62%);
   }
-  .bg-draw{position:absolute;inset:-12% -8%;opacity:.42;transform:translate3d(0,0,0);will-change:transform;
-    animation:drawDrift 140s ease-in-out infinite}
-  .bg-draw svg{width:100%;height:100%;display:block}
-  @keyframes drawDrift{
-    0%,100%{transform:translate3d(0,0,0) scale(1.02) rotate(0deg)}
-    50%{transform:translate3d(-1.6%,-1.2%,0) scale(1.05) rotate(.5deg)}
-  }
-  .bg-grid{position:absolute;inset:0;opacity:.14;
+  /* 动态网络层：Vanta.js NET（three.js / GPU 渲染） */
+  #bgVanta{position:absolute;inset:0;z-index:1}
+  #bgVanta canvas{display:block}
+  /* 压暗罩：把网络层压到正文之后，保证左侧文字可读、整体不发花 */
+  .bg-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:
+    linear-gradient(100deg,rgba(6,7,10,.84) 4%,rgba(6,7,10,.5) 33%,rgba(6,7,10,.08) 66%,rgba(6,7,10,.26) 100%)}
+  [data-theme="light"] .bg-scrim{background:
+    linear-gradient(100deg,rgba(236,238,240,.88) 4%,rgba(236,238,240,.6) 33%,rgba(236,238,240,.18) 66%,rgba(236,238,240,.34) 100%)}
+  .bg-grid{position:absolute;inset:0;opacity:.10;
     background-image:linear-gradient(to right,var(--line) 1px,transparent 1px),
                      linear-gradient(to bottom,var(--line) 1px,transparent 1px);
     background-size:104px 104px;
@@ -770,7 +771,7 @@
     background:linear-gradient(180deg,transparent,rgba(190,220,245,.045),transparent)}
   @keyframes scanMove{0%{transform:translate3d(0,-30vh,0)}100%{transform:translate3d(0,120vh,0)}}
   .bg-vig{position:absolute;inset:0;
-    background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 42%,rgba(0,0,0,.62) 100%)}
+    background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 46%,rgba(0,0,0,.48) 100%)}
   .bg-noise{opacity:.03;mix-blend-mode:normal}
 
   /* ---- 4) 顶部导航：双语 HUD ---- */
@@ -907,7 +908,6 @@
   [data-theme="light"] .bg-base{background:
     radial-gradient(58% 44% at 20% 16%, rgba(60,90,120,.07), transparent 62%),
     radial-gradient(52% 44% at 82% 28%, rgba(60,90,120,.05), transparent 62%)}
-  [data-theme="light"] .bg-draw{opacity:.5}
   [data-theme="light"] .bg-grid{opacity:.5}
   [data-theme="light"] .bg-vig{background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 46%,rgba(20,26,34,.16) 100%)}
   [data-theme="light"] .top-nav,[data-theme="light"] .top-nav:hover{background:rgba(236,238,240,.92);border-bottom-color:var(--line)}
@@ -941,9 +941,6 @@
   .lenis.lenis-stopped{overflow:hidden}
 
   /* WebGL 颗粒/扫描/扫光层：screen 混合，黑色即透明，叠加在线稿之上 */
-  .gl-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:3;
-    mix-blend-mode:screen;pointer-events:none;opacity:.85}
-  .bg-draw{animation:none}   /* 线稿漂移改由 GSAP 驱动（漂移 + 鼠标视差 + 滚动视差） */
 
   /* 首屏预加载 */
   #boot{position:fixed;inset:0;z-index:9999;background:#07080a;display:flex;
@@ -1065,53 +1062,15 @@
 <!-- 自定义光标（触摸设备自动隐藏） -->
 <div id="cursor" aria-hidden="true"></div>
 
-<!-- 全站统一背景：静态渐变 + 缓慢漂移线稿(纯 SVG) + 网格 + 扫描线 + 暗角 + 噪点
-     全部只用 transform/opacity 合成，无 canvas 逐帧重绘、无大面积 blur。 -->
+<!-- 全站统一背景：静态渐变 + 漂浮光团 + Vanta.js NET 动态网络层 + 网格 + 扫描线 + 暗角 + 噪点
+     动态层走 three.js/GPU；其余层只用 transform/opacity 合成，避免逐帧重绘大范围渐变。 -->
 <div class="bg-stage" aria-hidden="true">
   <div class="bg-base"></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
-  <div class="bg-draw">
-    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" fill="none"
-         stroke="rgba(255,255,255,.5)" stroke-width="1" stroke-linecap="square">
-      <!-- 右侧主环阵 -->
-      <g>
-        <circle cx="1180" cy="360" r="300"/>
-        <circle cx="1180" cy="360" r="240" stroke-dasharray="2 7"/>
-        <circle cx="1180" cy="360" r="182"/>
-        <circle cx="1180" cy="360" r="98" stroke-dasharray="14 11"/>
-        <circle cx="1180" cy="360" r="7"/>
-        <path d="M1180 120V600M940 360H1420"/>
-        <path d="M1490 360h20M1399.2 579.2l14.1 14.1M1180 670v20M960.8 579.2l-14.1 14.1M870 360h-20M960.8 140.8l-14.1-14.1M1180 50V30M1399.2 140.8l14.1-14.1"/>
-      </g>
-      <!-- 条码阵列 -->
-      <g opacity=".9">
-        <path d="M1084 150v46M1090 150v46M1096 150v46M1102 150v46M1108 150v46M1114 150v46M1120 150v46M1126 150v46M1132 150v46M1138 150v46M1144 150v46M1150 150v46"/>
-      </g>
-      <!-- 左侧构造线稿 -->
-      <g>
-        <path d="M0 792 640 250"/>
-        <path d="M96 640A300 300 0 0 1 596 300" stroke-dasharray="3 8"/>
-        <path d="M120 300h180v180H120z"/>
-        <path d="M120 300l180 180M300 300 120 480"/>
-        <circle cx="210" cy="390" r="26"/>
-        <rect x="176" y="196" width="12" height="250" transform="rotate(-12 182 320)"/>
-        <rect x="150" y="470" width="12" height="180" transform="rotate(9 156 560)"/>
-        <path d="M300 640h210M300 660h150M300 680h186M300 700h120"/>
-        <path d="M330 560c40-30 70 20 110-10s70 26 120-8"/>
-        <path d="M360 250v-60M420 250v-40M480 250v-58M540 250v-34"/>
-      </g>
-      <!-- 稀疏节点 -->
-      <g opacity=".75">
-        <circle cx="700" cy="700" r="3"/>
-        <circle cx="1010" cy="760" r="3"/>
-        <circle cx="640" cy="150" r="3"/>
-        <path d="M700 700 1010 760M640 150 700 700"/>
-      </g>
-    </svg>
-  </div>
   <div class="bg-grid"></div>
-  <canvas class="gl-canvas" id="glCanvas" aria-hidden="true"></canvas>
+  <div id="bgVanta"></div>
+  <div class="bg-scrim"></div>
   <div class="bg-scan"></div>
   <div class="bg-noise"></div>
   <div class="bg-vig"></div>
@@ -2342,7 +2301,7 @@
     title: "Fleta 全新改版 · HUD 单色风 + 电影级动效",
     items: [
       "全站视觉改版：近单色黑白 + 冷光的 HUD 风格，双语导航、巨幅字标、技术线稿背景",
-      "新增电影级动效系统：平滑滚动、字标拆字入场、滚动驱动揭示与视差、开屏加载动画，以及持续流动的 WebGL 动态技术背景（流动等值线 / 旋转扫掠 / 呼吸环阵 / 扫描线 / 漂浮光团）",
+      "新增电影级动效系统：平滑滚动、字标拆字入场、滚动驱动揭示与视差、开屏加载动画，以及持续流动的动态技术背景（开源库 Vanta.js 网络层 + 扫描线 + 漂浮光团）",
       "性能大修：移除逐帧重绘的动态背景与全部背景模糊，动效只走 GPU 合成（transform/opacity）",
       "浅色模式改为「蓝图纸」风格，深浅主题均可正常阅读"
     ]
@@ -3808,6 +3767,8 @@
 <script src="/vendor/ScrollTrigger.min.js"></script>
 <script src="/vendor/SplitText.min.js"></script>
 <script src="/vendor/lenis.min.js"></script>
+<script src="/vendor/three.min.js"></script>
+<script src="/vendor/vanta/vanta.net.min.js"></script>
 <script src="/motion.js"></script>
 
 </body>
