@@ -1219,6 +1219,23 @@
   .lineup-panel{display:none}
   .lineup-panel.active{display:block}
   @media (max-width:760px){.lineup{padding-top:70px}}
+
+  /* === 功能门禁：未登录时盖住工具面板（P3 风格锁屏） === */
+  .gate{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;
+    text-align:center;padding:24px;background:rgba(2,14,48,.78);
+    backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+  .gate.show{display:flex}
+  .gate-inner{max-width:460px}
+  .gate-tag{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--primary-3)}
+  .gate-title{font-family:var(--disp);font-size:clamp(24px,3vw,34px);color:#fff;text-transform:uppercase;
+    letter-spacing:.05em;margin:10px 0 10px;line-height:1.1}
+  .gate-sub{color:var(--text-2);font-size:14px;line-height:1.65;margin:0 0 22px}
+  .gate-btn{display:inline-flex;align-items:center;gap:8px;padding:13px 30px;border-radius:5px;
+    background:var(--gradient);color:#04121f;font-family:var(--disp);font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;text-decoration:none;font-size:15px;
+    box-shadow:3px 4px 0 rgba(2,10,36,.55),6px 8px 0 rgba(2,10,36,.3);transition:transform .25s}
+  .gate-btn:hover{transform:translateY(-2px)}
+  .gate-note{margin-top:14px;font-size:12px;color:var(--text-3)}
   .wave-band{position:relative;width:100%;height:120px;overflow:hidden;line-height:0;z-index:2;pointer-events:none}
   .waves{position:relative;width:100%;height:100%}
   .parallax > use{animation:waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
@@ -1597,6 +1614,16 @@
   </div>
 </div>
 <section id="prompt-gen" class="lineup-panel active">
+  <div class="gate" data-gate aria-hidden="true">
+    <div class="gate-inner">
+      <span class="gate-tag">Members Only</span>
+      <h3 class="gate-title">登录后即可使用</h3>
+      <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
+      <a class="gate-btn" href="/login.html">登录 / 注册</a>
+      <div class="gate-note">已有账号？右上角直接登录</div>
+    </div>
+  </div>
+
   <div class="sec-fig sec-fig-r f5" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">01</span>
   <div class="wrap">
@@ -1722,6 +1749,16 @@
      视频反推：上传视频 → 抽帧 → AI 反推五段式
      ============================================ -->
 <section id="video-reverse" class="lineup-panel">
+  <div class="gate" data-gate aria-hidden="true">
+    <div class="gate-inner">
+      <span class="gate-tag">Members Only</span>
+      <h3 class="gate-title">登录后即可使用</h3>
+      <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
+      <a class="gate-btn" href="/login.html">登录 / 注册</a>
+      <div class="gate-note">已有账号？右上角直接登录</div>
+    </div>
+  </div>
+
   <div class="sec-fig sec-fig-l f2" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">02</span>
   <div class="wrap">
@@ -1831,6 +1868,16 @@
 </style>
 
 <section id="agnes-video" class="lineup-panel">
+  <div class="gate" data-gate aria-hidden="true">
+    <div class="gate-inner">
+      <span class="gate-tag">Members Only</span>
+      <h3 class="gate-title">登录后即可使用</h3>
+      <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
+      <a class="gate-btn" href="/login.html">登录 / 注册</a>
+      <div class="gate-note">已有账号？右上角直接登录</div>
+    </div>
+  </div>
+
   <div class="sec-fig sec-fig-r f8" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">03</span>
   <div class="wrap agv-wrap">
@@ -2563,6 +2610,9 @@
         if (authLink) authLink.style.display = "inline-flex";
         if (codeBtn) { if (codeLabel) codeLabel.textContent = "免费积分邀请码"; codeBtn.style.opacity = "1"; }
       }
+      /* 全站功能门禁：把登录态暴露给门禁逻辑 */
+      window.__user = u || null;
+      if (window.__applyGate) window.__applyGate();
     } catch(e) { console.log("me check fail", e); }
   }
 
@@ -4215,6 +4265,39 @@
   window.addEventListener('hashchange', function(){
     activateFor((location.hash || '').replace('#',''));
   });
+})();
+</script>
+<script>
+/* 全站功能门禁：未登录 -> 工具面板盖上锁屏；留言板发送 -> 跳登录 */
+(function(){
+  window.__user = window.__user || null;
+  window.__applyGate = function(){
+    var locked = !window.__user;
+    var els = document.querySelectorAll('[data-gate]');
+    for (var i=0;i<els.length;i++) els[i].classList.toggle('show', locked);
+    document.documentElement.classList.toggle('gate-on', locked);
+  };
+  /* 首屏先按"未登录"盖上，等 /api/auth/me 回来再决定是否揭开（避免闪一下能用） */
+  window.__applyGate();
+  /* 留言板：未登录点击发送 -> 去登录；若已有 postMessage 实现则包一层守卫 */
+  var pm = window.postMessage;
+  window.postMessage = function(){
+    if (!window.__user) { location.href = '/login.html'; return; }
+    if (typeof pm === 'function') return pm.apply(this, arguments);
+  };
+  /* 兜底：面板内任何交互（点击/输入）在未登录时也拦到登录页 */
+  document.addEventListener('click', function(e){
+    if (window.__user) return;
+    var a = e.target;
+    while (a && a !== document) {
+      if (a.getAttribute && a.classList && a.classList.contains('lineup-panel')) {
+        var g = a.querySelector('[data-gate]');
+        if (g && !g.contains(e.target)) { location.href = '/login.html'; }
+        return;
+      }
+      a = a.parentNode;
+    }
+  }, true);
 })();
 </script>
 </body>
