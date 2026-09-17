@@ -615,6 +615,12 @@ async function findUserById(id) {
   if (usingMongo) return UserModel.findOne({ id }).lean();
   return (await loadUsers()).find(u => u.id === id);
 }
+
+// 登录态校验中间件: 未登录的功能型接口一律返回 401(前端门禁只是 UX, 这里才是真边界)
+function requireAuth(req, res, next) {
+  if (req.session && req.session.userId) return next();
+  return res.status(401).json({ ok: false, error: "请先登录后再使用", code: "auth_required" });
+}
 async function createUser({ email, password, name }) {
   const id = nanoid(12);
   const passwordHash = bcrypt.hashSync(password, 10);
@@ -719,7 +725,7 @@ app.use(express.static(path.join(__dirname, "public"), { index: "index.html", ex
 app.get(["/agnes-video", "/agnes-video.html"], (req, res) => {
   res.redirect("/#agnes-video");
 });
-app.post("/api/agnes-video/create", express.json({ limit: "2mb" }), async (req, res) => {
+app.post("/api/agnes-video/create", requireAuth, express.json({ limit: "2mb" }), async (req, res) => {
   const { mode, prompt, seconds, aspect_ratio, seed, first_frame, last_frame, images, audios } = req.body || {};
   if (!prompt || !String(prompt).trim()) return res.status(400).json({ ok: false, error: "请填写视频描述" });
   const body = {
@@ -753,7 +759,7 @@ app.post("/api/agnes-video/create", express.json({ limit: "2mb" }), async (req, 
     res.status(502).json({ ok: false, error: e.message });
   }
 });
-app.get("/api/agnes-video/status", async (req, res) => {
+app.get("/api/agnes-video/status", requireAuth, async (req, res) => {
   const { video_id } = req.query || {};
   if (!video_id) return res.status(400).json({ ok: false, error: "缺少 video_id" });
   try {
@@ -786,7 +792,7 @@ const agnesUpload = multer({
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB(图片/音频)
   fileFilter: (req, file, cb) => cb(null, /^(image|audio)\//.test(file.mimetype))
 }).single("file");
-app.post("/api/agnes-upload", (req, res) => {
+app.post("/api/agnes-upload", requireAuth, (req, res) => {
   agnesUpload(req, res, (err) => {
     if (err) return res.status(400).json({ ok: false, error: err.message || "上传失败" });
     if (!req.file) return res.status(400).json({ ok: false, error: "未收到文件" });
@@ -1001,7 +1007,7 @@ app.get("/api/messages", (req, res) => {
   const items = sorted.slice(start, start + pageSize);
   res.json({ total: messages.length, page, pageSize, items });
 });
-app.post("/api/messages", express.json({ limit: "2kb" }), async (req, res) => {
+app.post("/api/messages", requireAuth, express.json({ limit: "2kb" }), async (req, res) => {
   const content = (req.body.content || "").trim().slice(0, 300);
   const name = (req.body.name || "").trim().slice(0, 30);
   if (!content) return res.status(400).json({ ok: false, error: "留言内容不能为空" });
@@ -1108,7 +1114,7 @@ app.post("/api/chat", express.json({ limit: "8kb" }), async (req, res) => {
 
 // ===== Video-Use 辅助 API (Scribe 类: 查剩余免费分钟 / 提交视频转写处理) =====
 // 状态(不向前端泄露完整 key)
-app.get("/api/video-use/status", (req, res) => {
+app.get("/api/video-use/status", requireAuth, (req, res) => {
   res.json({
     ok: true,
     configured: !!VIDEO_USE_API_KEY,
@@ -1118,7 +1124,7 @@ app.get("/api/video-use/status", (req, res) => {
 });
 
 // 查剩余额度(单位无关: 自动识别 分钟/字符/积分/次数 等任意额度字段)
-app.get("/api/video-use/quota", async (req, res) => {
+app.get("/api/video-use/quota", requireAuth, async (req, res) => {
   try {
     const r = await fetch(`${VIDEO_USE_API_BASE}/v1/user/subscription`, {
       headers: { [VIDEO_USE_AUTH_HEADER]: VIDEO_USE_API_KEY }
@@ -1255,7 +1261,7 @@ const VU_FONT_ARG = fs.existsSync(VU_FONT) ? `fontfile='${ffPath(VU_FONT)}'` : "
 const VU_FONT_DIR = fs.existsSync(VU_FONT) ? ffPath(VU_FONT.replace(/[^/]+$/, "")) : "";
 
 // 1) 上传
-app.post("/api/video-use/upload", vuUpload.array("files", 20), async (req, res) => {
+app.post("/api/video-use/upload", requireAuth, vuUpload.array("files", 20), async (req, res) => {
   try {
     const files = req.files || [];
     if (!files.length) return res.status(400).json({ ok: false, error: "未收到文件" });
@@ -1279,7 +1285,7 @@ app.post("/api/video-use/upload", vuUpload.array("files", 20), async (req, res) 
 });
 
 // 2) 转写
-app.post("/api/video-use/transcribe", express.json({ limit: "1mb" }), async (req, res) => {
+app.post("/api/video-use/transcribe", requireAuth, express.json({ limit: "1mb" }), async (req, res) => {
   try {
     const { jobId } = req.body || {};
     const jobDir = path.join(VU_JOBS, jobId);
@@ -1306,7 +1312,7 @@ app.post("/api/video-use/transcribe", express.json({ limit: "1mb" }), async (req
 });
 
 // 3) AI 剪辑策略
-app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res) => {
+app.post("/api/video-use/plan", requireAuth, express.json({ limit: "2mb" }), async (req, res) => {
   try {
     const { jobId, instructions, customCopy, refImages } = req.body || {};
     const jobDir = path.join(VU_JOBS, jobId);
@@ -1337,7 +1343,7 @@ app.post("/api/video-use/plan", express.json({ limit: "2mb" }), async (req, res)
 });
 
 // 4) 渲染出片
-app.post("/api/video-use/render", express.json({ limit: "2mb" }), async (req, res) => {
+app.post("/api/video-use/render", requireAuth, express.json({ limit: "2mb" }), async (req, res) => {
   try {
     const { jobId } = req.body || {};
     const jobDir = path.join(VU_JOBS, jobId);
@@ -1981,7 +1987,7 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
 }
 
 // 前端上传(图片/视频帧)大小限制 25MB(JSON base64)
-app.post("/api/prompt-generate", express.json({ limit: "25mb" }), async (req, res) => {
+app.post("/api/prompt-generate", requireAuth, express.json({ limit: "25mb" }), async (req, res) => {
   try {
     // 检查 AI 是否配置
     if (!AI_API_KEY) return res.status(503).json({ ok: false, error: "AI 服务未配置，请联系管理员设置 API Key", needConfig: true });
