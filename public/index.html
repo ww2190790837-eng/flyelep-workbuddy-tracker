@@ -990,21 +990,35 @@
   .sec-fig.f8{background-image:url('/assets/p3/cut/8.webp')}
   .sec-fig.f9{background-image:url('/assets/p3/cut/9.webp')}
   @media (max-width:760px){.sec-fig{width:58vw;height:42vh;opacity:.12}}
-  .cs-stage{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;
-    min-height:min(60vh,540px);margin-bottom:26px;border:1px solid rgba(255,255,255,.18);border-radius:6px;
-    background:radial-gradient(120% 92% at 50% 112%, rgba(1,95,204,.6), rgba(3,31,100,.82) 70%)}
-  .cs-stage::after{content:"";position:absolute;inset:0;pointer-events:none;
-    background:repeating-linear-gradient(118deg,rgba(255,255,255,.05) 0 1px,transparent 1px 46px)}
-  .cs-ghost{position:absolute;left:50%;top:6%;transform:translateX(-50%);font-family:var(--disp);
-    font-size:clamp(56px,12.5vw,170px);line-height:1;letter-spacing:.03em;white-space:nowrap;
-    color:rgba(255,255,255,.10);text-transform:uppercase;pointer-events:none;z-index:1}
-  .cs-figure{position:relative;z-index:2;display:flex;align-items:flex-end}
-  .cs-figure img{display:block;max-height:min(56vh,500px);width:auto;
-    filter:drop-shadow(0 26px 44px rgba(0,10,40,.62));transition:opacity .28s ease,transform .5s cubic-bezier(.22,1,.36,1)}
-  .cs-meta{position:absolute;left:26px;bottom:22px;z-index:3;display:flex;flex-direction:column;gap:2px}
-  .cs-no{font-family:var(--disp);font-size:44px;line-height:.9;color:rgba(255,255,255,.22)}
-  .cs-en{font-family:var(--disp);font-size:clamp(22px,2.6vw,34px);letter-spacing:.06em;color:#fff;text-transform:uppercase;line-height:1}
-  .cs-jp{font-style:normal;font-size:13px;letter-spacing:.12em;color:var(--gold);margin-top:4px}
+  .cs-stage{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(240px,.92fr) 1.08fr;
+    align-items:stretch;min-height:min(64vh,560px);margin-bottom:22px;border-radius:6px;
+    border:1px solid rgba(255,255,255,.2);
+    background:linear-gradient(135deg, rgba(1,95,204,.5), rgba(3,31,100,.88) 64%)}
+  .cs-bg{position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(118deg,rgba(255,255,255,.055) 0 1px,transparent 1px 46px)}
+  .cs-ghost{position:absolute;left:-1%;top:1%;font-family:var(--disp);font-weight:700;
+    font-size:clamp(66px,14vw,190px);line-height:.85;letter-spacing:-.01em;color:rgba(255,255,255,.085);
+    text-transform:uppercase;pointer-events:none;white-space:nowrap;z-index:1}
+  .cs-meta{position:relative;z-index:3;display:flex;flex-direction:column;justify-content:flex-end;
+    gap:5px;padding:28px 0 34px 34px}
+  .cs-no{font-family:var(--disp);font-size:clamp(38px,4.6vw,64px);line-height:.85;color:var(--accent);
+    opacity:.9}
+  .cs-en{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.4vw,46px);line-height:1;
+    letter-spacing:.02em;color:#fff;text-transform:uppercase;margin:0}
+  .cs-jp{font-style:normal;font-size:14px;letter-spacing:.16em;color:var(--gold)}
+  .cs-line{display:block;width:66px;height:3px;background:var(--gradient);margin-top:14px}
+  .cs-figure{position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;padding:0 16px}
+  .cs-figure img{display:block;max-height:min(60vh,530px);width:auto;max-width:100%;
+    filter:drop-shadow(0 30px 52px rgba(0,8,32,.72));
+    transition:opacity .3s ease,transform .55s cubic-bezier(.22,1,.36,1)}
+  @media (max-width:760px){
+    .cs-stage{grid-template-columns:1fr;min-height:0}
+    .cs-figure img{max-height:44vh}
+    .cs-meta{position:absolute;left:0;right:0;bottom:0;justify-content:flex-end;padding:18px 20px 20px;
+      background:linear-gradient(180deg,transparent,rgba(3,20,60,.85))}
+    .cs-ghost{font-size:21vw;top:5%}
+    .cs-no{font-size:34px}
+  }
   .roster-card.active{border-color:var(--accent);box-shadow:3px 5px 0 rgba(2,10,36,.6),7px 11px 0 rgba(2,10,36,.32)}
   .roster-card.active img.on{opacity:1}
   .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
@@ -1444,13 +1458,15 @@
     </div>
     <!-- 角色展示台：大立绘 + 幽灵大字名（参考 GitHub 上 Persona 角色站的通用做法：大图 + 缩略图选择器） -->
     <div class="cs-stage reveal">
+      <div class="cs-bg" aria-hidden="true"></div>
       <span class="cs-ghost" id="csGhost">HERO</span>
-      <div class="cs-figure"><img id="csFig" src="/assets/p3/cut/1.webp" alt=""></div>
       <div class="cs-meta">
         <span class="cs-no" id="csNo">01</span>
-        <b class="cs-en" id="csEn">Hero</b>
+        <h3 class="cs-en" id="csEn">Hero</h3>
         <i class="cs-jp" id="csJp">主人公</i>
+        <span class="cs-line" aria-hidden="true"></span>
       </div>
+      <div class="cs-figure"><img id="csFig" src="/assets/p3/fig/character1.webp" alt=""></div>
     </div>
     <div class="roster">
       <figure class="roster-card reveal" data-n="1" data-en="Hero" data-jp="主人公"><img class="off" src="/assets/p3/off1.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character1.webp" alt="1" loading="lazy" decoding="async"><figcaption><b>Hero</b><i>主人公</i></figcaption></figure>
@@ -4043,7 +4059,7 @@
     jp.textContent=card.getAttribute('data-jp');
     fig.style.opacity='0'; fig.style.transform='translateY(10px)';
     setTimeout(function(){
-      fig.src='/assets/p3/cut/'+n+'.webp';
+      fig.src='/assets/p3/fig/character'+n+'.webp';
       fig.style.opacity='1'; fig.style.transform='translateY(0)';
     },150);
     cards.forEach(function(c){ c.classList.toggle('active', c===card); });
