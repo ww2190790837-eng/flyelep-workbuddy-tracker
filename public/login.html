@@ -8,7 +8,7 @@
 <link rel="icon" href="/logo.svg" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -120,6 +120,53 @@
   .back-home{position:absolute;top:22px;left:22px;z-index:2;color:rgba(255,255,255,.8);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
   .back-home:hover{color:#fff}
   @media (max-width:900px){ .back-home{color:var(--text-3)} }
+
+  /* ===== P3 视觉语言（与主站同一套）===== */
+  .brand-name,.brand-mid h1,.card-head h2,.brand-eyebrow{font-family:"Oswald","Inter",sans-serif}
+  .brand-name{letter-spacing:.22em;text-transform:uppercase;font-weight:600;font-size:18px}
+  .brand-mid h1{font-size:clamp(38px,4.4vw,58px);line-height:1.02;font-weight:700;letter-spacing:.01em;margin-bottom:16px}
+  .brand-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.28em;
+    color:var(--primary);text-transform:uppercase;margin-bottom:16px}
+  .brand-eyebrow::before{content:"";width:0;height:0;flex:none;
+    border-left:7px solid var(--primary);border-top:5px solid transparent;border-bottom:5px solid transparent}
+  .brand-mid h1 .grad{background:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+  .brand-point .ic{background:var(--primary);box-shadow:0 0 10px rgba(22,207,251,.7)}
+  .card-head h2{letter-spacing:.02em;text-transform:none}
+
+  /* 角色立绘融入左侧品牌区 */
+  .brand-pane{overflow:hidden}
+  .brand-fig{position:absolute;right:-4%;bottom:-2%;width:min(48%,400px);height:82%;z-index:0;pointer-events:none;
+    background:url('/assets/p3/fig/character1.webp') center bottom/contain no-repeat;
+    filter:drop-shadow(0 26px 46px rgba(0,8,32,.65))}
+  .brand-top,.brand-mid,.brand-foot{position:relative;z-index:2}
+
+  /* 背景层：半调网点 + 斜切光带 */
+  .bg-halftone{position:absolute;inset:0;pointer-events:none;opacity:.13;
+    background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);background-size:18px 18px}
+  .bg-slant{position:absolute;inset:-30% -15%;pointer-events:none;opacity:.06;
+    background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
+
+  /* P3 分层波浪（贴底，SVG 取自官网 #gentle-wave） */
+  .wave-band{position:absolute;left:0;right:0;bottom:0;height:110px;overflow:hidden;line-height:0;
+    pointer-events:none;z-index:1}
+  .waves{position:relative;width:100%;height:100%}
+  .parallax > use{animation:waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
+  .parallax > use:nth-child(1){animation-delay:-2s;animation-duration:12s}
+  .parallax > use:nth-child(2){animation-delay:-3s;animation-duration:16s}
+  .parallax > use:nth-child(3){animation-delay:-4s;animation-duration:20s}
+  .parallax > use:nth-child(4){animation-delay:-5s;animation-duration:24s}
+  @keyframes waveMove{0%{transform:translate3d(-90px,0,0)}100%{transform:translate3d(85px,0,0)}}
+
+  /* 表单卡：P3 直角角标 */
+  .card{position:relative}
+  .card::before,.card::after{content:"";position:absolute;width:16px;height:16px;pointer-events:none;
+    border:1px solid var(--primary);opacity:.85}
+  .card::before{top:-14px;left:-14px;border-right:none;border-bottom:none}
+  .card::after{bottom:-14px;right:-14px;border-left:none;border-top:none}
+
+  @media (max-width:900px){ .brand-fig{display:none} .wave-band{height:74px} }
+  @media (prefers-reduced-motion:reduce){ .parallax > use{animation:none} }
 </style>
 </head>
 <body>
@@ -143,8 +190,21 @@
         <path d="M360 250v-60M420 250v-40M480 250v-58M540 250v-34"/>
       </svg>
     </div>
+    <div class="bg-halftone"></div>
+    <div class="bg-slant"></div>
     <div class="bg-grid"></div>
     <div class="bg-vig"></div>
+    <div class="wave-band" aria-hidden="true">
+      <svg class="waves" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+        <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
+        <g class="parallax">
+          <use href="#gentle-wave" x="48" y="0" fill="rgba(1,95,204,.5)"/>
+          <use href="#gentle-wave" x="48" y="3" fill="rgba(22,207,251,.34)"/>
+          <use href="#gentle-wave" x="48" y="5" fill="rgba(3,31,100,.7)"/>
+          <use href="#gentle-wave" x="48" y="7" fill="rgba(2,14,48,.9)"/>
+        </g>
+      </svg>
+    </div>
   </div>
   <a class="back-home" href="/">← 返回首页</a>
 
@@ -155,7 +215,9 @@
         <img class="brand-logo" src="/logo.svg" alt="Fleta" />
         <span class="brand-name">Fleta</span>
       </div>
+      <div class="brand-fig" aria-hidden="true"></div>
       <div class="brand-mid">
+        <span class="brand-eyebrow">Sign In / 登录</span>
         <h1>欢迎来到<br/><span class="grad">Fleta</span></h1>
         <p>AI 提示词生成 · 视频反推 · 电商视觉设计工具</p>
         <div class="brand-points">
