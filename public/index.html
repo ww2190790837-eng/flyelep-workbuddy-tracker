@@ -948,6 +948,24 @@
     .hud-frame{display:none}
   }
 
+  /* P3 角色名册：官方立绘(白底)放进浅色卡片，P3 蓝铭牌 + 青色角标 */
+  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  .roster-card{position:relative;margin:0;overflow:hidden;border-radius:4px;
+    background:linear-gradient(180deg,#eef6ff,#cfe4fb);border:1px solid rgba(255,255,255,.4);
+    transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s}
+  .roster-card img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center top;display:block;
+    transition:transform .5s cubic-bezier(.22,1,.36,1),filter .35s;filter:saturate(.8) contrast(1.02)}
+  .roster-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(3,20,60,.5);border-color:var(--accent)}
+  .roster-card:hover img{transform:scale(1.06);filter:saturate(1.08)}
+  .roster-card figcaption{position:absolute;left:0;right:0;bottom:0;padding:9px 11px;display:flex;flex-direction:column;gap:2px;
+    background:linear-gradient(180deg,rgba(3,20,60,0),rgba(3,20,60,.94))}
+  .roster-card figcaption b{font-family:var(--disp);font-size:13px;letter-spacing:.14em;color:#fff;text-transform:uppercase;line-height:1}
+  .roster-card figcaption i{font-style:normal;font-size:11px;color:var(--accent);line-height:1.2}
+  .roster-card::before,.roster-card::after{content:"";position:absolute;width:14px;height:14px;z-index:2;pointer-events:none;
+    border:1px solid var(--accent);opacity:.92}
+  .roster-card::before{top:6px;left:6px;border-right:none;border-bottom:none}
+  .roster-card::after{bottom:6px;right:6px;border-left:none;border-top:none}
+
   /* ---- 6) 存量组件统一：锐角 + 单色 ---- */
   section{padding:86px 0}
   .wrap{max-width:1240px}
@@ -1333,6 +1351,33 @@
     </div>
   </div>
 </header>
+
+<!-- P3 角色名册（官方立绘素材，来自 p3re.jp） -->
+<section id="p3-roster">
+  <span class="sec-no" aria-hidden="true">05</span>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow reveal">Persona 3 Reload / 角色</span>
+      <h2 class="section-title reveal">S.E.E.S. <em>名册</em></h2>
+      <p class="section-sub reveal">特别课外活动部 · 与「影时间」作战的 13 名角色</p>
+    </div>
+    <div class="roster">
+      <figure class="roster-card reveal"><img src="/assets/p3/character1.webp" alt="Hero" loading="lazy" decoding="async"><figcaption><b>Hero</b><i>主人公</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character2.webp" alt="Yukari" loading="lazy" decoding="async"><figcaption><b>Yukari</b><i>岳羽ゆかり</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character3.webp" alt="Junpei" loading="lazy" decoding="async"><figcaption><b>Junpei</b><i>伊織順平</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character4.webp" alt="Akihiko" loading="lazy" decoding="async"><figcaption><b>Akihiko</b><i>真田明彦</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character5.webp" alt="Mitsuru" loading="lazy" decoding="async"><figcaption><b>Mitsuru</b><i>桐条美鶴</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character6.webp" alt="Fuuka" loading="lazy" decoding="async"><figcaption><b>Fuuka</b><i>山岸風花</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character7.webp" alt="Koromaru" loading="lazy" decoding="async"><figcaption><b>Koromaru</b><i>コロマル</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character8.webp" alt="Aegis" loading="lazy" decoding="async"><figcaption><b>Aegis</b><i>アイギス</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character9.webp" alt="Ken" loading="lazy" decoding="async"><figcaption><b>Ken</b><i>天田乾</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character10.webp" alt="Shinjiro" loading="lazy" decoding="async"><figcaption><b>Shinjiro</b><i>荒垣真次郎</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character11.webp" alt="Takaya" loading="lazy" decoding="async"><figcaption><b>Takaya</b><i>タカヤ</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character12.webp" alt="Jin" loading="lazy" decoding="async"><figcaption><b>Jin</b><i>ジン</i></figcaption></figure>
+      <figure class="roster-card reveal"><img src="/assets/p3/character13.webp" alt="Chidori" loading="lazy" decoding="async"><figcaption><b>Chidori</b><i>チドリ</i></figcaption></figure>
+    </div>
+  </div>
+</section>
 
 <!-- 公告 + 留言板 -->
 <section id="bulletin">
