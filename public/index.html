@@ -886,6 +886,24 @@
     #wipe.play{animation-duration:.01s;animation-delay:0s}
     .pw-ring{display:none}
   }
+  /* 首屏 → 内容区 过渡跑马灯（P3 风）：
+     把「hero 暗底」与「bulletin 蓝调背景」之间那条硬分割线，换成一根有意的设计带，
+     顺带给页面一条品牌关键词滚动条（业界常见做法：marquee ticker 置于两段之间）。
+     ⚠️ 不用 mask-image（上一版全屏 mask 触发软件合成导致卡顿），改用左右伪元素做边缘淡出。 */
+  .ticker{position:relative;z-index:3;overflow:hidden;padding:14px 0;
+    border-top:1px solid rgba(158,196,228,.16);border-bottom:1px solid rgba(158,196,228,.16);
+    background:linear-gradient(180deg,#0b0f1a 0%,#090c15 100%)}
+  .ticker::before,.ticker::after{content:"";position:absolute;top:0;bottom:0;width:90px;z-index:2;pointer-events:none}
+  .ticker::before{left:0;background:linear-gradient(90deg,#0b0f1a,rgba(11,15,26,0))}
+  .ticker::after{right:0;background:linear-gradient(270deg,#090c15,rgba(9,12,21,0))}
+  .ticker-track{display:flex;width:max-content;will-change:transform;animation:ticker 34s linear infinite}
+  .ticker:hover .ticker-track{animation-play-state:paused}
+  .ticker-group{display:flex;align-items:center;flex:none}
+  .ticker-group span{font-family:var(--mono);font-size:12px;letter-spacing:.26em;color:var(--text-2);
+    text-transform:uppercase;white-space:nowrap;padding:0 24px}
+  .ticker-group i{font-style:normal;font-size:10px;color:var(--accent);opacity:.8}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){.ticker-track{animation:none}}
   .hero .hero-inner{display:flex;flex-direction:column;justify-content:space-between;
     min-height:calc(100svh - 58px);padding-top:clamp(34px,7vh,84px);padding-bottom:clamp(26px,5vh,54px);
     position:relative;z-index:2}
@@ -1316,6 +1334,18 @@
     </div>
   </div>
 </header>
+
+<!-- 首屏 → 内容区 过渡带：P3 风关键词跑马灯（吃掉两段背景之间的硬分割线） -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <div class="ticker-group">
+      <span>AI 提示词生成</span><i>✦</i><span>视频反推</span><i>✦</i><span>电商视觉设计</span><i>✦</i><span>Seedance 2.5</span><i>✦</i><span>Agnes 视频</span><i>✦</i><span>一键出图</span><i>✦</i><span>多语言海报</span><i>✦</i><span>商品图精修</span><i>✦</i>
+    </div>
+    <div class="ticker-group">
+      <span>AI 提示词生成</span><i>✦</i><span>视频反推</span><i>✦</i><span>电商视觉设计</span><i>✦</i><span>Seedance 2.5</span><i>✦</i><span>Agnes 视频</span><i>✦</i><span>一键出图</span><i>✦</i><span>多语言海报</span><i>✦</i><span>商品图精修</span><i>✦</i>
+    </div>
+  </div>
+</div>
 
 <!-- 公告 + 留言板 -->
 <section id="bulletin">
