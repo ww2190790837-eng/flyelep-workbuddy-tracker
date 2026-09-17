@@ -1183,20 +1183,42 @@
      4 层浪以不同速度横移形成视差，是 P3「水」主题的招牌过渡元素。 */
   /* === P3 lineup 选项卡（版式取自官网 lineup：按钮切换内容面板）=== */
   .lineup{position:relative;z-index:3;padding:104px 0 0}
-  .lineup-tabs{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-  .lineup-btn{appearance:none;cursor:pointer;text-align:left;position:relative;border-radius:4px;
-    border:1px solid rgba(255,255,255,.22);background:rgba(3,20,60,.42);padding:12px 24px;
+  /* 页签组：加一圈外框，让整组从蓝底上"立"起来 */
+  .lineup-tabs{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
+    padding:16px;border:1px solid rgba(255,255,255,.2);border-radius:8px;
+    background:linear-gradient(180deg,rgba(2,16,52,.5),rgba(2,12,40,.34));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 30px rgba(0,8,32,.35)}
+  /* 单个页签：实边框 + 实底 + 四角括号（P3 按钮语言） */
+  .lineup-btn{appearance:none;cursor:pointer;text-align:left;position:relative;border-radius:5px;
+    border:1px solid rgba(255,255,255,.42);padding:13px 26px;
+    background:linear-gradient(180deg,rgba(9,46,120,.92),rgba(3,20,60,.94));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 22px rgba(0,8,32,.5);
     transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,background .3s,box-shadow .3s}
+  .lineup-btn::before,.lineup-btn::after{content:"";position:absolute;width:11px;height:11px;
+    border:1px solid rgba(119,254,252,.9);pointer-events:none;transition:border-color .3s}
+  .lineup-btn::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .lineup-btn::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
   .lineup-btn i{display:block;font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--accent)}
   .lineup-btn b{display:block;font-family:var(--disp);font-size:20px;line-height:1.15;letter-spacing:.06em;
     color:#fff;text-transform:uppercase}
-  .lineup-btn span{display:block;font-size:11px;letter-spacing:.1em;color:var(--text-3)}
-  .lineup-btn:hover{transform:translateY(-2px);border-color:var(--accent)}
-  .lineup-btn.active{background:linear-gradient(135deg,rgba(22,207,251,.24),rgba(1,95,204,.34));
-    border-color:var(--accent);box-shadow:2px 3px 0 rgba(2,10,36,.55),5px 7px 0 rgba(2,10,36,.28)}
+  .lineup-btn span{display:block;font-size:11px;letter-spacing:.1em;color:var(--text-2)}
+  .lineup-btn:hover{transform:translateY(-2px);border-color:var(--primary-3);background:linear-gradient(180deg,rgba(14,64,150,.95),rgba(4,26,74,.95))}
+  /* 选中态：P3 青实底 + 深色字（对比拉满，和站内主按钮同一套） */
+  .lineup-btn.active{border-color:#77FEFC;
+    background:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    box-shadow:3px 4px 0 rgba(2,10,36,.62),7px 9px 0 rgba(2,10,36,.3),0 0 30px rgba(22,207,251,.42)}
+  .lineup-btn.active i{color:#04121f;opacity:.85}
+  .lineup-btn.active b{color:#04121f}
+  .lineup-btn.active span{color:rgba(4,18,31,.78)}
+  .lineup-btn.active::before,.lineup-btn.active::after{border-color:rgba(255,255,255,.95)}
+  @media (max-width:760px){
+    .lineup-tabs{padding:10px;gap:8px}
+    .lineup-btn{padding:9px 15px}
+    .lineup-btn b{font-size:16px}
+  }
   .lineup-panel{display:none}
   .lineup-panel.active{display:block}
-  @media (max-width:760px){.lineup{padding-top:70px}.lineup-btn{padding:9px 14px}.lineup-btn b{font-size:16px}}
+  @media (max-width:760px){.lineup{padding-top:70px}}
   .wave-band{position:relative;width:100%;height:120px;overflow:hidden;line-height:0;z-index:2;pointer-events:none}
   .waves{position:relative;width:100%;height:100%}
   .parallax > use{animation:waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
