@@ -779,6 +779,32 @@
   /* P3 素材②：斜切光带（斜角平面语言） */
   .bg-slant{position:absolute;inset:-30% -15%;z-index:1;pointer-events:none;opacity:.06;
     background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
+  /* P3 素材⑤：水下光斑 caustics（transform 驱动=GPU，不逐帧重绘） */
+  .bg-caustics{position:absolute;inset:-25%;z-index:1;pointer-events:none;opacity:.55;
+    background:
+      radial-gradient(closest-side at 22% 30%, rgba(119,254,252,.22), transparent 70%),
+      radial-gradient(closest-side at 74% 22%, rgba(1,95,204,.40), transparent 72%),
+      radial-gradient(closest-side at 58% 78%, rgba(125,230,253,.18), transparent 70%),
+      radial-gradient(closest-side at 12% 82%, rgba(1,95,204,.30), transparent 72%);
+    animation:caustics 30s ease-in-out infinite alternate}
+  @keyframes caustics{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(-4%,-3%,0) scale(1.12)}}
+  /* P3 素材⑥：上浮气泡（整层 transform 位移，等于无缝滚动） */
+  .bg-bubbles{position:absolute;left:0;right:0;top:-100%;height:200%;z-index:1;pointer-events:none;opacity:.5;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,.5) 1.3px, transparent 2.6px),
+      radial-gradient(circle, rgba(199,247,255,.38) 1px, transparent 2.2px);
+    background-size:72px 72px, 116px 116px;
+    background-position:0 0, 37px 48px;
+    animation:bubbles 30s linear infinite}
+  @keyframes bubbles{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(0,-50%,0)}}
+  /* 大渐变缓慢漂移：让底色"像水一样流动" */
+  .bg-base{animation:waterdrift 46s ease-in-out infinite alternate}
+  @keyframes waterdrift{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(-3%,2%,0) scale(1.07)}}
+  /* 手机兜底：视频播不动时，首屏静帧走 Ken Burns，保证画面在动 */
+  .hero-art-video.hero-video-static{animation:heroKen 26s ease-in-out infinite alternate;
+    transform-origin:70% 42%;will-change:transform}
+  @keyframes heroKen{0%{transform:scale(1.05) translate3d(0,0,0)}100%{transform:scale(1.16) translate3d(-1.5%,-2%,0)}}
+  @media (prefers-reduced-motion:reduce){.bg-caustics,.bg-bubbles,.bg-base{animation:none}}
   /* P3 素材③：主视觉水印（低透明度装饰，不抢正文） */
   .p3-mark{position:absolute;right:-6%;top:1%;width:min(56vw,620px);aspect-ratio:16/10;
     pointer-events:none;z-index:0;opacity:.14;
@@ -1179,6 +1205,8 @@
   <div class="bg-base"></div>
   <div class="bg-halftone"></div>
   <div class="bg-slant"></div>
+  <div class="bg-caustics"></div>
+  <div class="bg-bubbles"></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
   <div class="bg-grid"></div>
@@ -3917,5 +3945,21 @@
 <script src="/vendor/lenis.min.js"></script>
 <script src="/motion.js"></script>
 
+<script>
+/* 首屏视频兜底：移动端/微信常拦 autoplay —— 主动重试播放；真播不了就切 Ken Burns 静帧动效 */
+(function(){
+  var v=document.querySelector('.hero-art-video'); if(!v) return;
+  function markStatic(){ v.classList.add('hero-video-static'); }
+  function tryPlay(){ try{ var pr=v.play(); if(pr&&pr.catch) pr.catch(markStatic); }catch(e){ markStatic(); } }
+  v.addEventListener('playing',function(){ v.classList.remove('hero-video-static'); });
+  v.addEventListener('loadeddata',tryPlay);
+  v.addEventListener('canplay',tryPlay);
+  tryPlay();
+  setTimeout(function(){ if(v.paused) markStatic(); },1800);
+  ['touchstart','pointerdown','click','scroll'].forEach(function(ev){
+    window.addEventListener(ev,function once(){ tryPlay(); window.removeEventListener(ev,once); },{passive:true});
+  });
+})();
+</script>
 </body>
 </html>
