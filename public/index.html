@@ -4137,24 +4137,56 @@
 })();
 </script>
 <script>
-/* lineup 选项卡：点按钮切面板；带 #prompt-gen 之类锚点进来时也自动切到对应页签 */
+/* lineup 选项卡 + 站内锚点
+   ⚠️⚠️ 关键（踩过）：motion.js 会给每个 <a href="#..."> 绑一个 lenis.scrollTo(el)，
+   而工具区面板是 display:none —— Lenis 量隐藏元素得到位置 0，所以"导航跳转有问题"。
+   解法：这里用 **capture 阶段**监听（比 motion.js 绑在 <a> 上的处理器更早执行），
+   先把目标面板点亮，再把滚动**交回** motion.js/Lenis（它此时量到的已是正确位置）。
+   同时不在 capture 里 preventDefault —— 万一 motion.js 没加载，浏览器原生跳转也能正确落到可见面板上。 */
 (function(){
-  var btns=[].slice.call(document.querySelectorAll('.lineup-btn')),
-      panels=[].slice.call(document.querySelectorAll('.lineup-panel'));
-  if(!btns.length||!panels.length) return;
-  function act(i,doScroll){
+  var panels = [].slice.call(document.querySelectorAll('.lineup-panel')),
+      btns   = [].slice.call(document.querySelectorAll('.lineup-btn'));
+  if (!panels.length) return;
+
+  function idxOf(id){ var r=-1; panels.forEach(function(p,k){ if(p.id===id) r=k; }); return r; }
+  function act(i){
     btns.forEach(function(b,k){ b.classList.toggle('active',k===i); b.setAttribute('aria-selected',k===i); });
     panels.forEach(function(p,k){ p.classList.toggle('active',k===i); });
-    if(doScroll) window.scrollTo({top:panels[i].getBoundingClientRect().top+window.pageYOffset-96,behavior:'smooth'});
   }
-  btns.forEach(function(b){ b.addEventListener('click',function(){ act(+b.getAttribute('data-tab'),true); }); });
-  function syncHash(){
-    var h=(location.hash||'').replace('#','');
-    var idx=-1;
-    panels.forEach(function(p,k){ if(p.id===h) idx=k; });
-    if(idx>=0) act(idx,false);
+  function activateFor(id){
+    var i = idxOf(id);
+    if (i < 0) return false;
+    act(i);
+    return true;
   }
-  window.addEventListener('hashchange',syncHash); syncHash();
+  function closestAnchor(node){
+    while (node && node !== document) {
+      if (node.tagName === 'A' && node.getAttribute) return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  /* capture = true：抢在 motion.js 的 <a> 处理器之前点亮面板 */
+  document.addEventListener('click', function(e){
+    var a = closestAnchor(e.target);
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    if (href.charAt(0) !== '#' || href.length < 2) return;
+    activateFor(href.slice(1));
+  }, true);
+
+  /* 页签按钮本身 */
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){ act(+b.getAttribute('data-tab')); });
+  });
+
+  /* 首屏就带锚点进来（如 /#agnes-video）：尽早点亮，后续滚动才落得准 */
+  var id0 = (location.hash || '').replace('#','');
+  if (id0) activateFor(id0);
+  window.addEventListener('hashchange', function(){
+    activateFor((location.hash || '').replace('#',''));
+  });
 })();
 </script>
 </body>
