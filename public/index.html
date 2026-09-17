@@ -729,7 +729,7 @@
     --text:#ffffff; --text-2:#d3e3fb; --text-3:#a2c0ec;
     --primary:#16CFFB; --primary-2:#7DE6FD; --primary-3:#77FEFC;
     --accent:#16CFFB; --accent-2:#7DE6FD; --pink:#3aa8e6;
-    --success:#5fd39a; --danger:#ff9a9a;
+    --success:#5fd39a; --danger:#ff9a9a; --gold:#ffc54a;
     --line:rgba(255,255,255,.24);
     --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
     --glow:0 0 30px rgba(22,207,251,.38);
@@ -991,6 +991,19 @@
     border:1px solid var(--accent);opacity:.92}
   .roster-card::before{top:6px;left:6px;border-right:none;border-bottom:none}
   .roster-card::after{bottom:6px;right:6px;border-left:none;border-top:none}
+
+  /* === 按 P3 设计规范补的三条标志性细节（参考 Minerva 设计系统 + deltea 的 P3R 复刻） ===
+     ① 元素轻微歪斜 1-2°（P3 菜单那种"歪着叠"的手感），hover 时摆正
+     ② 分层错位硬阴影（不是柔和投影，是 2~5px 偏移的实色层）
+     ③ 三角强化块（CSS border 三角形），P3 图标语言里的基本形状 */
+  .roster .roster-card{transform:rotate(-1.3deg)}
+  .roster .roster-card:nth-child(even){transform:rotate(1.3deg)}
+  .roster-card:hover{transform:rotate(0deg) translateY(-8px)!important}
+  .roster-card, .card{box-shadow:2px 3px 0 rgba(2,10,36,.55),5px 7px 0 rgba(2,10,36,.28)}
+  .roster-card:hover{box-shadow:3px 5px 0 rgba(2,10,36,.6),7px 11px 0 rgba(2,10,36,.32)}
+  .roster-card figcaption b::before{content:"";display:inline-block;width:0;height:0;margin-right:6px;vertical-align:middle;
+    border-left:6px solid var(--accent);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+  .roster-card figcaption i{color:var(--gold)}
 
   /* ---- 6) 存量组件统一：锐角 + 单色 ---- */
   section{padding:86px 0}
