@@ -1005,6 +1005,21 @@
     border-left:6px solid var(--accent);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
   .roster-card figcaption i{color:var(--gold)}
 
+  /* === P3 角色「融入背景」：官网立绘抠掉白底后作为固定背景层展示 ===
+     抠图手法：ffmpeg 取原始 RGB → 纯 Python 从四边做**连通域洪水填充**，只删"与边缘连通的白色"
+     （直接按颜色阈值会把脸/浅色衣服一起 key 掉，实测过）。
+     叠放：左右两张大的 + 中间一张淡的，压到 0.42/0.26 透明度并略降饱和，融进蓝水里。 */
+  .bg-chars{position:absolute;inset:0;z-index:1;pointer-events:none}
+  .bg-chars i{position:absolute;display:block;opacity:.42;filter:saturate(.82) contrast(1.05);
+    background-repeat:no-repeat;background-position:center bottom;background-size:contain}
+  .bg-chars .c1{left:-5vw;bottom:-3vh;width:40vw;height:74vh;background-image:url('/assets/p3/cut/1.webp')}
+  .bg-chars .c2{right:-6vw;bottom:-5vh;width:38vw;height:70vh;background-image:url('/assets/p3/cut/8.webp')}
+  .bg-chars .c3{left:36vw;bottom:-9vh;width:28vw;height:54vh;opacity:.26;background-image:url('/assets/p3/cut/5.webp')}
+  @media (max-width:760px){
+    .bg-chars .c3{display:none}
+    .bg-chars i{opacity:.3}
+  }
+
   /* ---- 6) 存量组件统一：锐角 + 单色 ---- */
   section{padding:86px 0}
   .wrap{max-width:1240px}
@@ -1220,6 +1235,7 @@
   <div class="bg-slant"></div>
   <div class="bg-caustics"></div>
   <div class="bg-bubbles"></div>
+  <div class="bg-chars" aria-hidden="true"><i class="c1"></i><i class="c2"></i><i class="c3"></i></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
   <div class="bg-grid"></div>
