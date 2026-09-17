@@ -772,16 +772,32 @@
   .bg-vig{position:absolute;inset:0;
     background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 52%,rgba(3,22,74,.4) 100%)}
   .bg-noise{opacity:.03;mix-blend-mode:normal}
+  /* P3 素材①：半调网点 halftone —— P3R UI 的标志性纹理 */
+  .bg-halftone{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.13;
+    background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);
+    background-size:18px 18px}
+  /* P3 素材②：斜切光带（斜角平面语言） */
+  .bg-slant{position:absolute;inset:-30% -15%;z-index:1;pointer-events:none;opacity:.06;
+    background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
+  /* P3 素材③：主视觉水印（低透明度装饰，不抢正文） */
+  .p3-mark{position:absolute;right:-6%;top:1%;width:min(56vw,620px);aspect-ratio:16/10;
+    pointer-events:none;z-index:0;opacity:.14;
+    background:url('/assets/hero-keyvisual-b.webp') center/contain no-repeat}
+  /* P3 素材④：卡片角标（P3 菜单选择框的直角括号） */
+  .card::before,.card::after{content:"";position:absolute;width:16px;height:16px;pointer-events:none;
+    border:1px solid var(--accent);opacity:.75}
+  .card::before{top:9px;left:9px;border-right:none;border-bottom:none}
+  .card::after{bottom:9px;right:9px;border-left:none;border-top:none}
 
   /* ---- 4) 顶部导航：双语 HUD ---- */
-  .top-nav{position:sticky;top:0;z-index:50;background:rgba(6,42,116,.82);
+  .top-nav{position:sticky;top:0;z-index:50;background:rgba(9,10,14,.93);
     border-bottom:1px solid var(--line);transition:background .3s,border-color .3s}
   .top-nav::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(200,225,245,.35),transparent);opacity:.6}
-  .top-nav:hover{background:rgba(3,18,58,.94)}
+  .top-nav:hover{background:rgba(6,7,11,.97)}
   .top-nav-inner{padding:12px 0}
   .nav-logo{gap:12px}
-  .nav-logo img{width:30px;height:30px;border-radius:5px;box-shadow:0 0 18px rgba(56,189,248,.38)}
+  .nav-logo img{width:30px;height:30px;border-radius:5px;box-shadow:0 0 18px rgba(22,207,251,.45)}
   .logo-text{display:flex;flex-direction:column;line-height:1}
   .logo-text b{font-family:var(--disp);font-size:17px;font-weight:600;letter-spacing:.26em;color:#fff;text-transform:uppercase}
   .logo-text i{font-style:normal;font-size:9px;letter-spacing:.34em;color:var(--text-3);margin-top:4px;text-transform:uppercase}
@@ -1143,6 +1159,8 @@
      动态层走 three.js/GPU；其余层只用 transform/opacity 合成，避免逐帧重绘大范围渐变。 -->
 <div class="bg-stage" aria-hidden="true">
   <div class="bg-base"></div>
+  <div class="bg-halftone"></div>
+  <div class="bg-slant"></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
   <div class="bg-grid"></div>
@@ -1318,6 +1336,7 @@
 
 <!-- 公告 + 留言板 -->
 <section id="bulletin">
+  <div class="p3-mark" aria-hidden="true"></div>
   <div class="wrap">
     <div class="section-head">
       <span class="section-eyebrow reveal">Bulletin / 公告与留言</span>
