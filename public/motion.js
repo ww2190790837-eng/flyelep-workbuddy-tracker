@@ -117,6 +117,33 @@
     } else { go(); }
   }
 
+  /* P3 式圆环揭幕：整屏深蓝圆盘从"铺满"收束到一点，露出首屏。
+     用 clip-path 逐帧写入（不直接 tween clipPath 字符串，避免解析差异）。 */
+  var wipe = document.getElementById('wipe');
+  function startWipe() {
+    if (!wipe) return;
+    /* 调试开关：URL 带 ?nowipe=1 可跳过揭幕（排查用） */
+    if (location.search.indexOf('nowipe') >= 0) return;
+    wipe.style.display = 'block';
+    var o = { r: 150 };
+    wipe.style.clipPath = 'circle(150% at 62% 46%)';
+    /* 硬性兜底：无论动画是否如期跑完，都不允许揭幕层一直盖住页面 */
+    setTimeout(function () {
+      wipe.style.display = 'none';
+      wipe.style.clipPath = '';
+    }, 2600);
+    gsap.to(o, {
+      r: 0, duration: 1.15, ease: 'power3.inOut',
+      onUpdate: function () {
+        wipe.style.clipPath = 'circle(' + o.r.toFixed(2) + '% at 62% 46%)';
+      },
+      onComplete: function () {
+        wipe.style.display = 'none';
+        wipe.style.clipPath = '';
+      }
+    });
+  }
+
   var prog = { v: 0 };
   gsap.timeline()
     .to(prog, {
@@ -127,11 +154,12 @@
         if (bootBar) bootBar.style.width = v + '%';
       }
     })
+    .call(startWipe, null, '+=0.1')
     /* 预加载揭幕：交给 GSAP 统一驱动（CSS 过渡不受控） */
     .to(boot || {}, {
       yPercent: -100, duration: 0.85, ease: 'power3.inOut',
       onComplete: function () { if (boot) boot.style.display = 'none'; }
-    }, '+=0.1');
+    }, '+=0.05');
 
   whenFonts(function () {
     var heroChars = [];

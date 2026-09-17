@@ -837,14 +837,22 @@
     color:#fff;background:transparent!important}
   /* 动漫主视觉（原创生成）：右侧角色 + 左侧留白，底部渐隐融入页面 */
   .hero-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-  .hero-art img{width:100%;height:100%;object-fit:cover;object-position:right top;display:block}
+  /* 首屏角色：P3 动态视频（已裁掉原片里的 UI 文字），视频走硬件解码，成本远低于逐帧 Canvas */
+  .hero-art-video{width:100%;height:100%;object-fit:cover;object-position:right top;display:block}
+  /* 压暗罩：左侧压到近乎全黑（保证标题可读 + 盖住素材里原有的 UI 文字），右侧只压一半留住角色 */
+  .hero-art-dim{position:absolute;inset:0;pointer-events:none;background:
+    linear-gradient(100deg,rgba(6,7,10,.98) 0%,rgba(6,7,10,.94) 30%,rgba(6,7,10,.88) 44%,rgba(6,7,10,.52) 63%,rgba(6,7,10,.4) 100%)}
   /* 底部渐隐：用普通渐变覆盖层代替 mask。
      ⚠️ mask-image 作用在全屏大元素上极易触发软件合成 —— 那是上一版卡顿的主因。 */
   .hero-art-fade{position:absolute;left:0;right:0;bottom:0;height:42%;
     background:linear-gradient(180deg,rgba(6,7,10,0) 0%,rgba(6,7,10,.7) 55%,rgba(6,7,10,.97) 100%)}
   @media (max-width:900px){
-    .hero-art img{object-position:66% top}
+    .hero-art-video{object-position:66% top}
   }
+  /* P3 式圆环揭幕：整屏深蓝圆盘，以 clip-path 圆形收束露出页面
+     （取色自 P3 素材实测值 #1f2178；clip-path 由 GSAP 逐帧写入，兼容性最稳） */
+  #wipe{position:fixed;inset:0;z-index:9997;pointer-events:none;display:none;
+    background:radial-gradient(circle at 62% 46%,#24307f 0%,#1f2178 45%,#0d1233 100%)}
   .hero .hero-inner{display:flex;flex-direction:column;justify-content:space-between;
     min-height:calc(100svh - 58px);padding-top:clamp(34px,7vh,84px);padding-bottom:clamp(26px,5vh,54px);
     position:relative;z-index:2}
@@ -1093,6 +1101,8 @@
   <div class="b-bar"><i id="bootBar"></i></div>
   <div class="b-meta"><span>Loading System</span><span id="bootPct">00%</span></div>
 </div>
+<!-- P3 式圆环揭幕：用 clip-path: circle() 实现（比视频更轻、颜色可控、GPU 合成） -->
+<div id="wipe" aria-hidden="true"></div>
 <!-- 自定义光标（触摸设备自动隐藏） -->
 <div id="cursor" aria-hidden="true"></div>
 
@@ -1234,7 +1244,11 @@
 
 <header class="hero" id="heroSection">
   <div class="hero-art" aria-hidden="true">
-    <img src="/assets/hero-keyvisual-a.webp" alt="" decoding="async" fetchpriority="high" />
+    <video class="hero-art-video" autoplay muted loop playsinline preload="auto"
+           poster="/assets/hero-keyvisual-a.webp">
+      <source src="/assets/hero-p3.mp4" type="video/mp4" />
+    </video>
+    <span class="hero-art-dim"></span>
     <span class="hero-art-fade"></span>
   </div>
   <div class="hud-frame" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
