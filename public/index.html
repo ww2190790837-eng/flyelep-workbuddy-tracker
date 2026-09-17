@@ -4088,6 +4088,10 @@
     var cur = null;
     links.forEach(function(a){
       var el = map[a.dataset.nav]; if(!el) return;
+      /* ⚠️ display:none 的元素 getBoundingClientRect().top === 0，会永远满足下面条件；
+         而循环里最后一个命中的会胜出 -> 之前造成「VIDEO 常驻高亮」。
+         隐藏元素直接跳过，只让"当前可见的那个面板"参与判定。 */
+      if (el.offsetParent === null) return;
       if (el.getBoundingClientRect().top <= window.innerHeight * 0.38) cur = a.dataset.nav;
     });
     links.forEach(function(a){ a.classList.toggle('active', a.dataset.nav === cur); });
@@ -4174,6 +4178,8 @@
   function act(i){
     btns.forEach(function(b,k){ b.classList.toggle('active',k===i); b.setAttribute('aria-selected',k===i); });
     panels.forEach(function(p,k){ p.classList.toggle('active',k===i); });
+    /* 面板可见性变了 -> 通知顶部导航的 scroll-spy 重算高亮（否则高亮不跟着切） */
+    try { window.dispatchEvent(new Event('scroll')); } catch(e){}
   }
   function activateFor(id){
     var i = idxOf(id);
