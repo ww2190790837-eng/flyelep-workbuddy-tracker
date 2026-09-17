@@ -975,6 +975,23 @@
   }
 
   /* P3 角色名册：官方立绘(白底)放进浅色卡片，P3 蓝铭牌 + 青色角标 */
+  .cs-stage{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;
+    min-height:min(60vh,540px);margin-bottom:26px;border:1px solid rgba(255,255,255,.18);border-radius:6px;
+    background:radial-gradient(120% 92% at 50% 112%, rgba(1,95,204,.6), rgba(3,31,100,.82) 70%)}
+  .cs-stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(118deg,rgba(255,255,255,.05) 0 1px,transparent 1px 46px)}
+  .cs-ghost{position:absolute;left:50%;top:6%;transform:translateX(-50%);font-family:var(--disp);
+    font-size:clamp(56px,12.5vw,170px);line-height:1;letter-spacing:.03em;white-space:nowrap;
+    color:rgba(255,255,255,.10);text-transform:uppercase;pointer-events:none;z-index:1}
+  .cs-figure{position:relative;z-index:2;display:flex;align-items:flex-end}
+  .cs-figure img{display:block;max-height:min(56vh,500px);width:auto;
+    filter:drop-shadow(0 26px 44px rgba(0,10,40,.62));transition:opacity .28s ease,transform .5s cubic-bezier(.22,1,.36,1)}
+  .cs-meta{position:absolute;left:26px;bottom:22px;z-index:3;display:flex;flex-direction:column;gap:2px}
+  .cs-no{font-family:var(--disp);font-size:44px;line-height:.9;color:rgba(255,255,255,.22)}
+  .cs-en{font-family:var(--disp);font-size:clamp(22px,2.6vw,34px);letter-spacing:.06em;color:#fff;text-transform:uppercase;line-height:1}
+  .cs-jp{font-style:normal;font-size:13px;letter-spacing:.12em;color:var(--gold);margin-top:4px}
+  .roster-card.active{border-color:var(--accent);box-shadow:3px 5px 0 rgba(2,10,36,.6),7px 11px 0 rgba(2,10,36,.32)}
+  .roster-card.active img.on{opacity:1}
   .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
   .roster-card{position:relative;margin:0;overflow:hidden;border-radius:4px;
     background:linear-gradient(180deg,#eef6ff,#cfe4fb);border:1px solid rgba(255,255,255,.4);
@@ -1012,26 +1029,6 @@
     border-left:6px solid var(--accent);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
   .roster-card figcaption i{color:var(--gold)}
 
-  /* === P3 角色「融入背景」：官网立绘抠掉白底后作为固定背景层展示 ===
-     抠图手法：ffmpeg 取原始 RGB → 纯 Python 从四边做**连通域洪水填充**，只删"与边缘连通的白色"
-     （直接按颜色阈值会把脸/浅色衣服一起 key 掉，实测过）。
-     叠放：左右两张大的 + 中间一张淡的，压到 0.42/0.26 透明度并略降饱和，融进蓝水里。 */
-  .bg-chars{position:absolute;inset:0;z-index:1;pointer-events:none}
-  /* 关键：duotone —— 先灰度再映射到蓝色调，让角色成为"蓝色调的一部分"而不是原色贴片
-     （参考 Spotify 式 duotone：灰度 + 色相映射；这里用 filter 链实现，因为抠图带 alpha，
-      background-blend-mode 会把透明区填成实色） */
-  .bg-chars i{position:absolute;display:block;opacity:.5;
-    filter:grayscale(1) sepia(1) hue-rotate(178deg) saturate(2.4) brightness(.92) contrast(1.03);
-    background-repeat:no-repeat;background-position:center bottom;background-size:contain;
-    -webkit-mask-image:linear-gradient(180deg,#000 62%,rgba(0,0,0,0) 100%);
-    mask-image:linear-gradient(180deg,#000 62%,rgba(0,0,0,0) 100%)}
-  .bg-chars .c1{left:-5vw;bottom:-3vh;width:40vw;height:74vh;background-image:url('/assets/p3/cut/1.webp')}
-  .bg-chars .c2{right:-6vw;bottom:-5vh;width:38vw;height:70vh;background-image:url('/assets/p3/cut/8.webp')}
-  .bg-chars .c3{left:36vw;bottom:-9vh;width:28vw;height:54vh;opacity:.26;background-image:url('/assets/p3/cut/5.webp')}
-  @media (max-width:760px){
-    .bg-chars .c3{display:none}
-    .bg-chars i{opacity:.3}
-  }
 
   /* ---- 6) 存量组件统一：锐角 + 单色 ---- */
   section{padding:86px 0}
@@ -1248,7 +1245,6 @@
   <div class="bg-slant"></div>
   <div class="bg-caustics"></div>
   <div class="bg-bubbles"></div>
-  <div class="bg-chars" aria-hidden="true"><i class="c1"></i><i class="c2"></i></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
   <div class="bg-grid"></div>
@@ -1431,20 +1427,30 @@
       <h2 class="section-title reveal">S.E.E.S. <em>名册</em></h2>
       <p class="section-sub reveal">特别课外活动部 · 与「影时间」作战的 13 名角色</p>
     </div>
+    <!-- 角色展示台：大立绘 + 幽灵大字名（参考 GitHub 上 Persona 角色站的通用做法：大图 + 缩略图选择器） -->
+    <div class="cs-stage reveal">
+      <span class="cs-ghost" id="csGhost">HERO</span>
+      <div class="cs-figure"><img id="csFig" src="/assets/p3/cut/1.webp" alt=""></div>
+      <div class="cs-meta">
+        <span class="cs-no" id="csNo">01</span>
+        <b class="cs-en" id="csEn">Hero</b>
+        <i class="cs-jp" id="csJp">主人公</i>
+      </div>
+    </div>
     <div class="roster">
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off1.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character1.webp" alt="1" loading="lazy" decoding="async"><figcaption><b>Hero</b><i>主人公</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off2.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character2.webp" alt="2" loading="lazy" decoding="async"><figcaption><b>Yukari</b><i>岳羽ゆかり</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off3.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character3.webp" alt="3" loading="lazy" decoding="async"><figcaption><b>Junpei</b><i>伊織順平</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off4.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character4.webp" alt="4" loading="lazy" decoding="async"><figcaption><b>Akihiko</b><i>真田明彦</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off5.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character5.webp" alt="5" loading="lazy" decoding="async"><figcaption><b>Mitsuru</b><i>桐条美鶴</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off6.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character6.webp" alt="6" loading="lazy" decoding="async"><figcaption><b>Fuuka</b><i>山岸風花</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off7.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character7.webp" alt="7" loading="lazy" decoding="async"><figcaption><b>Koromaru</b><i>コロマル</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off8.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character8.webp" alt="8" loading="lazy" decoding="async"><figcaption><b>Aegis</b><i>アイギス</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off9.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character9.webp" alt="9" loading="lazy" decoding="async"><figcaption><b>Ken</b><i>天田乾</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off10.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character10.webp" alt="10" loading="lazy" decoding="async"><figcaption><b>Shinjiro</b><i>荒垣真次郎</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off11.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character11.webp" alt="11" loading="lazy" decoding="async"><figcaption><b>Takaya</b><i>タカヤ</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off12.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character12.webp" alt="12" loading="lazy" decoding="async"><figcaption><b>Jin</b><i>ジン</i></figcaption></figure>
-      <figure class="roster-card reveal"><img class="off" src="/assets/p3/off13.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character13.webp" alt="13" loading="lazy" decoding="async"><figcaption><b>Chidori</b><i>チドリ</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="1" data-en="Hero" data-jp="主人公"><img class="off" src="/assets/p3/off1.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character1.webp" alt="1" loading="lazy" decoding="async"><figcaption><b>Hero</b><i>主人公</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="2" data-en="Yukari" data-jp="岳羽ゆかり"><img class="off" src="/assets/p3/off2.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character2.webp" alt="2" loading="lazy" decoding="async"><figcaption><b>Yukari</b><i>岳羽ゆかり</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="3" data-en="Junpei" data-jp="伊織順平"><img class="off" src="/assets/p3/off3.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character3.webp" alt="3" loading="lazy" decoding="async"><figcaption><b>Junpei</b><i>伊織順平</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="4" data-en="Akihiko" data-jp="真田明彦"><img class="off" src="/assets/p3/off4.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character4.webp" alt="4" loading="lazy" decoding="async"><figcaption><b>Akihiko</b><i>真田明彦</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="5" data-en="Mitsuru" data-jp="桐条美鶴"><img class="off" src="/assets/p3/off5.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character5.webp" alt="5" loading="lazy" decoding="async"><figcaption><b>Mitsuru</b><i>桐条美鶴</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="6" data-en="Fuuka" data-jp="山岸風花"><img class="off" src="/assets/p3/off6.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character6.webp" alt="6" loading="lazy" decoding="async"><figcaption><b>Fuuka</b><i>山岸風花</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="7" data-en="Koromaru" data-jp="コロマル"><img class="off" src="/assets/p3/off7.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character7.webp" alt="7" loading="lazy" decoding="async"><figcaption><b>Koromaru</b><i>コロマル</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="8" data-en="Aegis" data-jp="アイギス"><img class="off" src="/assets/p3/off8.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character8.webp" alt="8" loading="lazy" decoding="async"><figcaption><b>Aegis</b><i>アイギス</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="9" data-en="Ken" data-jp="天田乾"><img class="off" src="/assets/p3/off9.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character9.webp" alt="9" loading="lazy" decoding="async"><figcaption><b>Ken</b><i>天田乾</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="10" data-en="Shinjiro" data-jp="荒垣真次郎"><img class="off" src="/assets/p3/off10.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character10.webp" alt="10" loading="lazy" decoding="async"><figcaption><b>Shinjiro</b><i>荒垣真次郎</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="11" data-en="Takaya" data-jp="タカヤ"><img class="off" src="/assets/p3/off11.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character11.webp" alt="11" loading="lazy" decoding="async"><figcaption><b>Takaya</b><i>タカヤ</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="12" data-en="Jin" data-jp="ジン"><img class="off" src="/assets/p3/off12.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character12.webp" alt="12" loading="lazy" decoding="async"><figcaption><b>Jin</b><i>ジン</i></figcaption></figure>
+      <figure class="roster-card reveal" data-n="13" data-en="Chidori" data-jp="チドリ"><img class="off" src="/assets/p3/off13.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character13.webp" alt="13" loading="lazy" decoding="async"><figcaption><b>Chidori</b><i>チドリ</i></figcaption></figure>
     </div>
   </div>
 </section>
@@ -4001,6 +4007,34 @@
   ['touchstart','pointerdown','click','scroll'].forEach(function(ev){
     window.addEventListener(ev,function once(){ tryPlay(); window.removeEventListener(ev,once); },{passive:true});
   });
+})();
+</script>
+<script>
+/* 角色展示台：缩略图 hover/点击 → 换大立绘 + 幽灵名 + 编号（参考 GitHub 上 Persona 角色站做法） */
+(function(){
+  var fig=document.getElementById('csFig'),ghost=document.getElementById('csGhost'),
+      no=document.getElementById('csNo'),en=document.getElementById('csEn'),jp=document.getElementById('csJp');
+  var cards=[].slice.call(document.querySelectorAll('.roster-card'));
+  if(!fig||!cards.length) return;
+  function sel(card){
+    var n=card.getAttribute('data-n');
+    ghost.textContent=card.getAttribute('data-en').toUpperCase();
+    no.textContent=('0'+n).slice(-2);
+    en.textContent=card.getAttribute('data-en');
+    jp.textContent=card.getAttribute('data-jp');
+    fig.style.opacity='0'; fig.style.transform='translateY(10px)';
+    setTimeout(function(){
+      fig.src='/assets/p3/cut/'+n+'.webp';
+      fig.style.opacity='1'; fig.style.transform='translateY(0)';
+    },150);
+    cards.forEach(function(c){ c.classList.toggle('active', c===card); });
+  }
+  cards.forEach(function(c){
+    ['mouseenter','click','focus'].forEach(function(ev){
+      c.addEventListener(ev,function(){ sel(c); });
+    });
+  });
+  sel(cards[0]);
 })();
 </script>
 </body>
