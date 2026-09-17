@@ -19,23 +19,23 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#07091a;--bg-2:#0c1029;
-    --surface:#111634;
-    --border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);
-    --text:#eef1f8;--text-2:#a6b3c9;--text-3:#6e7d99;
-    --primary:#6fd1fb;--primary-2:#9be1fd;--primary-3:#cdf2ff;
-    --accent:#6fd1fb;--accent-2:#9be1fd;--pink:#4fb8ee;
+    --bg:#063a9e;--bg-2:#0a4bbd;
+    --surface:#0a44a8;
+    --border:rgba(255,255,255,.16);--border-2:rgba(255,255,255,.24);
+    --text:#ffffff;--text-2:#c9dcf7;--text-3:#8fb0dd;
+    --primary:#16CFFB;--primary-2:#7DE6FD;--primary-3:#77FEFC;
+    --accent:#16CFFB;--accent-2:#7DE6FD;--pink:#3aa8e6;
     --success:#22c55e;
-    --gradient:linear-gradient(135deg,#6fd1fb 0%,#9be1fd 45%,#4fb8ee 100%);
-    --glow:0 0 40px rgba(111,209,251,.35),0 0 80px rgba(111,209,251,.15);
+    --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    --glow:0 0 40px rgba(22,207,251,.45),0 0 80px rgba(1,95,204,.3);
   }
   html{scroll-behavior:smooth;background:var(--bg)}
   body{
     background:transparent;font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
     background:
-      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(111,209,251,.20) 0%, transparent 50%),
-      radial-gradient(ellipse 80% 60% at 85% 10%, rgba(31,33,122,.42) 0%, transparent 45%),
-      radial-gradient(ellipse 70% 50% at 10% 20%, rgba(111,209,251,.10) 0%, transparent 45%),
+      radial-gradient(ellipse 120% 80% at 50% -20%, rgba(1,95,204,.55) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 60% at 85% 10%, rgba(22,207,251,.22) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 50% at 10% 20%, rgba(1,95,204,.3) 0%, transparent 50%),
       var(--bg);
     color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;
     font-feature-settings:"cv11","ss01";
@@ -77,7 +77,7 @@
   /* 噪点纹理 */
   .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:normal}
   /* 移动网格 */
-  .bg-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(124,164,200,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(124,164,200,.04) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-move 40s linear infinite;opacity:.7}
+  .bg-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(160,215,255,.09) 1px,transparent 1px),linear-gradient(to bottom,rgba(160,215,255,.09) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-move 40s linear infinite;opacity:.7}
   @keyframes grid-move{to{background-position:64px 64px}}
   /* 浮动光球装饰 */
   .orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orb-float 12s ease-in-out infinite}
@@ -154,7 +154,7 @@
 
   /* === 数字 === */
   
-  .card{padding:28px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.05);backdrop-filter:blur(12px);transition:all .4s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(124,164,200,.04)}
+  .card{padding:28px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.05);backdrop-filter:blur(12px);transition:all .4s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(160,215,255,.09)}
   .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary-2),var(--pink),transparent);opacity:.5;transition:opacity .4s}
   .card:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 24px 48px -12px rgba(124,164,200,.25),0 0 40px rgba(111,209,251,.1)}
   .card:hover::before{opacity:1}
@@ -342,7 +342,7 @@
     --surface:#fff;
     --border:rgba(0,0,0,.07);--border-2:rgba(0,0,0,.12);
     --text:#1a1d26;--text-2:#4a5068;--text-3:#8890a8;
-    --primary:#6fd1fb;--primary-2:#9be1fd;--primary-3:#cdf2ff;
+    --primary:#16CFFB;--primary-2:#7DE6FD;--primary-3:#77FEFC;
     --accent:#6fd1fb;--accent-2:#9be1fd;--pink:#3aa8e6;
     --success:#16a34a;
     --gradient:linear-gradient(135deg,#6fd1fb 0%,#9be1fd 45%,#3aa8e6 100%);
@@ -555,7 +555,7 @@
   /* ===== 右下角悬浮 AI 对话框 ===== */
   #aiChatWidget{position:fixed;bottom:24px;right:24px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:0;font-family:inherit}
   /* P3 风：深玻璃底 + 细天蓝光圈，不再是亮蓝「SaaS 药丸」，与暗色动漫页统一 */
-  #chatToggleBtn{display:flex;align-items:center;gap:9px;background:linear-gradient(135deg,rgba(7,8,10,.82),rgba(13,28,52,.82));color:#eaf6ff;border:1px solid rgba(56,189,248,.4);border-radius:6px;padding:11px 18px 11px 20px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;position:relative;overflow:hidden}
+  #chatToggleBtn{display:flex;align-items:center;gap:9px;background:linear-gradient(135deg,rgba(3,18,58,.82),rgba(13,28,52,.82));color:#eaf6ff;border:1px solid rgba(56,189,248,.4);border-radius:6px;padding:11px 18px 11px 20px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;position:relative;overflow:hidden}
   #chatToggleBtn::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;background:linear-gradient(180deg,#7dd3fc,#0ea5e9);box-shadow:0 0 10px rgba(56,189,248,.7)}
   #chatToggleBtn:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.75);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 20px rgba(56,189,248,.22)}
   .chat-toggle-icon{font-size:18px;line-height:1}
@@ -723,16 +723,16 @@
 
   /* ---- 1) 设计令牌：近单色黑白 + 冷光 ---- */
   :root{
-    --bg:#07080a; --bg-2:#0a0c10;
-    --surface:#0d0f13; --card:#0e1116;
-    --border:rgba(255,255,255,.10); --border-2:rgba(255,255,255,.18);
-    --text:#edf0f3; --text-2:#98a1aa; --text-3:#5d656e;
-    --primary:#dfe7ee; --primary-2:#aab6c1; --primary-3:#f2f6f9;
-    --accent:#bfe0ff; --accent-2:#8fc4ec; --pink:#7fb0d6;
-    --success:#5fd39a; --danger:#e08b8b;
-    --line:rgba(255,255,255,.13);
-    --gradient:linear-gradient(135deg,#f4f7fa 0%,#c6d0da 48%,#8ea6bd 100%);
-    --glow:0 0 30px rgba(170,205,235,.16);
+    --bg:#063a9e; --bg-2:#0a4bbd;
+    --surface:#0b47ad; --card:#0d4fbc;
+    --border:rgba(255,255,255,.20); --border-2:rgba(255,255,255,.3);
+    --text:#ffffff; --text-2:#d3e3fb; --text-3:#a2c0ec;
+    --primary:#16CFFB; --primary-2:#7DE6FD; --primary-3:#77FEFC;
+    --accent:#16CFFB; --accent-2:#7DE6FD; --pink:#3aa8e6;
+    --success:#5fd39a; --danger:#ff9a9a;
+    --line:rgba(255,255,255,.24);
+    --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    --glow:0 0 30px rgba(22,207,251,.38);
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
     --disp:"Oswald","Inter",-apple-system,sans-serif;
     --r:3px;
@@ -750,13 +750,13 @@
   .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--bg)}
   .bg-base{position:absolute;inset:-12%;
     background:
-      radial-gradient(58% 44% at 20% 16%, rgba(150,190,225,.10), transparent 62%),
-      radial-gradient(52% 44% at 82% 28%, rgba(120,158,190,.075), transparent 62%),
-      radial-gradient(70% 58% at 52% 112%, rgba(88,110,134,.09), transparent 62%);
+      radial-gradient(58% 46% at 22% 14%, rgba(1,95,204,.62), transparent 64%),
+      radial-gradient(54% 46% at 82% 26%, rgba(1,95,204,.42), transparent 64%),
+      radial-gradient(76% 62% at 52% 114%, rgba(3,31,100,.6), transparent 66%);
   }
   /* 压暗罩：把背景压到正文之后，保证左侧文字可读、整体不发花 */
   .bg-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:
-    linear-gradient(100deg,rgba(6,7,10,.84) 4%,rgba(6,7,10,.5) 33%,rgba(6,7,10,.08) 66%,rgba(6,7,10,.26) 100%)}
+    linear-gradient(100deg,rgba(3,26,86,.5) 4%,rgba(3,26,86,.26) 33%,rgba(3,26,86,.02) 66%,rgba(3,26,86,.16) 100%)}
   [data-theme="light"] .bg-scrim{background:
     linear-gradient(100deg,rgba(236,238,240,.88) 4%,rgba(236,238,240,.6) 33%,rgba(236,238,240,.18) 66%,rgba(236,238,240,.34) 100%)}
   .bg-grid{position:absolute;inset:0;opacity:.10;
@@ -770,15 +770,15 @@
     background:linear-gradient(180deg,transparent,rgba(190,220,245,.045),transparent)}
   @keyframes scanMove{0%{transform:translate3d(0,-30vh,0)}100%{transform:translate3d(0,120vh,0)}}
   .bg-vig{position:absolute;inset:0;
-    background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 46%,rgba(0,0,0,.48) 100%)}
+    background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 52%,rgba(3,22,74,.4) 100%)}
   .bg-noise{opacity:.03;mix-blend-mode:normal}
 
   /* ---- 4) 顶部导航：双语 HUD ---- */
-  .top-nav{position:sticky;top:0;z-index:50;background:rgba(7,8,10,.86);
+  .top-nav{position:sticky;top:0;z-index:50;background:rgba(6,42,116,.82);
     border-bottom:1px solid var(--line);transition:background .3s,border-color .3s}
   .top-nav::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(200,225,245,.35),transparent);opacity:.6}
-  .top-nav:hover{background:rgba(7,8,10,.94)}
+  .top-nav:hover{background:rgba(3,18,58,.94)}
   .top-nav-inner{padding:12px 0}
   .nav-logo{gap:12px}
   .nav-logo img{width:30px;height:30px;border-radius:5px;box-shadow:0 0 18px rgba(56,189,248,.38)}
@@ -845,19 +845,19 @@
      同时「上边 + 右边」向内渐隐 —— 这两层专门用来吃掉视频那块亮矩形的硬边。
      ⚠️ 首屏"割裂感"的根因就是视频四边露在外面、像贴上去的一张图。 */
   .hero-art-dim{position:absolute;inset:0;pointer-events:none;background:
-    linear-gradient(rgba(31,33,122,.16),rgba(31,33,122,.16)),
-    linear-gradient(100deg,rgba(7,8,10,.985) 0%,rgba(7,8,10,.95) 24%,rgba(7,8,10,.86) 40%,rgba(7,8,10,.52) 62%,rgba(7,8,10,.34) 100%),
-    linear-gradient(180deg,rgba(7,8,10,.95) 0%,rgba(7,8,10,.66) 5%,rgba(7,8,10,.2) 15%,rgba(7,8,10,0) 27%),
-    linear-gradient(270deg,rgba(7,8,10,.9) 0%,rgba(7,8,10,.42) 6%,rgba(7,8,10,0) 19%)}
+    linear-gradient(rgba(1,95,204,.18),rgba(1,95,204,.18)),
+    linear-gradient(100deg,rgba(3,18,58,.985) 0%,rgba(3,18,58,.95) 24%,rgba(3,18,58,.86) 40%,rgba(3,18,58,.52) 62%,rgba(3,18,58,.34) 100%),
+    linear-gradient(180deg,rgba(3,18,58,.95) 0%,rgba(3,18,58,.66) 5%,rgba(3,18,58,.2) 15%,rgba(3,18,58,0) 27%),
+    linear-gradient(270deg,rgba(3,18,58,.9) 0%,rgba(3,18,58,.42) 6%,rgba(3,18,58,0) 19%)}
   /* 径向收边：把视频四个角与页面之间的「矩形边界」整体抹掉 */
   .hero-art-vig{position:absolute;inset:0;pointer-events:none;background:
-    radial-gradient(122% 100% at 62% 40%,rgba(7,8,10,0) 32%,rgba(7,8,10,.3) 66%,rgba(7,8,10,.8) 100%)}
+    radial-gradient(122% 100% at 62% 40%,rgba(3,18,58,0) 32%,rgba(3,18,58,.3) 66%,rgba(3,18,58,.8) 100%)}
   /* 底部渐隐：用普通渐变覆盖层代替 mask。
      ⚠️ mask-image 作用在全屏大元素上极易触发软件合成 —— 那是上一版卡顿的主因。 */
   .hero-art-fade{position:absolute;left:0;right:0;bottom:0;height:46%;
-    background:linear-gradient(180deg,rgba(7,8,10,0) 0%,rgba(7,8,10,.62) 52%,rgba(7,8,10,1) 100%)}
+    background:linear-gradient(180deg,rgba(3,18,58,0) 0%,rgba(3,18,58,.62) 52%,rgba(3,18,58,1) 100%)}
   @media (max-width:900px){
-    .hero-art-video{object-position:66% top}
+    .hero-art-video{object-position:right top}
   }
   /* P3 式揭幕（三次重做，对齐官方 p3_circle 参考帧 p3_circle_f.png）：
      ① 靛蓝底 #1f217a 上，三圈天蓝 #6fd1fb 同心圆环交错向外扩散、渐隐 —— 官方签名视觉；
@@ -963,7 +963,7 @@
   .pg-num{border-radius:2px;background:var(--gradient);color:#0a0c0f}
   .pg-label,.agv-label,.vu-field label{font-family:var(--mono);letter-spacing:.04em}
   .pg-loading,.pg-spinner{border-radius:50%}
-  footer{position:relative;z-index:2;border-top:1px solid var(--line);background:rgba(7,8,10,.6)}
+  footer{position:relative;z-index:2;border-top:1px solid var(--line);background:rgba(3,18,58,.6)}
   .foot-col h5{font-family:var(--mono);letter-spacing:.22em;color:var(--text-3)}
   .foot-brand img{border-radius:4px;box-shadow:0 0 16px rgba(56,189,248,.30)}
   .scroll-bar{background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:none;height:2px}
@@ -984,7 +984,7 @@
     radial-gradient(58% 44% at 20% 16%, rgba(60,90,120,.07), transparent 62%),
     radial-gradient(52% 44% at 82% 28%, rgba(60,90,120,.05), transparent 62%)}
   [data-theme="light"] .bg-grid{opacity:.5}
-  [data-theme="light"] .bg-vig{background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 46%,rgba(20,26,34,.16) 100%)}
+  [data-theme="light"] .bg-vig{background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 46%,rgba(4,22,64,.16) 100%)}
   [data-theme="light"] .top-nav,[data-theme="light"] .top-nav:hover{background:rgba(236,238,240,.92);border-bottom-color:var(--line)}
   [data-theme="light"] .logo-text b,[data-theme="light"] .nav-links a:hover b,[data-theme="light"] .nav-links a.active b{color:var(--text)}
   [data-theme="light"] .nav-cta{background:#141a20!important;color:#f4f7fa!important}
@@ -1018,7 +1018,7 @@
   /* WebGL 颗粒/扫描/扫光层：screen 混合，黑色即透明，叠加在线稿之上 */
 
   /* 首屏预加载 */
-  #boot{position:fixed;inset:0;z-index:9999;background:#07080a;display:flex;
+  #boot{position:fixed;inset:0;z-index:9999;background:#031F64;display:flex;
     flex-direction:column;align-items:center;justify-content:center;gap:20px}
   #boot .b-brand{font-family:var(--disp);font-size:clamp(30px,6vw,62px);letter-spacing:.34em;
     color:#fff;text-indent:.34em}
@@ -1036,7 +1036,7 @@
   @media (hover:none),(pointer:coarse){#cursor{display:none}}
 
   /* 导航滚动态 */
-  .top-nav.scrolled{background:rgba(7,8,10,.95);border-bottom-color:rgba(255,255,255,.16)}
+  .top-nav.scrolled{background:rgba(3,18,58,.95);border-bottom-color:rgba(255,255,255,.16)}
 
   /* 字标/标题的逐行遮罩揭幕 */
   .mask{overflow:hidden;display:block}
@@ -1116,9 +1116,9 @@
   .bg-glow{position:absolute;width:62vmax;height:62vmax;border-radius:50%;
     pointer-events:none;will-change:transform}
   .bg-glow.g1{left:-14vmax;top:-18vmax;
-    background:radial-gradient(circle,rgba(56,189,248,.20),rgba(56,189,248,.06) 42%,transparent 66%)}
+    background:radial-gradient(circle,rgba(1,95,204,.55),rgba(1,95,204,.18) 44%,transparent 68%)}
   .bg-glow.g2{right:-18vmax;bottom:-22vmax;
-    background:radial-gradient(circle,rgba(125,211,252,.15),rgba(14,165,233,.05) 44%,transparent 68%)}
+    background:radial-gradient(circle,rgba(22,207,251,.26),rgba(1,95,204,.1) 46%,transparent 70%)}
   [data-theme="light"] .bg-glow.g1{background:radial-gradient(circle,rgba(2,132,199,.11),transparent 66%)}
   [data-theme="light"] .bg-glow.g2{background:radial-gradient(circle,rgba(14,165,233,.09),transparent 68%)}
   .bg-scan{background:linear-gradient(180deg,transparent,rgba(56,189,248,.08),transparent);
@@ -1278,7 +1278,7 @@
 <header class="hero" id="heroSection">
   <div class="hero-art" aria-hidden="true">
     <video class="hero-art-video" autoplay muted loop playsinline preload="auto"
-           poster="/assets/hero-keyvisual-a.webp">
+           poster="/assets/hero-p3-firstframe.webp">
       <source src="/assets/hero-p3.mp4" type="video/mp4" />
     </video>
     <span class="hero-art-dim"></span>
