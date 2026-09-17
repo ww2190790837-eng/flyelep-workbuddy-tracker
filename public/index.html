@@ -859,13 +859,33 @@
   @media (max-width:900px){
     .hero-art-video{object-position:66% top}
   }
-  /* P3 式揭幕（重做）：不再是蓝色圆盘，而是「页面同色深底盘 + 一圈细天蓝光圈」一起收束。
-     视觉上像镜头虹膜开合，而不是一块蓝板飞走；光圈让动作可感知但不刺眼。
-     用 transform: scale() 驱动整块圆盘（纯 GPU 合成，不做逐帧重排 / 不写 clip-path 字符串）。 */
-  #wipe{position:fixed;left:0;top:0;z-index:9997;pointer-events:none;display:none;
-    border-radius:50%;transform-origin:50% 50%;will-change:transform;backface-visibility:hidden;
-    background:radial-gradient(circle closest-side at 50% 50%,
-      #07080a 0%,#07080a 80%,rgba(56,189,248,.28) 90%,rgba(125,211,252,.5) 96%,rgba(125,211,252,0) 100%)}
+  /* P3 式揭幕（三次重做，对齐官方 p3_circle 参考帧 p3_circle_f.png）：
+     ① 靛蓝底 #1f217a 上，三圈天蓝 #6fd1fb 同心圆环交错向外扩散、渐隐 —— 官方签名视觉；
+     ② 随后「中心开孔」由内向外放大，孔沿是一道天蓝厚带，直到整屏让出首屏。
+     颜色/尺寸实测自参考帧（1280×720：外环 r≈173px·描边 12px，内环 r≈76px·描边 7px）。
+     ⚠️ 不做「黑底收束」（上一版被否的"虹膜"），孔由 radial-gradient 变量驱动，环走 transform（GPU）。 */
+  @property --p3hole{syntax:'<percentage>';inherits:false;initial-value:0%}
+  #wipe{position:fixed;inset:0;z-index:9997;pointer-events:none;display:none;overflow:hidden;--p3hole:0%;
+    background:radial-gradient(circle at 50% 46%,
+      rgba(111,209,251,0) 0 calc(var(--p3hole) - 5%),
+      #6fd1fb calc(var(--p3hole) - 5%) var(--p3hole),
+      #1f217a var(--p3hole) 100%)}
+  #wipe.play{animation:p3-hole 0.98s cubic-bezier(.62,0,.30,1) .48s forwards}
+  @keyframes p3-hole{from{--p3hole:0%}to{--p3hole:180%}}
+  .pw-ring{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;border-radius:50%;
+    border:2px solid #6fd1fb;transform:translate(-50%,-50%) scale(.05);opacity:0;pointer-events:none}
+  #wipe.play .pw-ring{animation:p3-ring 1.15s cubic-bezier(.22,.6,.30,1) both}
+  #wipe.play .pw-ring:nth-child(1){border-width:10px;animation-delay:0s}
+  #wipe.play .pw-ring:nth-child(2){border-width:6px;animation-delay:.17s}
+  #wipe.play .pw-ring:nth-child(3){border-width:3px;animation-delay:.34s}
+  @keyframes p3-ring{
+    0%{transform:translate(-50%,-50%) scale(.05);opacity:0}
+    14%{opacity:.9}
+    100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+  @media (prefers-reduced-motion:reduce){
+    #wipe.play{animation-duration:.01s;animation-delay:0s}
+    .pw-ring{display:none}
+  }
   .hero .hero-inner{display:flex;flex-direction:column;justify-content:space-between;
     min-height:calc(100svh - 58px);padding-top:clamp(34px,7vh,84px);padding-bottom:clamp(26px,5vh,54px);
     position:relative;z-index:2}
@@ -1114,8 +1134,8 @@
   <div class="b-bar"><i id="bootBar"></i></div>
   <div class="b-meta"><span>Loading System</span><span id="bootPct">00%</span></div>
 </div>
-<!-- P3 式圆环揭幕：用 clip-path: circle() 实现（比视频更轻、颜色可控、GPU 合成） -->
-<div id="wipe" aria-hidden="true"></div>
+<!-- P3 式揭幕：靛蓝底 + 同心天蓝圆环向外扩散，再「中心开孔」露出首屏（颜色取自官方 p3_circle 参考帧） -->
+<div id="wipe" aria-hidden="true"><span class="pw-ring"></span><span class="pw-ring"></span><span class="pw-ring"></span></div>
 <!-- 自定义光标（触摸设备自动隐藏） -->
 <div id="cursor" aria-hidden="true"></div>
 

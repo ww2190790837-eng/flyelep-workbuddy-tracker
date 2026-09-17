@@ -22,8 +22,11 @@ _tweak.py
 _vanta.py
 _fullshot.py
 _wipetest.py
+_wipeprobe.py
 _gen/
 public/_shot*.html
 public/_wt.html
+public/_wp.html
+public/_gradtest.html
 shot_*.png
 _*.png

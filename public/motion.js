@@ -117,38 +117,29 @@
     } else { go(); }
   }
 
-  /* P3 式揭幕（重做）：页面同色的深底圆盘从"铺满"收束到一点，露出首屏。
-     整块圆盘用 transform: scale() 驱动 —— 纯 GPU 合成、不做逐帧重排，
-     比逐帧写 clip-path 更稳（也彻底避开了"蓝圆盘很丑"的观感问题）。 */
+  /* P3 式揭幕（对齐官方 p3_circle 参考帧）：靛蓝底上三圈天蓝同心环交错向外扩散，
+     再由「中心开孔」（--p3hole 0%→180%）把首屏让出来。
+     动画全部交给 CSS（环走 transform=GPU，孔走 @property 变量），
+     JS 只加/去 .play 做兜底清理 —— 不逐帧写样式，避免主线程卡顿。 */
   var wipe = document.getElementById('wipe');
   function startWipe() {
     if (!wipe) return;
     /* 调试开关：URL 带 ?nowipe=1 可跳过揭幕（排查用） */
     if (location.search.indexOf('nowipe') >= 0) return;
-    var vw = window.innerWidth, vh = window.innerHeight;
-    var cx = vw * 0.62, cy = vh * 0.46;
-    /* 圆盘半径：保证起始时「不透明的深底」完全盖住四角（留 20% 余量给天蓝光圈） */
-    var need = Math.hypot(Math.max(cx, vw - cx), Math.max(cy, vh - cy));
-    var R = need / 0.8 + 60;
-    wipe.style.display = 'block';
-    wipe.style.width = wipe.style.height = (R * 2).toFixed(1) + 'px';
-    wipe.style.left = (cx - R).toFixed(1) + 'px';
-    wipe.style.top = (cy - R).toFixed(1) + 'px';
-    wipe.style.transform = 'scale(1)';
-    var o = { s: 1 };
+    /* 尊重系统「减弱动态效果」：直接跳过，不硬放动画 */
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var done = false;
     function finish() {
       if (done) return; done = true;
+      wipe.classList.remove('play');
       wipe.style.display = 'none';
-      wipe.style.transform = '';
     }
+    wipe.classList.remove('play');
+    wipe.style.display = 'block';
+    void wipe.offsetWidth;                 /* 强制重排，确保动画从头播放 */
+    wipe.classList.add('play');
     /* 硬性兜底：无论动画是否如期跑完，都不允许揭幕层一直盖住页面 */
-    setTimeout(finish, 2400);
-    gsap.to(o, {
-      s: 0, duration: 1.05, ease: 'power3.inOut',
-      onUpdate: function () { wipe.style.transform = 'scale(' + o.s.toFixed(4) + ')'; },
-      onComplete: finish
-    });
+    setTimeout(finish, 1900);
   }
 
   var prog = { v: 0 };
