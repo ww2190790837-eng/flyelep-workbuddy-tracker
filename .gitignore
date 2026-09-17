@@ -20,6 +20,10 @@ _mkshot.py
 _retint.py
 _tweak.py
 _vanta.py
+_fullshot.py
+_wipetest.py
 _gen/
 public/_shot*.html
+public/_wt.html
 shot_*.png
+_*.png

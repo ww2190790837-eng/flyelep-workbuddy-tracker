@@ -554,21 +554,23 @@
 
   /* ===== 右下角悬浮 AI 对话框 ===== */
   #aiChatWidget{position:fixed;bottom:24px;right:24px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:0;font-family:inherit}
-  #chatToggleBtn{display:flex;align-items:center;gap:8px;background:var(--gradient);color:#fff;border:none;border-radius:99px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 6px 24px rgba(158,196,228,.35);transition:all .3s cubic-bezier(.4,0,.2,1);white-space:nowrap}
-  #chatToggleBtn:hover{transform:scale(1.05);box-shadow:0 8px 32px rgba(158,196,228,.45)}
+  /* P3 风：深玻璃底 + 细天蓝光圈，不再是亮蓝「SaaS 药丸」，与暗色动漫页统一 */
+  #chatToggleBtn{display:flex;align-items:center;gap:9px;background:linear-gradient(135deg,rgba(7,8,10,.82),rgba(13,28,52,.82));color:#eaf6ff;border:1px solid rgba(56,189,248,.4);border-radius:6px;padding:11px 18px 11px 20px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;position:relative;overflow:hidden}
+  #chatToggleBtn::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;background:linear-gradient(180deg,#7dd3fc,#0ea5e9);box-shadow:0 0 10px rgba(56,189,248,.7)}
+  #chatToggleBtn:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.75);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 20px rgba(56,189,248,.22)}
   .chat-toggle-icon{font-size:18px;line-height:1}
   .chat-toggle-label{line-height:1}
-  .chat-toggle-dot{width:8px;height:8px;background:#10b981;border-radius:50%;animation:pulseDot 2s infinite}
+  .chat-toggle-dot{width:8px;height:8px;background:#38bdf8;border-radius:50%;animation:pulseDot 2s infinite;box-shadow:0 0 8px rgba(56,189,248,.7)}
   @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.4}}
   #chatPanel{transition:all .3s cubic-bezier(.4,0,.2,1);transform-origin:bottom right;overflow:hidden}
   .chat-panel-hidden{opacity:0;transform:scale(.85) translateY(20px);pointer-events:none;position:absolute;bottom:0;right:0}
   .chat-panel-visible{opacity:1;transform:scale(1) translateY(0);pointer-events:auto}
 
   /* ===== AI 对话框 ===== */
-  .chat-container{background:#13141f;border:1px solid rgba(158,196,228,.18);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.5),0 0 0 1px rgba(158,196,228,.08);display:flex;flex-direction:column;height:560px;overflow:hidden}
-  .chat-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(158,196,228,.18);background:#1a1c29}
+  .chat-container{background:#0d0f17;border:1px solid rgba(56,189,248,.22);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.55),0 0 0 1px rgba(56,189,248,.06);display:flex;flex-direction:column;height:560px;overflow:hidden}
+  .chat-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(56,189,248,.18);background:#12151f}
   .chat-header-left{display:flex;align-items:center;gap:10px}
-  .chat-avatar{width:34px;height:34px;border-radius:10px;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.5px}
+  .chat-avatar{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0b1320,#1b2b44);color:#eaf6ff;border:1px solid rgba(56,189,248,.45);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.5px}
   .chat-title{font-size:14px;color:var(--text);display:block}
   .chat-status{font-size:11px;color:#10b981;margin-left:6px}
   .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
@@ -591,7 +593,7 @@
   .chat-input-wrap{display:flex;align-items:flex-end;gap:8px;background:#1e2030;border:1px solid rgba(158,196,228,.18);border-radius:12px;padding:6px 10px;transition:border .2s}
   .chat-input-wrap:focus-within{border-color:var(--primary)}
   .chat-input-wrap textarea{flex:1;border:none;background:none;color:var(--text);font-size:13.5px;font-family:inherit;resize:none;max-height:100px;line-height:1.45;outline:none;padding:4px 0}
-  .chat-send-btn,#chatSendBtn{width:36px;height:36px;border-radius:10px;background:var(--gradient);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+  .chat-send-btn,#chatSendBtn{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#04121f;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
   #chatSendBtn:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(158,196,228,.4)}
   #chatSendBtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
   .chat-hint{text-align:center;font-size:11px;color:var(--text-3);margin-top:6px}
@@ -839,20 +841,31 @@
   .hero-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   /* 首屏角色：P3 动态视频（已裁掉原片里的 UI 文字），视频走硬件解码，成本远低于逐帧 Canvas */
   .hero-art-video{width:100%;height:100%;object-fit:cover;object-position:right top;display:block}
-  /* 压暗罩：左侧压到近乎全黑（保证标题可读 + 盖住素材里原有的 UI 文字），右侧只压一半留住角色 */
+  /* 压暗罩：左侧压到近乎全黑（保证标题可读 + 盖住素材里原有的 UI 文字），
+     同时「上边 + 右边」向内渐隐 —— 这两层专门用来吃掉视频那块亮矩形的硬边。
+     ⚠️ 首屏"割裂感"的根因就是视频四边露在外面、像贴上去的一张图。 */
   .hero-art-dim{position:absolute;inset:0;pointer-events:none;background:
-    linear-gradient(100deg,rgba(6,7,10,.98) 0%,rgba(6,7,10,.94) 30%,rgba(6,7,10,.88) 44%,rgba(6,7,10,.52) 63%,rgba(6,7,10,.4) 100%)}
+    linear-gradient(rgba(12,36,74,.16),rgba(12,36,74,.16)),
+    linear-gradient(100deg,rgba(7,8,10,.985) 0%,rgba(7,8,10,.95) 24%,rgba(7,8,10,.86) 40%,rgba(7,8,10,.52) 62%,rgba(7,8,10,.34) 100%),
+    linear-gradient(180deg,rgba(7,8,10,.95) 0%,rgba(7,8,10,.66) 5%,rgba(7,8,10,.2) 15%,rgba(7,8,10,0) 27%),
+    linear-gradient(270deg,rgba(7,8,10,.9) 0%,rgba(7,8,10,.42) 6%,rgba(7,8,10,0) 19%)}
+  /* 径向收边：把视频四个角与页面之间的「矩形边界」整体抹掉 */
+  .hero-art-vig{position:absolute;inset:0;pointer-events:none;background:
+    radial-gradient(122% 100% at 62% 40%,rgba(7,8,10,0) 32%,rgba(7,8,10,.3) 66%,rgba(7,8,10,.8) 100%)}
   /* 底部渐隐：用普通渐变覆盖层代替 mask。
      ⚠️ mask-image 作用在全屏大元素上极易触发软件合成 —— 那是上一版卡顿的主因。 */
-  .hero-art-fade{position:absolute;left:0;right:0;bottom:0;height:42%;
-    background:linear-gradient(180deg,rgba(6,7,10,0) 0%,rgba(6,7,10,.7) 55%,rgba(6,7,10,.97) 100%)}
+  .hero-art-fade{position:absolute;left:0;right:0;bottom:0;height:46%;
+    background:linear-gradient(180deg,rgba(7,8,10,0) 0%,rgba(7,8,10,.62) 52%,rgba(7,8,10,.96) 100%)}
   @media (max-width:900px){
     .hero-art-video{object-position:66% top}
   }
-  /* P3 式圆环揭幕：整屏深蓝圆盘，以 clip-path 圆形收束露出页面
-     （取色自 P3 素材实测值 #1f2178；clip-path 由 GSAP 逐帧写入，兼容性最稳） */
-  #wipe{position:fixed;inset:0;z-index:9997;pointer-events:none;display:none;
-    background:radial-gradient(circle at 62% 46%,#24307f 0%,#1f2178 45%,#0d1233 100%)}
+  /* P3 式揭幕（重做）：不再是蓝色圆盘，而是「页面同色深底盘 + 一圈细天蓝光圈」一起收束。
+     视觉上像镜头虹膜开合，而不是一块蓝板飞走；光圈让动作可感知但不刺眼。
+     用 transform: scale() 驱动整块圆盘（纯 GPU 合成，不做逐帧重排 / 不写 clip-path 字符串）。 */
+  #wipe{position:fixed;left:0;top:0;z-index:9997;pointer-events:none;display:none;
+    border-radius:50%;transform-origin:50% 50%;will-change:transform;backface-visibility:hidden;
+    background:radial-gradient(circle closest-side at 50% 50%,
+      #07080a 0%,#07080a 80%,rgba(56,189,248,.28) 90%,rgba(125,211,252,.5) 96%,rgba(125,211,252,0) 100%)}
   .hero .hero-inner{display:flex;flex-direction:column;justify-content:space-between;
     min-height:calc(100svh - 58px);padding-top:clamp(34px,7vh,84px);padding-bottom:clamp(26px,5vh,54px);
     position:relative;z-index:2}
@@ -1249,6 +1262,7 @@
       <source src="/assets/hero-p3.mp4" type="video/mp4" />
     </video>
     <span class="hero-art-dim"></span>
+    <span class="hero-art-vig"></span>
     <span class="hero-art-fade"></span>
   </div>
   <div class="hud-frame" aria-hidden="true"><span></span><span></span><span></span><span></span></div>

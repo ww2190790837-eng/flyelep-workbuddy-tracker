@@ -117,30 +117,37 @@
     } else { go(); }
   }
 
-  /* P3 式圆环揭幕：整屏深蓝圆盘从"铺满"收束到一点，露出首屏。
-     用 clip-path 逐帧写入（不直接 tween clipPath 字符串，避免解析差异）。 */
+  /* P3 式揭幕（重做）：页面同色的深底圆盘从"铺满"收束到一点，露出首屏。
+     整块圆盘用 transform: scale() 驱动 —— 纯 GPU 合成、不做逐帧重排，
+     比逐帧写 clip-path 更稳（也彻底避开了"蓝圆盘很丑"的观感问题）。 */
   var wipe = document.getElementById('wipe');
   function startWipe() {
     if (!wipe) return;
     /* 调试开关：URL 带 ?nowipe=1 可跳过揭幕（排查用） */
     if (location.search.indexOf('nowipe') >= 0) return;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var cx = vw * 0.62, cy = vh * 0.46;
+    /* 圆盘半径：保证起始时「不透明的深底」完全盖住四角（留 20% 余量给天蓝光圈） */
+    var need = Math.hypot(Math.max(cx, vw - cx), Math.max(cy, vh - cy));
+    var R = need / 0.8 + 60;
     wipe.style.display = 'block';
-    var o = { r: 150 };
-    wipe.style.clipPath = 'circle(150% at 62% 46%)';
-    /* 硬性兜底：无论动画是否如期跑完，都不允许揭幕层一直盖住页面 */
-    setTimeout(function () {
+    wipe.style.width = wipe.style.height = (R * 2).toFixed(1) + 'px';
+    wipe.style.left = (cx - R).toFixed(1) + 'px';
+    wipe.style.top = (cy - R).toFixed(1) + 'px';
+    wipe.style.transform = 'scale(1)';
+    var o = { s: 1 };
+    var done = false;
+    function finish() {
+      if (done) return; done = true;
       wipe.style.display = 'none';
-      wipe.style.clipPath = '';
-    }, 2600);
+      wipe.style.transform = '';
+    }
+    /* 硬性兜底：无论动画是否如期跑完，都不允许揭幕层一直盖住页面 */
+    setTimeout(finish, 2400);
     gsap.to(o, {
-      r: 0, duration: 1.15, ease: 'power3.inOut',
-      onUpdate: function () {
-        wipe.style.clipPath = 'circle(' + o.r.toFixed(2) + '% at 62% 46%)';
-      },
-      onComplete: function () {
-        wipe.style.display = 'none';
-        wipe.style.clipPath = '';
-      }
+      s: 0, duration: 1.05, ease: 'power3.inOut',
+      onUpdate: function () { wipe.style.transform = 'scale(' + o.s.toFixed(4) + ')'; },
+      onComplete: finish
     });
   }
 
