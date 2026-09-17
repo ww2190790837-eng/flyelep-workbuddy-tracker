@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#5b3bff" />
+<meta name="theme-color" content="#16CFFB" />
 <title>管理员登录 · Fleta 后台</title>
 <link rel="icon" href="/logo.svg" type="image/png" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{--primary:#5b3bff;--primary-2:#7c5cff;--pink:#ff5b9b;--wb:#1e88e5;--gradient:linear-gradient(135deg,#5b3bff 0%,#7c5cff 50%,#ff5b9b 100%);--danger:#ef4444}
+  :root{--primary:#16CFFB;--primary-2:#16CFFB;--pink:#3aa8e6;--wb:#16CFFB;--gradient:linear-gradient(135deg,#16CFFB 0%,#16CFFB 50%,#3aa8e6 100%);--danger:#ff9a9a}
   html,body{height:100%}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#0a0a25;display:flex;align-items:center;justify-content:center;min-height:100vh;background:
-    radial-gradient(120% 120% at 80% -10%, #2a1b6b 0%, transparent 55%),
-    radial-gradient(120% 120% at 0% 100%, #3a1b5e 0%, transparent 50%), #0b0820;
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#04121f;display:flex;align-items:center;justify-content:center;min-height:100vh;background:
+    radial-gradient(120% 120% at 80% -10%, #063a9e 0%, transparent 55%),
+    radial-gradient(120% 120% at 0% 100%, #0a3d8f 0%, transparent 50%), #04205e;
     position:relative;overflow:hidden}
   body::before,body::after{content:"";position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;mix-blend-mode:screen}
-  body::before{width:480px;height:480px;background:radial-gradient(circle,#7c5cff,transparent 70%);top:-120px;left:-80px}
-  body::after{width:420px;height:420px;background:radial-gradient(circle,#ff5b9b,transparent 70%);bottom:-120px;right:-60px}
+  body::before{width:480px;height:480px;background:radial-gradient(circle,#16CFFB,transparent 70%);top:-120px;left:-80px}
+  body::after{width:420px;height:420px;background:radial-gradient(circle,#3aa8e6,transparent 70%);bottom:-120px;right:-60px}
   .wrap{position:relative;z-index:1;width:100%;max-width:400px;padding:24px}
   .card{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:22px;padding:40px 36px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
   .badge{width:56px;height:56px;border-radius:16px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;margin:0 auto 18px;box-shadow:0 10px 30px rgba(91,59,255,.4)}
@@ -37,9 +37,44 @@
   .foot a{color:var(--primary);text-decoration:none;font-weight:600}
   .back{display:block;text-align:center;margin-top:16px;font-size:12px;color:rgba(255,255,255,.6);text-decoration:none}
   .back:hover{color:#fff}
+
+  /* ===== P3 视觉语言 ===== */
+  h1,h2,.card h1,.card h2{font-family:"Oswald","Inter",sans-serif;letter-spacing:.02em}
+  /* z-index:-1 -> 画在 body 背景之上、内容之下，绝不盖住正文 */
+  .p3-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+  .p3-halftone{position:absolute;inset:0;opacity:.13;
+    background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);background-size:18px 18px}
+  .p3-slant{position:absolute;inset:-30% -15%;opacity:.06;
+    background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
+  .p3-wave{position:absolute;left:0;right:0;bottom:0;height:110px;overflow:hidden;line-height:0}
+  .p3-waves{position:relative;width:100%;height:100%}
+  .p3-plx > use{animation:p3waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
+  .p3-plx > use:nth-child(1){animation-delay:-2s;animation-duration:12s}
+  .p3-plx > use:nth-child(2){animation-delay:-3s;animation-duration:16s}
+  .p3-plx > use:nth-child(3){animation-delay:-4s;animation-duration:20s}
+  .p3-plx > use:nth-child(4){animation-delay:-5s;animation-duration:24s}
+  @keyframes p3waveMove{0%{transform:translate3d(-90px,0,0)}100%{transform:translate3d(85px,0,0)}}
+  @media (max-width:760px){.p3-wave{height:74px}}
+  @media (prefers-reduced-motion:reduce){.p3-plx > use{animation:none}}
 </style>
 </head>
 <body>
+<div class="p3-bg" aria-hidden="true">
+  <div class="p3-halftone"></div>
+  <div class="p3-slant"></div>
+  <div class="p3-wave">
+    <svg class="p3-waves" viewBox="0 24 150 28" preserveAspectRatio="none">
+      <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
+      <g class="p3-plx">
+        <use href="#gentle-wave" x="48" y="0" fill="rgba(1,95,204,.5)"/>
+        <use href="#gentle-wave" x="48" y="3" fill="rgba(22,207,251,.34)"/>
+        <use href="#gentle-wave" x="48" y="5" fill="rgba(3,31,100,.7)"/>
+        <use href="#gentle-wave" x="48" y="7" fill="rgba(2,14,48,.9)"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
   <div class="wrap">
     <div class="card">
       <div class="badge">后台</div>

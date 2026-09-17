@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#5b3bff" />
+<meta name="theme-color" content="#16CFFB" />
 <title>我的账户 · Fleta</title>
 <link rel="icon" href="/logo.svg" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#080b14;--surface:#111524;
+    --bg:#04205e;--surface:#0a3d8f;
     --border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);
-    --text:#eef1f8;--text-2:#a9afc4;--text-3:#727896;
-    --primary:#7c5cff;--primary-2:#9b7cff;
-    --accent:#ff6b35;--pink:#ff5b9b;
-    --wb:#1e88e5;--wb-2:#00bcd4;
-    --success:#22c55e;--danger:#ef4444;
-    --gradient:linear-gradient(135deg,#7c5cff 0%,#9b7cff 45%,#ff5b9b 100%);
+    --text:#ffffff;--text-2:#cfe0f8;--text-3:#9fbce8;
+    --primary:#16CFFB;--primary-2:#7DE6FD;
+    --accent:#16CFFB;--pink:#3aa8e6;
+    --wb:#16CFFB;--wb-2:#7DE6FD;
+    --success:#22c55e;--danger:#ff9a9a;
+    --gradient:linear-gradient(135deg,#16CFFB 0%,#7DE6FD 45%,#3aa8e6 100%);
     --gold:linear-gradient(135deg,#f6c75a,#e0962a);
   }
   html{background:var(--bg)}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(124,92,255,.16),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(1,95,204,.42),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
   ::selection{background:var(--primary);color:#fff}
   a{color:inherit;text-decoration:none}
   img{max-width:100%;display:block}
@@ -40,9 +40,9 @@
 
   /* 会员卡 */
   .member{position:relative;color:#fff;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;overflow:hidden}
-  .member.grad-trial{background:linear-gradient(135deg,#5b3bff,#7c5cff)}
-  .member.grad-pro{background:linear-gradient(135deg,#7c5cff,#ff5b9b)}
-  .member.grad-ent{background:linear-gradient(135deg,#1e88e5,#00bcd4)}
+  .member.grad-trial{background:linear-gradient(135deg,#16CFFB,#16CFFB)}
+  .member.grad-pro{background:linear-gradient(135deg,#16CFFB,#3aa8e6)}
+  .member.grad-ent{background:linear-gradient(135deg,#16CFFB,#7DE6FD)}
   .member::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12);filter:blur(10px)}
   .member-left{position:relative;z-index:1}
   .member-tier{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;background:rgba(255,255,255,.2);font-size:12px;font-weight:600;margin-bottom:10px}
@@ -91,7 +91,7 @@
 
   /* 邀请 */
   .refbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border:1px dashed rgba(91,59,255,.4);border-radius:14px;background:rgba(91,59,255,.07)}
-  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#161a28;color:var(--text)}
+  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#0a3376;color:var(--text)}
   .btn-copy{padding:11px 18px;border:none;border-radius:10px;background:var(--gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
   .btn-copy:hover{transform:translateY(-1px)}
 
@@ -115,8 +115,8 @@
   .modal-card h3{font-size:18px;font-weight:700;margin-bottom:18px}
   .modal-card .field{margin-bottom:14px}
   .modal-card label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
-  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#161a28;color:var(--text);transition:all .2s}
-  .modal-card input:focus{outline:none;border-color:var(--primary);background:#1d2233}
+  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#0a3376;color:var(--text);transition:all .2s}
+  .modal-card input:focus{outline:none;border-color:var(--primary);background:#0b3d86}
   .modal-err{display:none;color:var(--danger);font-size:13px;margin:4px 0 12px}
   .modal-actions{display:flex;gap:10px;margin-top:8px}
   .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
@@ -139,11 +139,46 @@
   #avaRemove:hover{background:rgba(239,68,68,.12);color:var(--danger)}
   .profile-hint{font-size:12px;color:var(--text-3);margin-top:-8px;margin-bottom:14px}
   footer{padding:32px 0;text-align:center;color:var(--text-3);font-size:12px;border-top:1px solid var(--border);background:rgba(255,255,255,.04)}
-  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a25;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#04121f;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== P3 视觉语言 ===== */
+  h1,h2,.card h1,.card h2{font-family:"Oswald","Inter",sans-serif;letter-spacing:.02em}
+  /* z-index:-1 -> 画在 body 背景之上、内容之下，绝不盖住正文 */
+  .p3-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+  .p3-halftone{position:absolute;inset:0;opacity:.13;
+    background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);background-size:18px 18px}
+  .p3-slant{position:absolute;inset:-30% -15%;opacity:.06;
+    background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
+  .p3-wave{position:absolute;left:0;right:0;bottom:0;height:110px;overflow:hidden;line-height:0}
+  .p3-waves{position:relative;width:100%;height:100%}
+  .p3-plx > use{animation:p3waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
+  .p3-plx > use:nth-child(1){animation-delay:-2s;animation-duration:12s}
+  .p3-plx > use:nth-child(2){animation-delay:-3s;animation-duration:16s}
+  .p3-plx > use:nth-child(3){animation-delay:-4s;animation-duration:20s}
+  .p3-plx > use:nth-child(4){animation-delay:-5s;animation-duration:24s}
+  @keyframes p3waveMove{0%{transform:translate3d(-90px,0,0)}100%{transform:translate3d(85px,0,0)}}
+  @media (max-width:760px){.p3-wave{height:74px}}
+  @media (prefers-reduced-motion:reduce){.p3-plx > use{animation:none}}
 </style>
 </head>
 <body>
+<div class="p3-bg" aria-hidden="true">
+  <div class="p3-halftone"></div>
+  <div class="p3-slant"></div>
+  <div class="p3-wave">
+    <svg class="p3-waves" viewBox="0 24 150 28" preserveAspectRatio="none">
+      <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
+      <g class="p3-plx">
+        <use href="#gentle-wave" x="48" y="0" fill="rgba(1,95,204,.5)"/>
+        <use href="#gentle-wave" x="48" y="3" fill="rgba(22,207,251,.34)"/>
+        <use href="#gentle-wave" x="48" y="5" fill="rgba(3,31,100,.7)"/>
+        <use href="#gentle-wave" x="48" y="7" fill="rgba(2,14,48,.9)"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
 
 <nav class="top-nav">
   <div class="wrap top-nav-inner">

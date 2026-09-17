@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#5b3bff" />
+<meta name="theme-color" content="#16CFFB" />
 <title>账户设置 · Fleta</title>
 <link rel="icon" href="/logo.svg" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,15 +12,15 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#080b14;--surface:#111524;--surface-2:#161a28;
+    --bg:#04205e;--surface:#0a3d8f;--surface-2:#0a3376;
     --border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);
-    --text:#eef1f8;--text-2:#a9afc4;--text-3:#727896;
-    --primary:#7c5cff;--primary-2:#9b7cff;--pink:#ff5b9b;
-    --success:#22c55e;--danger:#ef4444;
-    --gradient:linear-gradient(135deg,#7c5cff 0%,#9b7cff 45%,#ff5b9b 100%);
+    --text:#ffffff;--text-2:#cfe0f8;--text-3:#9fbce8;
+    --primary:#16CFFB;--primary-2:#7DE6FD;--pink:#3aa8e6;
+    --success:#22c55e;--danger:#ff9a9a;
+    --gradient:linear-gradient(135deg,#16CFFB 0%,#7DE6FD 45%,#3aa8e6 100%);
   }
   html{background:var(--bg)}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(124,92,255,.16),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(1,95,204,.42),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
   ::selection{background:var(--primary);color:#fff}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:920px;margin:0 auto;padding:0 24px}
@@ -64,7 +64,7 @@
   .field-row-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .field-row .fv{font-size:14px;color:var(--text-2);text-align:right}
   .field-row input.inp{width:280px;max-width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface-2);color:var(--text);transition:all .2s}
-  .field-row input.inp:focus{outline:none;border-color:var(--primary);background:#1d2233}
+  .field-row input.inp:focus{outline:none;border-color:var(--primary);background:#0b3d86}
   .field-row input.inp[readonly]{opacity:.7;cursor:default}
 
   .save-bar{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:20px 32px}
@@ -75,7 +75,7 @@
   .btn-save:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
   .btn-save:disabled{opacity:.6;cursor:not-allowed;transform:none}
 
-  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a25;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#04121f;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   /* 改密弹层 */
@@ -86,7 +86,7 @@
   .modal-card .field{margin-bottom:14px}
   .modal-card label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
   .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:var(--surface-2);color:var(--text);transition:all .2s}
-  .modal-card input:focus{outline:none;border-color:var(--primary);background:#1d2233}
+  .modal-card input:focus{outline:none;border-color:var(--primary);background:#0b3d86}
   .modal-err{display:none;color:var(--danger);font-size:13px;margin:4px 0 12px}
   .modal-actions{display:flex;gap:10px;margin-top:8px}
   .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
