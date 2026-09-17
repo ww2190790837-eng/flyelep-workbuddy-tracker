@@ -750,9 +750,10 @@
   .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--bg)}
   .bg-base{position:absolute;inset:-12%;
     background:
-      radial-gradient(58% 46% at 22% 14%, rgba(1,95,204,.62), transparent 64%),
-      radial-gradient(54% 46% at 82% 26%, rgba(1,95,204,.42), transparent 64%),
-      radial-gradient(76% 62% at 52% 114%, rgba(3,31,100,.6), transparent 66%);
+      radial-gradient(58% 46% at 22% 12%, rgba(22,207,251,.3), transparent 62%),
+      radial-gradient(60% 50% at 80% 24%, rgba(1,95,204,.62), transparent 64%),
+      radial-gradient(80% 66% at 52% 116%, rgba(3,31,100,.72), transparent 68%),
+      linear-gradient(165deg, rgba(1,95,204,.5) 0%, rgba(3,42,120,.55) 44%, rgba(2,14,48,.8) 100%);
   }
   /* 压暗罩：把背景压到正文之后，保证左侧文字可读、整体不发花 */
   .bg-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:
@@ -772,15 +773,6 @@
   .bg-vig{position:absolute;inset:0;
     background:radial-gradient(ellipse 92% 82% at 50% 44%,transparent 52%,rgba(3,22,74,.4) 100%)}
   .bg-noise{opacity:.03;mix-blend-mode:normal}
-  /* === P3R 官网背景「主视觉视频」=== 
-     素材：官网 fv_movie1.mp4（1920x1080/6s）重压到 1280/crf30 → 435KB。
-     处理：opacity .6 + brightness .68 先把它压进蓝调，再用 .bg-vid-scrim 渐变罩保证正文可读。
-     （它本身是明亮蓝 (66,127,214)，不压会盖过内容。） */
-  .bg-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
-    opacity:.6;filter:saturate(.95) brightness(.68) contrast(1.06)}
-  .bg-vid-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
-    background:linear-gradient(180deg,rgba(3,18,56,.62) 0%,rgba(3,26,86,.42) 46%,rgba(2,10,36,.78) 100%)}
-  @media (max-width:760px){.bg-vid{opacity:.5;filter:saturate(.95) brightness(.6) contrast(1.06)}}
   /* P3 素材①：半调网点 halftone —— P3R UI 的标志性纹理 */
   .bg-halftone{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.13;
     background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);
@@ -789,7 +781,7 @@
   .bg-slant{position:absolute;inset:-30% -15%;z-index:1;pointer-events:none;opacity:.06;
     background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
   /* P3 素材⑤：水下光斑 caustics（transform 驱动=GPU，不逐帧重绘） */
-  .bg-caustics{position:absolute;inset:-25%;z-index:1;pointer-events:none;opacity:.55;
+  .bg-caustics{position:absolute;inset:-25%;z-index:1;pointer-events:none;opacity:.8;
     background:
       radial-gradient(closest-side at 22% 30%, rgba(119,254,252,.22), transparent 70%),
       radial-gradient(closest-side at 74% 22%, rgba(1,95,204,.40), transparent 72%),
@@ -798,7 +790,7 @@
     animation:caustics 30s ease-in-out infinite alternate}
   @keyframes caustics{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(-4%,-3%,0) scale(1.12)}}
   /* P3 素材⑥：上浮气泡（整层 transform 位移，等于无缝滚动） */
-  .bg-bubbles{position:absolute;left:0;right:0;top:-100%;height:200%;z-index:1;pointer-events:none;opacity:.5;
+  .bg-bubbles{position:absolute;left:0;right:0;top:-100%;height:200%;z-index:1;pointer-events:none;opacity:.72;
     background-image:
       radial-gradient(circle, rgba(255,255,255,.5) 1.3px, transparent 2.6px),
       radial-gradient(circle, rgba(199,247,255,.38) 1px, transparent 2.2px);
@@ -1189,6 +1181,22 @@
   /* 章节序号水印（方舟式大编号） */
   /* === P3 分层波浪（版式 + SVG path 取自官网 p3re.jp 的 .wave-box / #gentle-wave）===
      4 层浪以不同速度横移形成视差，是 P3「水」主题的招牌过渡元素。 */
+  /* === P3 lineup 选项卡（版式取自官网 lineup：按钮切换内容面板）=== */
+  .lineup{position:relative;z-index:3;padding:104px 0 0}
+  .lineup-tabs{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .lineup-btn{appearance:none;cursor:pointer;text-align:left;position:relative;border-radius:4px;
+    border:1px solid rgba(255,255,255,.22);background:rgba(3,20,60,.42);padding:12px 24px;
+    transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .3s,background .3s,box-shadow .3s}
+  .lineup-btn i{display:block;font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--accent)}
+  .lineup-btn b{display:block;font-family:var(--disp);font-size:20px;line-height:1.15;letter-spacing:.06em;
+    color:#fff;text-transform:uppercase}
+  .lineup-btn span{display:block;font-size:11px;letter-spacing:.1em;color:var(--text-3)}
+  .lineup-btn:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .lineup-btn.active{background:linear-gradient(135deg,rgba(22,207,251,.24),rgba(1,95,204,.34));
+    border-color:var(--accent);box-shadow:2px 3px 0 rgba(2,10,36,.55),5px 7px 0 rgba(2,10,36,.28)}
+  .lineup-panel{display:none}
+  .lineup-panel.active{display:block}
+  @media (max-width:760px){.lineup{padding-top:70px}.lineup-btn{padding:9px 14px}.lineup-btn b{font-size:16px}}
   .wave-band{position:relative;width:100%;height:120px;overflow:hidden;line-height:0;z-index:2;pointer-events:none}
   .waves{position:relative;width:100%;height:100%}
   .parallax > use{animation:waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
@@ -1295,9 +1303,6 @@
 <!-- 全站统一背景：静态渐变 + 漂浮光团 + Vanta.js NET 动态网络层 + 网格 + 扫描线 + 暗角 + 噪点
      动态层走 three.js/GPU；其余层只用 transform/opacity 合成，避免逐帧重绘大范围渐变。 -->
 <div class="bg-stage" aria-hidden="true">
-  <video class="bg-vid" id="bgVid" autoplay muted loop playsinline preload="auto" aria-hidden="true"
-         poster="/assets/p3/bg/p3-bg-1.webp"><source src="/assets/p3/bg/p3-bg-1.mp4" type="video/mp4"></video>
-  <div class="bg-vid-scrim" aria-hidden="true"></div>
   <div class="bg-base"></div>
   <div class="bg-halftone"></div>
   <div class="bg-slant"></div>
@@ -1559,7 +1564,17 @@
   </div>
 </section>
 
-<section id="prompt-gen">
+<!-- P3 式 lineup 选项卡（版式取自官网 p3re.jp 的 lineup：tab 按钮 + 内容面板切换） -->
+<div class="lineup" id="lineup">
+  <div class="wrap">
+    <div class="lineup-tabs" role="tablist">
+      <button class="lineup-btn active" data-tab="0" role="tab" aria-selected="true"><i>01</i><b>Prompt</b><span>提示词生成</span></button>
+      <button class="lineup-btn" data-tab="1" role="tab" aria-selected="false"><i>02</i><b>Reverse</b><span>视频反推</span></button>
+      <button class="lineup-btn" data-tab="2" role="tab" aria-selected="false"><i>03</i><b>Agnes</b><span>Agnes 视频</span></button>
+    </div>
+  </div>
+</div>
+<section id="prompt-gen" class="lineup-panel active">
   <div class="sec-fig sec-fig-r f5" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">01</span>
   <div class="wrap">
@@ -1684,7 +1699,7 @@
 <!-- ============================================
      视频反推：上传视频 → 抽帧 → AI 反推五段式
      ============================================ -->
-<section id="video-reverse">
+<section id="video-reverse" class="lineup-panel">
   <div class="sec-fig sec-fig-l f2" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">02</span>
   <div class="wrap">
@@ -1793,7 +1808,7 @@
   @media(max-width:640px){.agv-row3{grid-template-columns:1fr}}
 </style>
 
-<section id="agnes-video">
+<section id="agnes-video" class="lineup-panel">
   <div class="sec-fig sec-fig-r f8" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">03</span>
   <div class="wrap agv-wrap">
@@ -4072,7 +4087,7 @@
 <script>
 /* 首屏视频兜底：移动端/微信常拦 autoplay —— 主动重试播放；真播不了就切 Ken Burns 静帧动效 */
 (function(){
-  var vs=[].slice.call(document.querySelectorAll('.hero-art-video, .bg-vid'));
+  var vs=[].slice.call(document.querySelectorAll('.hero-art-video'));
   function nudge(el){
     try{ var p=el.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){}
   }
@@ -4119,6 +4134,27 @@
     });
   });
   sel(cards[0]);
+})();
+</script>
+<script>
+/* lineup 选项卡：点按钮切面板；带 #prompt-gen 之类锚点进来时也自动切到对应页签 */
+(function(){
+  var btns=[].slice.call(document.querySelectorAll('.lineup-btn')),
+      panels=[].slice.call(document.querySelectorAll('.lineup-panel'));
+  if(!btns.length||!panels.length) return;
+  function act(i,doScroll){
+    btns.forEach(function(b,k){ b.classList.toggle('active',k===i); b.setAttribute('aria-selected',k===i); });
+    panels.forEach(function(p,k){ p.classList.toggle('active',k===i); });
+    if(doScroll) window.scrollTo({top:panels[i].getBoundingClientRect().top+window.pageYOffset-96,behavior:'smooth'});
+  }
+  btns.forEach(function(b){ b.addEventListener('click',function(){ act(+b.getAttribute('data-tab'),true); }); });
+  function syncHash(){
+    var h=(location.hash||'').replace('#','');
+    var idx=-1;
+    panels.forEach(function(p,k){ if(p.id===h) idx=k; });
+    if(idx>=0) act(idx,false);
+  }
+  window.addEventListener('hashchange',syncHash); syncHash();
 })();
 </script>
 </body>
