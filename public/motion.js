@@ -27,51 +27,11 @@
   var EASE_INOUT = 'power2.inOut';
 
   /* ==========================================================================
-   * 1) 动态背景：Vanta.js NET —— 成熟开源库（MIT），基于 three.js / GPU 渲染
-   *    不用手写着色器：观感稳定、维护成本低。库缺失或无 WebGL 时静默跳过。
+   * 1) 背景层
+   *    静态 CSS/SVG 层即可（渐变 + 光团 + 网格 + 扫描线 + 噪点 + 暗角），
+   *    首屏的"主视觉"是一张静态图 + 独立的动画角色层。
+   *    已移除 Vanta/three.js：与主视觉功能重复，且空转 WebGL 会明显拖慢页面。
    * ======================================================================== */
-  var VANTA_EFFECT = 'NET';   /* 换风格只改这里（配套 vendor/vanta/vanta.<name>.min.js + 对应配置） */
-  var vanta = null;
-
-  function initVanta() {
-    var host = document.getElementById('bgVanta');
-    var V = window.VANTA && window.VANTA[VANTA_EFFECT];
-    if (!host || !V) return;
-    try {
-      vanta = V({
-        el: host,
-        mouseControls: true,
-        touchControls: false,
-        gyroControls: false,
-        minHeight: 200,
-        minWidth: 200,
-        scale: 0.85,
-        scaleMobile: 0.6,
-        backgroundColor: 0x06070a,
-        color: 0x368fc0,
-        points: 8.0,
-        maxDistance: 22.0,    /* 与 spacing 接近 -> 连线成网但不糊成一片 */
-        spacing: 22.0,        /* 比默认 15 稀 -> 留白更多，不压正文 */
-        showDots: true
-      });
-    } catch (e) {
-      console.warn('[bg-vanta] init failed: ' + e.message);
-      vanta = null;
-    }
-  }
-  initVanta();
-
-  /* 隐藏页暂停，省电省 GPU */
-  document.addEventListener('visibilitychange', function () {
-    if (!vanta) return;
-    if (document.hidden) { if (vanta.pause) vanta.pause(); }
-    else { if (vanta.play) vanta.play(); }
-  });
-  var vrz = null;
-  window.addEventListener('resize', function () {
-    clearTimeout(vrz);
-    vrz = setTimeout(function () { if (vanta && vanta.resize) vanta.resize(); }, 200);
-  }, { passive: true });
 
   /* ==========================================================================
    * 2) 预加载：计数 + 进度条 → 揭幕

@@ -752,10 +752,7 @@
       radial-gradient(52% 44% at 82% 28%, rgba(120,158,190,.075), transparent 62%),
       radial-gradient(70% 58% at 52% 112%, rgba(88,110,134,.09), transparent 62%);
   }
-  /* 动态网络层：Vanta.js NET（three.js / GPU 渲染） */
-  #bgVanta{position:absolute;inset:0;z-index:1;opacity:.45}   /* 首屏已被主视觉覆盖，这里只需极轻的底噪 */
-  #bgVanta canvas{display:block}
-  /* 压暗罩：把网络层压到正文之后，保证左侧文字可读、整体不发花 */
+  /* 压暗罩：把背景压到正文之后，保证左侧文字可读、整体不发花 */
   .bg-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:
     linear-gradient(100deg,rgba(6,7,10,.84) 4%,rgba(6,7,10,.5) 33%,rgba(6,7,10,.08) 66%,rgba(6,7,10,.26) 100%)}
   [data-theme="light"] .bg-scrim{background:
@@ -839,18 +836,19 @@
   .hero{min-height:100svh;padding:0;display:block;text-align:left;overflow:hidden;position:relative;z-index:1;
     color:#fff;background:transparent!important}
   /* 动漫主视觉（原创生成）：右侧角色 + 左侧留白，底部渐隐融入页面 */
-  .hero-art{position:absolute;inset:0;z-index:0;pointer-events:none;
-    background-image:url("/assets/hero-keyvisual-a.webp");
-    background-size:cover;background-position:right top;background-repeat:no-repeat;
-    -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);
-    mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%)}
+  .hero-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .hero-art img{width:100%;height:100%;object-fit:cover;object-position:right top;display:block}
+  /* 底部渐隐：用普通渐变覆盖层代替 mask。
+     ⚠️ mask-image 作用在全屏大元素上极易触发软件合成 —— 这是上一版卡顿的主因。 */
+  .hero-art-fade{position:absolute;left:0;right:0;bottom:0;height:42%;
+    background:linear-gradient(180deg,rgba(6,7,10,0) 0%,rgba(6,7,10,.7) 55%,rgba(6,7,10,.97) 100%)}
   /* 主视觉上的左向压暗：保证标题/正文可读 */
   .hero-art-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:
     linear-gradient(100deg,rgba(6,7,10,.94) 3%,rgba(6,7,10,.66) 30%,rgba(6,7,10,.14) 58%,rgba(6,7,10,.30) 100%)}
   [data-theme="light"] .hero-art-scrim{background:
     linear-gradient(100deg,rgba(236,238,240,.95) 3%,rgba(236,238,240,.7) 30%,rgba(236,238,240,.22) 58%,rgba(236,238,240,.38) 100%)}
   @media (max-width:900px){
-    .hero-art{background-position:68% top}
+    .hero-art img{object-position:66% top}
     .hero-art-scrim{background:linear-gradient(180deg,rgba(6,7,10,.55) 0%,rgba(6,7,10,.86) 52%,rgba(6,7,10,.96) 100%)}
   }
   .hero .hero-inner{display:flex;flex-direction:column;justify-content:space-between;
@@ -1111,7 +1109,6 @@
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
   <div class="bg-grid"></div>
-  <div id="bgVanta"></div>
   <div class="bg-scrim"></div>
   <div class="bg-scan"></div>
   <div class="bg-noise"></div>
@@ -1242,7 +1239,10 @@
 </div>
 
 <header class="hero" id="heroSection">
-  <div class="hero-art" aria-hidden="true"></div>
+  <div class="hero-art" aria-hidden="true">
+    <img src="/assets/hero-keyvisual-a.webp" alt="" decoding="async" fetchpriority="high" />
+    <span class="hero-art-fade"></span>
+  </div>
   <div class="hero-art-scrim" aria-hidden="true"></div>
   <div class="hud-frame" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="wrap hero-inner">
@@ -3811,8 +3811,6 @@
 <script src="/vendor/ScrollTrigger.min.js"></script>
 <script src="/vendor/SplitText.min.js"></script>
 <script src="/vendor/lenis.min.js"></script>
-<script src="/vendor/three.min.js"></script>
-<script src="/vendor/vanta/vanta.net.min.js"></script>
 <script src="/motion.js"></script>
 
 </body>
