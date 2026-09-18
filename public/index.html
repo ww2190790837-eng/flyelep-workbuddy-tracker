@@ -39,7 +39,8 @@
       var(--bg);
     color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;
     font-feature-settings:"cv11","ss01";
-    animation:bg-shift 20s ease-in-out infinite alternate;
+    /* 整页背景径向渐变 —— 慢到几乎看不出在动,留给 Lenis 的滚动做主节奏 */
+    animation:bg-shift 60s ease-in-out infinite alternate;
   }
   @keyframes bg-shift{
     0%{background-position:0% 0%,100% 0%,0% 100%}
@@ -72,22 +73,22 @@
 
   /* === 全屏背景层 (大厂级动态) === */
   .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-  /* Canvas 流场粒子 */
-  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.28;mix-blend-mode:screen}
+  /* Canvas 流场粒子 —— 不透明度大幅压低,只起极轻的氛围衬托,不再霸占视觉 */
+  .bg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2;opacity:.10;mix-blend-mode:screen}
   /* 噪点纹理 */
   .bg-noise{position:absolute;inset:0;opacity:.025;background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");mix-blend-mode:normal}
-  /* 移动网格 */
-  .bg-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(160,215,255,.09) 1px,transparent 1px),linear-gradient(to bottom,rgba(160,215,255,.09) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-move 40s linear infinite;opacity:.7}
-  @keyframes grid-move{to{background-position:64px 64px}}
-  /* 浮动光球装饰 */
-  .orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orb-float 12s ease-in-out infinite}
-  .orb-1{width:400px;height:400px;background:rgba(111,209,251,.18);top:-10%;right:-5%;animation-delay:0s}
-  .orb-2{width:300px;height:300px;background:rgba(111,209,251,.12);bottom:10%;left:-8%;animation-delay:-4s}
-  .orb-3{width:250px;height:250px;background:rgba(111,209,251,.10);top:40%;right:15%;animation-delay:-8s}
+  /* 移动网格 —— 削弱为背景里淡得几乎不可察觉的纹路,不再「整页都在动」抢戏 */
+  .bg-grid{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(160,215,255,.06) 1px,transparent 1px),linear-gradient(to bottom,rgba(160,215,255,.06) 1px,transparent 1px);background-size:96px 96px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 30%,transparent 80%);animation:grid-move 120s linear infinite;opacity:.22}
+  @keyframes grid-move{to{background-position:96px 96px}}
+  /* 浮动光球装饰 —— 速度减半,色彩淡 60%,blur 加大 50%,不再是「中间还在动」的眼睛垃圾 */
+  .orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none;animation:orb-float 28s ease-in-out infinite;opacity:.55}
+  .orb-1{width:400px;height:400px;background:rgba(111,209,251,.10);top:-10%;right:-5%;animation-delay:0s}
+  .orb-2{width:300px;height:300px;background:rgba(111,209,251,.07);bottom:10%;left:-8%;animation-delay:-9s}
+  .orb-3{width:250px;height:250px;background:rgba(111,209,251,.06);top:40%;right:15%;animation-delay:-18s}
   @keyframes orb-float{
     0%,100%{transform:translate(0,0) scale(1)}
-    33%{transform:translate(30px,-20px) scale(1.08)}
-    66%{transform:translate(-20px,15px) scale(.95)}
+    33%{transform:translate(20px,-12px) scale(1.05)}
+    66%{transform:translate(-14px,9px) scale(.96)}
   }
   /* 减弱动效 */
   @media (prefers-reduced-motion:reduce){.bg-grid,.orb{animation:none}}
@@ -154,11 +155,9 @@
     mask-image:radial-gradient(96% 108% at 50% 50%,transparent 0 20%,#000 52%,#000 80%,transparent 100%)}
   [data-theme="light"] .sec-art img{opacity:.34;filter:saturate(1.04) contrast(1.02) brightness(1.06)}
   @media (max-width:760px){.sec-art img{opacity:.38}}
-  /* 多页滚动:每页一屏(hero / 各 section / 页脚),配合 Lenis 平滑滚动;
-     用 scroll-snap-type: y proximity 让翻页不那么生硬,滚动停下时轻轻吸到下一页边界 */
-  html{scroll-snap-type:y proximity}
-  .hero,section:not(.lineup-panel),footer{scroll-snap-align:start}
-  .lineup-panel{scroll-snap-align:none}
+  /* 多页滚动:每页一屏(hero / 各 section / 页脚)。**不**用 scroll-snap —— 它会和 Lenis 的平滑滚动打架,
+     导致滚轮停下时被突然吸到下一节,阻尼感全毁。Lenis 自己(duration:1.15, wheelMultiplier:0.92)
+     已经把页面渲染成连续的电影感滚动,不需要再叠一层 snap 行为。 */
   /* 页脚内容较短,垂直居中铺满整屏 */
   footer{position:relative;z-index:2;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
@@ -2186,7 +2185,7 @@
   </svg>
 </div>
 <footer>
-  <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-footer.webp" alt="" loading="lazy" decoding="async"></div>
+  <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-keyvisual.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
