@@ -148,6 +148,13 @@
      已经把页面渲染成连续的电影感滚动,不需要再叠一层 snap 行为。 */
   /* 页脚内容较短,垂直居中铺满整屏 */
   footer{position:relative;z-index:2;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center}
+  /* 页脚专用:把 sec-art 的「中央镂空径向遮罩」去掉,让主视觉铺满整屏;
+     内容文字自带 text-shadow 兜底可读性(覆盖通用 sec-art img 的 mask) */
+  footer .sec-art img{
+    opacity:.85;filter:saturate(1.08) contrast(1.05) brightness(.7);
+    -webkit-mask-image:none;mask-image:none}
+  /* 内容文字阴影:深底白字的电影感,无需单独再叠暗色面板 */
+  footer .wrap{position:relative;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45),0 2px 12px rgba(0,0,0,.35)}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
   .section-eyebrow{display:inline-block;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:.2em;margin-bottom:16px;font-weight:600}
   .section-title{font-size:clamp(30px,4.2vw,44px);line-height:1.1;letter-spacing:-.02em;font-weight:700;margin-bottom:14px;color:var(--text)}
