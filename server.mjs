@@ -1,5 +1,4 @@
 ﻿import express from "express";
-import session from "express-session";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
@@ -695,17 +694,29 @@ const app = express();
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser(SESSION_SECRET));
-app.use(session({
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 30 * 24 * 3600 * 1000 // 30 天
-  }
-}));
+// 登录态改为「无状态签名 Cookie」:userId 直接写在签名 Cookie 里,服务端不再保存任何会话。
+// 这样部署/重启(服务端内存被清空)也不会掉登录;只要 SESSION_SECRET 稳定,老 Cookie 永远有效。
+const SESSION_MAX_AGE = 365 * 24 * 3600 * 1000; // 1 年(之前是 30 天,部署就被踢)
+function _sessionCookieOpts() {
+  return { signed: true, httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: SESSION_MAX_AGE };
+}
+app.use((req, res, next) => {
+  let _uid = (req.signedCookies && req.signedCookies.uid) || null;
+  req.session = {
+    get userId() { return _uid; },
+    set userId(v) {
+      _uid = v == null ? null : String(v);
+      if (_uid != null) res.cookie("uid", _uid, _sessionCookieOpts());
+      else res.clearCookie("uid", { signed: true, httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+    },
+    destroy(cb) {
+      _uid = null;
+      res.clearCookie("uid", { signed: true, httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+      if (typeof cb === "function") cb();
+    }
+  };
+  next();
+});
 // 管理员后台页(必须放在 static 之前,否则会被 extensions:['html'] 当文件直接返回,绕过鉴权)
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
