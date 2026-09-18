@@ -547,7 +547,19 @@
   [data-theme="light"] #messageBoard h3{color:#1a1d26!important}
   [data-theme="light"] #msgNameInput,[data-theme="light"] #msgContentInput{background:#f8f9fc!important;color:#1a1d26!important;border-color:rgba(111,209,251,.2)!important}
   [data-theme="light"] .msg-item{background:#f8f9fc!important;border-color:rgba(111,209,251,.12)!important}
-  [data-theme="light"] #msgLoadMoreBtn{background:rgba(111,209,251,.05)!important;color:#4a5068!important;border-color:rgba(111,209,251,.18)!important}
+  /* 留言板翻页器（分页显示，替代原「加载更多」） */
+  #msgPager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .msg-page-btn,.msg-page-num{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--text-2);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:4px;padding:7px 11px;cursor:pointer;transition:all .18s;line-height:1}
+  .msg-page-num{min-width:34px;padding:7px 9px;text-align:center}
+  .msg-page-btn:hover:not(:disabled),.msg-page-num:hover{color:var(--accent);border-color:rgba(22,207,251,.5);background:rgba(22,207,251,.08)}
+  .msg-page-btn:disabled{opacity:.35;cursor:not-allowed}
+  .msg-page-num.active{color:#0a0c0f;background:var(--gradient);border-color:transparent;font-weight:700;box-shadow:0 0 12px rgba(22,207,251,.32)}
+  .msg-page-ellipsis{font-family:var(--mono);font-size:12px;color:var(--text-3);padding:0 2px}
+  #msgPageInfo{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--text-3);margin-left:8px}
+  [data-theme="light"] #msgPager{border-top-color:rgba(111,209,251,.18)!important}
+  [data-theme="light"] .msg-page-btn,[data-theme="light"] .msg-page-num{background:#f8f9fc!important;color:#4a5068!important;border-color:rgba(111,209,251,.2)!important}
+  [data-theme="light"] .msg-page-num.active{background:var(--gradient)!important;color:#fff!important;border-color:transparent!important}
+  [data-theme="light"] #msgPageInfo{color:#8b93a7!important}
 
   /* ===== Hero 单栏（恢复原布局） ===== */
   .hero-grid{display:block;padding-top:20px;padding-bottom:20px}
@@ -1498,10 +1510,16 @@
             font-size:12.5px;color:var(--text-2)">
             留言需要登录后才能发送 · <a href="/login.html" style="color:var(--accent);font-weight:700;text-decoration:none">去登录 / 注册 →</a>
           </div>
-          <div id="msgList" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px"></div>
+          <div id="msgList" style="display:flex;flex-direction:column;gap:10px;padding-right:4px"></div>
           <div id="msgLoading" style="text-align:center;padding:16px;color:var(--text-3);font-size:13px">加载中...</div>
           <div id="msgEmpty" style="display:none;text-align:center;padding:20px;color:var(--text-3);font-size:13px">暂无留言，来说第一句吧</div>
-          <button id="msgLoadMoreBtn" onclick="loadMoreMessages()" style="display:none;width:100%;margin-top:10px;padding:9px;background:rgba(255,255,255,.04);color:var(--text-2);border:1px solid var(--border);font-size:13px;cursor:pointer;transition:all .2s">加载更多 ↓</button>
+          <!-- 翻页器（分页显示，替代原「加载更多」） -->
+          <div id="msgPager" style="display:none">
+            <button id="msgPrevBtn" type="button" class="msg-page-btn">‹ 上一页</button>
+            <span id="msgPageNums" style="display:flex;gap:6px;align-items:center"></span>
+            <button id="msgNextBtn" type="button" class="msg-page-btn">下一页 ›</button>
+            <span id="msgPageInfo"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -2649,38 +2667,82 @@
   // 进入网页自动检测版本更新通知
   checkVersion();
 
-  // ===== 留言板(实时在线,支持分页) =====
+  // ===== 留言板(分页显示) =====
   var msgPage = 1;
   var msgTotal = 0;
-  var msgPageSize = 20;
-  function loadMessages(){
-    msgPage = 1;
-    fetchMessages(1, true);
+  var msgTotalPages = 1;
+  var msgPageSize = 5;
+  function loadMessages(page){
+    fetchMessages(Math.max(1, page || 1));
   }
-  function loadMoreMessages(){
-    var btn = document.getElementById("msgLoadMoreBtn");
-    if (btn) { btn.disabled=true; btn.textContent="加载中..."; }
-    fetchMessages(msgPage + 1, false);
+  function goMsgPage(p){
+    p = parseInt(p, 10);
+    if (!p || p < 1 || p > msgTotalPages || p === msgPage) return;
+    fetchMessages(p);
   }
-  function fetchMessages(page, replace){
+  function buildPageList(total, cur){
+    var out = [], i;
+    if (total <= 7) { for (i = 1; i <= total; i++) out.push(i); return out; }
+    out.push(1);
+    var st = Math.max(2, cur - 1), en = Math.min(total - 1, cur + 1);
+    if (st > 2) out.push("...");
+    for (i = st; i <= en; i++) out.push(i);
+    if (en < total - 1) out.push("...");
+    out.push(total);
+    return out;
+  }
+  function renderMsgPager(total, page, pageSize){
+    var pager = document.getElementById("msgPager");
+    if (!pager) return;
+    var totalPages = Math.max(1, Math.ceil(total / pageSize));
+    msgTotalPages = totalPages;
+    if (total <= 0) { pager.style.display = "none"; return; }
+    pager.style.display = "flex";
+    var prev = document.getElementById("msgPrevBtn");
+    var next = document.getElementById("msgNextBtn");
+    if (prev) prev.disabled = page <= 1;
+    if (next) next.disabled = page >= totalPages;
+    var nums = document.getElementById("msgPageNums");
+    if (nums) {
+      nums.innerHTML = "";
+      buildPageList(totalPages, page).forEach(function(p){
+        if (p === "...") {
+          var sp = document.createElement("span");
+          sp.className = "msg-page-ellipsis";
+          sp.textContent = "\u2026";
+          nums.appendChild(sp);
+          return;
+        }
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "msg-page-num" + (p === page ? " active" : "");
+        b.textContent = p;
+        b.addEventListener("click", function(){ goMsgPage(p); });
+        nums.appendChild(b);
+      });
+    }
+    var info = document.getElementById("msgPageInfo");
+    if (info) info.textContent = "第 " + page + " / " + totalPages + " 页 \u00b7 共 " + total + " 条";
+  }
+  function fetchMessages(page){
+    var list = document.getElementById("msgList");
+    var loading = document.getElementById("msgLoading");
+    var empty = document.getElementById("msgEmpty");
+    var count = document.getElementById("msgCount");
+    if (loading) { loading.style.display = "block"; loading.textContent = "加载中..."; }
     fetch("/api/messages?page=" + page + "&pageSize=" + msgPageSize, {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
-      var list = document.getElementById("msgList");
-      var loading = document.getElementById("msgLoading");
-      var empty = document.getElementById("msgEmpty");
-      var count = document.getElementById("msgCount");
-      var moreBtn = document.getElementById("msgLoadMoreBtn");
       if (loading) loading.style.display = "none";
       msgTotal = d.total;
       if (count) count.textContent = d.total + " 条留言";
       if (!list) return;
-      if (replace) list.innerHTML = "";
+      msgPage = d.page;
+      list.innerHTML = "";
       if (!d.items || !d.items.length) {
-        if (replace && empty) empty.style.display = "block";
-        if (moreBtn) moreBtn.style.display = "none";
+        if (empty) empty.style.display = "block";
+        renderMsgPager(d.total, d.page, d.pageSize);
         return;
       }
       if (empty) empty.style.display = "none";
-      msgPage = d.page;
       d.items.forEach(function(m){
         var el = document.createElement("div");
         el.className = "msg-item";
@@ -2689,17 +2751,18 @@
         el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><strong style="font-size:13px;color:var(--primary-2)">' + escHtml(m.name) + '</strong><span style="font-size:11px;color:var(--text-3);flex-shrink:0">' + timeAgo + '</span></div><p style="margin:0;font-size:13px;color:var(--text-2);line-height:1.6;word-break:break-word">' + escHtml(m.content) + '</p>';
         list.appendChild(el);
       });
-      // 滚动到底部(追加模式)
-      if (!replace && list) list.scrollTop = list.scrollHeight;
-      // 加载更多按钮
-      if (moreBtn) {
-        var hasMore = (d.page * d.pageSize) < d.total;
-        moreBtn.style.display = hasMore ? "block" : "none";
-        moreBtn.disabled = false;
-        moreBtn.textContent = "加载更多 ↓ (" + Math.max(0, d.total - d.page * d.pageSize) + " 条剩余)";
-      }
-    }).catch(function(){ var l=document.getElementById("msgLoading"); if(l) l.textContent="加载失败"; var b=document.getElementById("msgLoadMoreBtn"); if(b){b.disabled=false;b.textContent="加载更多 ↓";} });
+      renderMsgPager(d.total, d.page, d.pageSize);
+    }).catch(function(){
+      if (loading) loading.textContent = "加载失败";
+    });
   }
+  /* 绑定翻页器 上一页/下一页（一次性） */
+  (function bindMsgPager(){
+    var prev = document.getElementById("msgPrevBtn");
+    var next = document.getElementById("msgNextBtn");
+    if (prev) prev.addEventListener("click", function(){ goMsgPage(msgPage - 1); });
+    if (next) next.addEventListener("click", function(){ goMsgPage(msgPage + 1); });
+  })();
   function postMessage(){
     var nameInput = document.getElementById("msgNameInput");
     var contentInput = document.getElementById("msgContentInput");
