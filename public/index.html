@@ -146,6 +146,14 @@
 
   /* === Section 通用 === */
   section{padding:100px 0;position:relative;z-index:2}
+  /* P3 官网素材：填充页面空白处的背景美术（蓝调，中心留白不抢正文，四周渐隐融进底色） */
+  .sec-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .sec-art img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:center 44%;
+    opacity:.55;filter:saturate(1.05) contrast(1.03) brightness(.8);
+    -webkit-mask-image:radial-gradient(96% 108% at 50% 50%,transparent 0 20%,#000 52%,#000 80%,transparent 100%);
+    mask-image:radial-gradient(96% 108% at 50% 50%,transparent 0 20%,#000 52%,#000 80%,transparent 100%)}
+  [data-theme="light"] .sec-art img{opacity:.34;filter:saturate(1.04) contrast(1.02) brightness(1.06)}
+  @media (max-width:760px){.sec-art img{opacity:.38}}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
   .section-eyebrow{display:inline-block;font-size:12px;color:var(--primary);text-transform:uppercase;letter-spacing:.2em;margin-bottom:16px;font-weight:600}
   .section-title{font-size:clamp(30px,4.2vw,44px);line-height:1.1;letter-spacing:-.02em;font-weight:700;margin-bottom:14px;color:var(--text)}
@@ -818,10 +826,6 @@
     transform-origin:70% 42%;will-change:transform}
   @keyframes heroKen{0%{transform:scale(1.05) translate3d(0,0,0)}100%{transform:scale(1.16) translate3d(-1.5%,-2%,0)}}
   @media (prefers-reduced-motion:reduce){.bg-caustics,.bg-bubbles,.bg-base{animation:none}}
-  /* P3 素材③：主视觉水印（低透明度装饰，不抢正文） */
-  .p3-mark{position:absolute;right:-6%;top:1%;width:min(56vw,620px);aspect-ratio:16/10;
-    pointer-events:none;z-index:0;opacity:.14;
-    background:url('/assets/hero-keyvisual-b.webp') center/contain no-repeat}
   /* P3 素材④：卡片角标（P3 菜单选择框的直角括号） */
   .card::before,.card::after{content:"";position:absolute;width:16px;height:16px;pointer-events:none;
     border:1px solid var(--accent);opacity:.75}
@@ -987,22 +991,6 @@
     .hud-frame{display:none}
   }
 
-  /* P3 角色名册：官方立绘(白底)放进浅色卡片，P3 蓝铭牌 + 青色角标 */
-  /* P3 角色「背景水印」（区块级，随内容滚动、永不进首屏）：
-     大面积极淡 + 蓝色单色调 + 轻微模糊，只做氛围，不参与内容 → 不会再和首屏/彼此糊在一起。
-     （上一版失败原因：放在 fixed 背景层，被首屏底部遮罩透出，与首屏角色重叠。） */
-  .sec-fig{position:absolute;bottom:0;z-index:0;pointer-events:none;
-    width:min(44vw,520px);height:min(68vh,580px);
-    background-repeat:no-repeat;background-position:center bottom;background-size:contain;
-    opacity:.15;filter:grayscale(1) sepia(1) hue-rotate(178deg) saturate(2.4) brightness(.95) blur(1.5px)}
-  .sec-fig-r{right:-5%}
-  .sec-fig-l{left:-5%}
-  .sec-fig.f2{background-image:url('/assets/p3/cut/2.webp')}
-  .sec-fig.f4{background-image:url('/assets/p3/cut/4.webp')}
-  .sec-fig.f5{background-image:url('/assets/p3/cut/5.webp')}
-  .sec-fig.f8{background-image:url('/assets/p3/cut/8.webp')}
-  .sec-fig.f9{background-image:url('/assets/p3/cut/9.webp')}
-  @media (max-width:760px){.sec-fig{width:58vw;height:42vh;opacity:.12}}
 
 
   /* ---- 6) 存量组件统一：锐角 + 单色 ---- */
@@ -1472,8 +1460,7 @@
 
 <!-- 公告 + 留言板 -->
 <section id="bulletin">
-  <div class="sec-fig sec-fig-l f4" aria-hidden="true"></div>
-  <div class="p3-mark" aria-hidden="true"></div>
+  <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-bulletin.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="wrap">
     <div class="section-head">
       <span class="section-eyebrow reveal">Bulletin / 公告与留言</span>
@@ -1537,6 +1524,7 @@
   </div>
 </div>
 <section id="prompt-gen" class="lineup-panel active">
+  <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-dark.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="gate" data-gate aria-hidden="true">
     <div class="gate-inner">
       <span class="gate-tag">Members Only</span>
@@ -1547,7 +1535,6 @@
     </div>
   </div>
 
-  <div class="sec-fig sec-fig-r f5" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">01</span>
   <div class="wrap">
     <div class="section-head">
@@ -1672,6 +1659,7 @@
      视频反推：上传视频 → 抽帧 → AI 反推五段式
      ============================================ -->
 <section id="video-reverse" class="lineup-panel">
+  <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-bulletin.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="gate" data-gate aria-hidden="true">
     <div class="gate-inner">
       <span class="gate-tag">Members Only</span>
@@ -1682,7 +1670,6 @@
     </div>
   </div>
 
-  <div class="sec-fig sec-fig-l f2" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">02</span>
   <div class="wrap">
     <div class="section-head">
@@ -1791,6 +1778,7 @@
 </style>
 
 <section id="agnes-video" class="lineup-panel">
+  <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-dark.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="gate" data-gate aria-hidden="true">
     <div class="gate-inner">
       <span class="gate-tag">Members Only</span>
@@ -1801,7 +1789,6 @@
     </div>
   </div>
 
-  <div class="sec-fig sec-fig-r f8" aria-hidden="true"></div>
   <span class="sec-no" aria-hidden="true">03</span>
   <div class="wrap agv-wrap">
     <div class="section-head">
