@@ -1057,7 +1057,7 @@ const CHAT_SYSTEM_PROMPT = `你是 Fleta AI 写代码助手，专精于"从零�
 - 如果用户问其他领域问题，友好引导回 BYOX 方向，但也可以正常聊天
 - 保持简洁实用，不要废话`;
 
-app.post("/api/chat", express.json({ limit: "8kb" }), async (req, res) => {
+app.post("/api/chat", requireAuth, express.json({ limit: "8kb" }), async (req, res) => {
   try {
     const { message, history = [] } = req.body;
     if (!message || typeof message !== "string" || message.trim().length === 0) {

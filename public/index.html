@@ -991,73 +991,6 @@
   .sec-fig.f8{background-image:url('/assets/p3/cut/8.webp')}
   .sec-fig.f9{background-image:url('/assets/p3/cut/9.webp')}
   @media (max-width:760px){.sec-fig{width:58vw;height:42vh;opacity:.12}}
-  .cs-stage{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(240px,.92fr) 1.08fr;
-    align-items:stretch;min-height:min(64vh,560px);margin-bottom:22px;border-radius:6px;
-    border:1px solid rgba(255,255,255,.2);
-    background:linear-gradient(135deg, rgba(1,95,204,.5), rgba(3,31,100,.88) 64%)}
-  .cs-bg{position:absolute;inset:0;pointer-events:none;
-    background:repeating-linear-gradient(118deg,rgba(255,255,255,.055) 0 1px,transparent 1px 46px)}
-  .cs-ghost{position:absolute;left:-1%;top:1%;font-family:var(--disp);font-weight:700;
-    font-size:clamp(66px,14vw,190px);line-height:.85;letter-spacing:-.01em;color:rgba(255,255,255,.085);
-    text-transform:uppercase;pointer-events:none;white-space:nowrap;z-index:1}
-  .cs-meta{position:relative;z-index:3;display:flex;flex-direction:column;justify-content:flex-end;
-    gap:5px;padding:28px 0 34px 34px}
-  .cs-no{font-family:var(--disp);font-size:clamp(38px,4.6vw,64px);line-height:.85;color:var(--accent);
-    opacity:.9}
-  .cs-en{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.4vw,46px);line-height:1;
-    letter-spacing:.02em;color:#fff;text-transform:uppercase;margin:0}
-  .cs-jp{font-style:normal;font-size:14px;letter-spacing:.16em;color:var(--gold)}
-  .cs-line{display:block;width:66px;height:3px;background:var(--gradient);margin-top:14px}
-  .cs-figure{position:relative;z-index:2;display:flex;align-items:flex-end;justify-content:center;padding:0 16px}
-  .cs-figure img{display:block;max-height:min(60vh,530px);width:auto;max-width:100%;
-    filter:drop-shadow(0 30px 52px rgba(0,8,32,.72));
-    transition:opacity .3s ease,transform .55s cubic-bezier(.22,1,.36,1)}
-  @media (max-width:760px){
-    .cs-stage{grid-template-columns:1fr;min-height:0}
-    .cs-figure img{max-height:44vh}
-    .cs-meta{position:absolute;left:0;right:0;bottom:0;justify-content:flex-end;padding:18px 20px 20px;
-      background:linear-gradient(180deg,transparent,rgba(3,20,60,.85))}
-    .cs-ghost{font-size:21vw;top:5%}
-    .cs-no{font-size:34px}
-  }
-  .roster-card.active{border-color:var(--accent);box-shadow:3px 5px 0 rgba(2,10,36,.6),7px 11px 0 rgba(2,10,36,.32)}
-  .roster-card.active img.on{opacity:1}
-  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-  .roster-card{position:relative;margin:0;overflow:hidden;border-radius:4px;
-    background:linear-gradient(180deg,#eef6ff,#cfe4fb);border:1px solid rgba(255,255,255,.4);
-    transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s}
-  .roster-card img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center top;display:block;
-    transition:transform .5s cubic-bezier(.22,1,.36,1)}
-  /* OFF/ON 双态：底层=官网灰版（常显），上层=彩色版 opacity:0；hover 时彩色版淡入。
-     ⚠️ 之前反过来写（灰版绝对定位在上）实测**灰版根本没画上去**（A/B 对比两版像素完全相同），
-     所以改成"彩版在上、默认透明"这种不依赖 z-index 生效的写法。 */
-  .roster-card img.off{position:relative;z-index:1}
-  .roster-card img.on{position:absolute;inset:0;height:100%;z-index:2;opacity:0;
-    transition:opacity .4s cubic-bezier(.22,1,.36,1)}
-  .roster-card:hover img.on{opacity:1}
-  .roster-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(3,20,60,.5);border-color:var(--accent)}
-  .roster-card:hover img{transform:scale(1.06)}
-  .roster-card figcaption{position:absolute;left:0;right:0;bottom:0;padding:9px 11px;display:flex;flex-direction:column;gap:2px;
-    background:linear-gradient(180deg,rgba(3,20,60,0),rgba(3,20,60,.94))}
-  .roster-card figcaption b{font-family:var(--disp);font-size:13px;letter-spacing:.14em;color:#fff;text-transform:uppercase;line-height:1}
-  .roster-card figcaption i{font-style:normal;font-size:11px;color:var(--accent);line-height:1.2}
-  .roster-card::before,.roster-card::after{content:"";position:absolute;width:14px;height:14px;z-index:2;pointer-events:none;
-    border:1px solid var(--accent);opacity:.92}
-  .roster-card::before{top:6px;left:6px;border-right:none;border-bottom:none}
-  .roster-card::after{bottom:6px;right:6px;border-left:none;border-top:none}
-
-  /* === 按 P3 设计规范补的三条标志性细节（参考 Minerva 设计系统 + deltea 的 P3R 复刻） ===
-     ① 元素轻微歪斜 1-2°（P3 菜单那种"歪着叠"的手感），hover 时摆正
-     ② 分层错位硬阴影（不是柔和投影，是 2~5px 偏移的实色层）
-     ③ 三角强化块（CSS border 三角形），P3 图标语言里的基本形状 */
-  .roster .roster-card{transform:rotate(-1.3deg)}
-  .roster .roster-card:nth-child(even){transform:rotate(1.3deg)}
-  .roster-card:hover{transform:rotate(0deg) translateY(-8px)!important}
-  .roster-card, .card{box-shadow:2px 3px 0 rgba(2,10,36,.55),5px 7px 0 rgba(2,10,36,.28)}
-  .roster-card:hover{box-shadow:3px 5px 0 rgba(2,10,36,.6),7px 11px 0 rgba(2,10,36,.32)}
-  .roster-card figcaption b::before{content:"";display:inline-block;width:0;height:0;margin-right:6px;vertical-align:middle;
-    border-left:6px solid var(--accent);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
-  .roster-card figcaption i{color:var(--gold)}
 
 
   /* ---- 6) 存量组件统一：锐角 + 单色 ---- */
@@ -1307,6 +1240,9 @@
   ::-webkit-scrollbar-thumb:hover{background:rgba(125,211,252,.55);background-clip:content-box}
   ::-webkit-scrollbar-corner{background:transparent}
   ::-webkit-scrollbar-button{display:none;width:0;height:0}
+  /* 隐藏页面级滚动条（右侧滑块/进度）：页面平滑滚动由 Lenis 接管；内部容器（对话/结果）滚动条保留 */
+  html{scrollbar-width:none!important}
+  html::-webkit-scrollbar{display:none!important}
   [data-theme="light"]{scrollbar-color:rgba(2,132,199,.35) transparent}
   [data-theme="light"] ::-webkit-scrollbar-track{background:rgba(10,14,20,.05)}
   [data-theme="light"] ::-webkit-scrollbar-thumb{background:rgba(2,132,199,.32);background-clip:content-box}
@@ -1520,44 +1456,7 @@
   </div>
 </header>
 
-<!-- P3 角色名册（官方立绘素材，来自 p3re.jp） -->
-<section id="p3-roster">
-  <span class="sec-no" aria-hidden="true">05</span>
-  <div class="wrap">
-    <div class="section-head">
-      <span class="section-eyebrow reveal">Persona 3 Reload / 角色</span>
-      <h2 class="section-title reveal">S.E.E.S. <em>名册</em></h2>
-      <p class="section-sub reveal">特别课外活动部 · 与「影时间」作战的 13 名角色</p>
-    </div>
-    <!-- 角色展示台：大立绘 + 幽灵大字名（参考 GitHub 上 Persona 角色站的通用做法：大图 + 缩略图选择器） -->
-    <div class="cs-stage reveal">
-      <div class="cs-bg" aria-hidden="true"></div>
-      <span class="cs-ghost" id="csGhost">HERO</span>
-      <div class="cs-meta">
-        <span class="cs-no" id="csNo">01</span>
-        <h3 class="cs-en" id="csEn">Hero</h3>
-        <i class="cs-jp" id="csJp">主人公</i>
-        <span class="cs-line" aria-hidden="true"></span>
-      </div>
-      <div class="cs-figure"><img id="csFig" src="/assets/p3/fig/character1.webp" alt=""></div>
-    </div>
-    <div class="roster">
-      <figure class="roster-card reveal" data-n="1" data-en="Hero" data-jp="主人公"><img class="off" src="/assets/p3/off1.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character1.webp" alt="1" loading="lazy" decoding="async"><figcaption><b>Hero</b><i>主人公</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="2" data-en="Yukari" data-jp="岳羽ゆかり"><img class="off" src="/assets/p3/off2.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character2.webp" alt="2" loading="lazy" decoding="async"><figcaption><b>Yukari</b><i>岳羽ゆかり</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="3" data-en="Junpei" data-jp="伊織順平"><img class="off" src="/assets/p3/off3.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character3.webp" alt="3" loading="lazy" decoding="async"><figcaption><b>Junpei</b><i>伊織順平</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="4" data-en="Akihiko" data-jp="真田明彦"><img class="off" src="/assets/p3/off4.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character4.webp" alt="4" loading="lazy" decoding="async"><figcaption><b>Akihiko</b><i>真田明彦</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="5" data-en="Mitsuru" data-jp="桐条美鶴"><img class="off" src="/assets/p3/off5.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character5.webp" alt="5" loading="lazy" decoding="async"><figcaption><b>Mitsuru</b><i>桐条美鶴</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="6" data-en="Fuuka" data-jp="山岸風花"><img class="off" src="/assets/p3/off6.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character6.webp" alt="6" loading="lazy" decoding="async"><figcaption><b>Fuuka</b><i>山岸風花</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="7" data-en="Koromaru" data-jp="コロマル"><img class="off" src="/assets/p3/off7.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character7.webp" alt="7" loading="lazy" decoding="async"><figcaption><b>Koromaru</b><i>コロマル</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="8" data-en="Aegis" data-jp="アイギス"><img class="off" src="/assets/p3/off8.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character8.webp" alt="8" loading="lazy" decoding="async"><figcaption><b>Aegis</b><i>アイギス</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="9" data-en="Ken" data-jp="天田乾"><img class="off" src="/assets/p3/off9.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character9.webp" alt="9" loading="lazy" decoding="async"><figcaption><b>Ken</b><i>天田乾</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="10" data-en="Shinjiro" data-jp="荒垣真次郎"><img class="off" src="/assets/p3/off10.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character10.webp" alt="10" loading="lazy" decoding="async"><figcaption><b>Shinjiro</b><i>荒垣真次郎</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="11" data-en="Takaya" data-jp="タカヤ"><img class="off" src="/assets/p3/off11.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character11.webp" alt="11" loading="lazy" decoding="async"><figcaption><b>Takaya</b><i>タカヤ</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="12" data-en="Jin" data-jp="ジン"><img class="off" src="/assets/p3/off12.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character12.webp" alt="12" loading="lazy" decoding="async"><figcaption><b>Jin</b><i>ジン</i></figcaption></figure>
-      <figure class="roster-card reveal" data-n="13" data-en="Chidori" data-jp="チドリ"><img class="off" src="/assets/p3/off13.webp" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="on" src="/assets/p3/character13.webp" alt="13" loading="lazy" decoding="async"><figcaption><b>Chidori</b><i>チドリ</i></figcaption></figure>
-    </div>
-  </div>
-</section>
+<!-- 公告 + 留言板 -->
 
 <!-- 公告 + 留言板 -->
 <section id="bulletin">
@@ -2870,6 +2769,8 @@
     if(el) el.remove();
   }
   async function sendChat(){
+    if (!window.__user) { var ch=document.getElementById('chatLoginHint'); if(ch) ch.style.display='block'; return; }
+
     var input = document.getElementById('chatInput');
     var btn = document.getElementById('chatSendBtn');
     var text = (input.value || '').trim();
@@ -4118,6 +4019,7 @@
           <div class="chat-bubble">你好！我是 <strong>AI 写代码助手</strong><br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），并给出可直接运行的代码。也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
         </div>
       </div>
+      <div id="chatLoginHint" style="display:none;margin:0 0 10px;padding:10px 14px;border:1px solid rgba(22,207,251,.35);border-left:3px solid var(--accent);background:rgba(22,207,251,.08);border-radius:4px;font-size:12.5px;color:var(--text-2)">AI 助手需要登录后才能使用 · <a href="/login.html" style="color:var(--accent);font-weight:700;text-decoration:none">去登录 / 注册 →</a></div>
       <div class="chat-input-area">
         <div class="chat-input-wrap">
           <textarea id="chatInput" rows="1" placeholder="输入消息... (Enter 发送)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}" oninput="autoResize(this)"></textarea>
@@ -4188,34 +4090,6 @@
   ['touchstart','pointerdown','click','scroll'].forEach(function(ev){
     window.addEventListener(ev,function once(){ tryPlay(); window.removeEventListener(ev,once); },{passive:true});
   });
-})();
-</script>
-<script>
-/* 角色展示台：缩略图 hover/点击 → 换大立绘 + 幽灵名 + 编号（参考 GitHub 上 Persona 角色站做法） */
-(function(){
-  var fig=document.getElementById('csFig'),ghost=document.getElementById('csGhost'),
-      no=document.getElementById('csNo'),en=document.getElementById('csEn'),jp=document.getElementById('csJp');
-  var cards=[].slice.call(document.querySelectorAll('.roster-card'));
-  if(!fig||!cards.length) return;
-  function sel(card){
-    var n=card.getAttribute('data-n');
-    ghost.textContent=card.getAttribute('data-en').toUpperCase();
-    no.textContent=('0'+n).slice(-2);
-    en.textContent=card.getAttribute('data-en');
-    jp.textContent=card.getAttribute('data-jp');
-    fig.style.opacity='0'; fig.style.transform='translateY(10px)';
-    setTimeout(function(){
-      fig.src='/assets/p3/fig/character'+n+'.webp';
-      fig.style.opacity='1'; fig.style.transform='translateY(0)';
-    },150);
-    cards.forEach(function(c){ c.classList.toggle('active', c===card); });
-  }
-  cards.forEach(function(c){
-    ['mouseenter','click','focus'].forEach(function(ev){
-      c.addEventListener(ev,function(){ sel(c); });
-    });
-  });
-  sel(cards[0]);
 })();
 </script>
 <script>
@@ -4290,8 +4164,15 @@
       comp.style.pointerEvents = locked ? 'none' : '';
       comp.style.filter = locked ? 'grayscale(.4)' : '';
     }
-    if (hint) hint.style.display = locked ? 'block' : 'none';
-  };
+  if (hint) hint.style.display = locked ? 'block' : 'none';
+    /* AI 助手纳入门禁：未登录 -> 禁用输入框 + 显示登录提示；登录后恢复 */
+    var ci = document.getElementById('chatInput');
+    var cb = document.getElementById('chatSendBtn');
+    var chint = document.getElementById('chatLoginHint');
+    if (ci) { ci.disabled = locked; ci.placeholder = locked ? '登录后即可使用 AI 助手' : '输入消息... (Enter 发送)'; }
+    if (cb) cb.disabled = locked;
+    if (chint) chint.style.display = locked ? 'block' : 'none';
+    };
   /* 首屏先按"未登录"盖上，等 /api/auth/me 回来再决定是否揭开（避免闪一下能用） */
   window.__applyGate();
   /* 留言板：未登录点击发送 -> 去登录；若已有 postMessage 实现则包一层守卫 */
