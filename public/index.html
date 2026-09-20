@@ -135,24 +135,30 @@
 
   /* === Section 通用 === */
   section{padding:100px 0;position:relative;z-index:2;min-height:100vh;min-height:100dvh}
-  /* P3 官网素材：填充页面空白处的背景美术（蓝调，中心留白不抢正文，四周渐隐融进底色） */
+  /* P3 官网素材：填充页面空白处的背景美术（蓝调，中心留白不抢正文，四周渐隐融入整页底图）
+     ⚠️⚠️ 径向遮罩的百分比是「半径」，不是直径。要让盒子边缘（中点）落到 100%，
+     半径必须写成 50% 50%，否则边缘永远到不了全透明 → 每节首尾切出一条硬直线。
+     历史错误：写 96% 108%（边缘 α≈0.82）、又写 100% 100%（边缘 α=1.0，更糟）。
+     用户 2026-09-20 截图反馈的「背景没有连起来」就是这个。改成 50% 50% 后实测跳变消除。 */
   .sec-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   .sec-art img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:center 44%;
-    opacity:.55;filter:saturate(1.05) contrast(1.03) brightness(.8);
-    -webkit-mask-image:radial-gradient(96% 108% at 50% 50%,transparent 0 20%,#000 52%,#000 80%,transparent 100%);
-    mask-image:radial-gradient(96% 108% at 50% 50%,transparent 0 20%,#000 52%,#000 80%,transparent 100%)}
-  [data-theme="light"] .sec-art img{opacity:.34;filter:saturate(1.04) contrast(1.02) brightness(1.06)}
-  @media (max-width:760px){.sec-art img{opacity:.38}}
+    opacity:.50;filter:saturate(1.05) contrast(1.03) brightness(.78);
+    -webkit-mask-image:radial-gradient(50% 50% at 50% 50%,transparent 0 30%,#000 62%,#000 80%,transparent 100%);
+    mask-image:radial-gradient(50% 50% at 50% 50%,transparent 0 30%,#000 62%,#000 80%,transparent 100%)}
+  [data-theme="light"] .sec-art img{opacity:.32;filter:saturate(1.04) contrast(1.02) brightness(1.06)}
+  @media (max-width:760px){.sec-art img{opacity:.36}}
   /* 多页滚动:每页一屏(hero / 各 section / 页脚)。**不**用 scroll-snap —— 它会和 Lenis 的平滑滚动打架,
      导致滚轮停下时被突然吸到下一节,阻尼感全毁。Lenis 自己(duration:1.15, wheelMultiplier:0.92)
      已经把页面渲染成连续的电影感滚动,不需要再叠一层 snap 行为。 */
   /* 页脚内容较短,垂直居中铺满整屏 */
   footer{position:relative;z-index:2;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center}
-  /* 页脚专用:把 sec-art 的「中央镂空径向遮罩」去掉,让主视觉铺满整屏;
-     内容文字自带 text-shadow 兜底可读性(覆盖通用 sec-art img 的 mask) */
+  /* 页脚专用:去掉 sec-art 的「中央镂空径向遮罩」,让主视觉铺满整屏;
+     但上下边缘改用线性淡出,和整页大底图接上,避免页脚顶边切出硬直线。
+     内容文字自带 text-shadow 兜底可读性 */
   footer .sec-art img{
-    opacity:.85;filter:saturate(1.08) contrast(1.05) brightness(.7);
-    -webkit-mask-image:none;mask-image:none}
+    opacity:.82;filter:saturate(1.08) contrast(1.05) brightness(.7);
+    -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%);
+    mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
   /* 内容文字阴影:深底白字的电影感,无需单独再叠暗色面板 */
   footer .wrap{position:relative;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45),0 2px 12px rgba(0,0,0,.35)}
   .section-head{text-align:center;max-width:780px;margin:0 auto 56px}
@@ -775,6 +781,15 @@
       radial-gradient(80% 66% at 52% 116%, rgba(3,31,100,.72), transparent 68%),
       linear-gradient(165deg, rgba(1,95,204,.5) 0%, rgba(3,42,120,.55) 44%, rgba(2,14,48,.8) 100%);
   }
+  /* 整页统一大底图（P3R「暗时」满月，取自官方商店页 page_bg_raw）。
+     固定铺满视口 → 全站共享同一张连续底图，各 section 之间不再有接缝。
+     压在 .bg-base 之上、.bg-scrim 之下，由压暗罩保证正文可读。 */
+  .bg-page{position:absolute;inset:0;
+    background:url("/assets/p3/web/art-page-bg.webp") center/cover no-repeat;
+    opacity:.46;
+    filter:saturate(1.06) contrast(1.05) brightness(.62)}
+  [data-theme="light"] .bg-page{opacity:.20;filter:saturate(.92) contrast(1.02) brightness(1.22)}
+  @media (max-width:760px){.bg-page{opacity:.36}}
   /* 压暗罩：把背景压到正文之后,保证左侧文字可读、整体不发花 */
   .bg-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:
     linear-gradient(100deg,rgba(3,26,86,.5) 4%,rgba(3,26,86,.26) 33%,rgba(3,26,86,.02) 66%,rgba(3,26,86,.16) 100%)}
@@ -1248,6 +1263,7 @@
 <!-- 全站统一背景：纯静态渐变 + 斜切光带 + 两团大光晕 + 网格 + 压暗罩 + 暗角 + 极淡噪点。零动画。 -->
 <div class="bg-stage" aria-hidden="true">
   <div class="bg-base"></div>
+  <div class="bg-page"></div>
   <div class="bg-slant"></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
