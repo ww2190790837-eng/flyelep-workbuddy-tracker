@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#04205e" />
+<title>服务条款 · Fleta</title>
+<link rel="icon" href="/logo.svg" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --primary:#16CFFB;--primary-2:#7DE6FD;--pink:#3aa8e6;
+    --text:#ffffff;--text-2:#d3e3fb;--text-3:#9fbce8;
+    --surface:#0d4fbc;--border:rgba(255,255,255,.22);
+    --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    --gold:#ffc54a;
+  }
+  html,body{height:100%}
+  body{
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;
+    min-height:100vh;overflow-x:hidden;position:relative;background:#04205e;
+  }
+  ::selection{background:var(--primary);color:#04121f}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ===== 背景 ===== */
+  .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#04205e}
+  .bg-base{position:absolute;inset:-12%;background:
+    radial-gradient(58% 46% at 22% 12%, rgba(22,207,251,.3), transparent 62%),
+    radial-gradient(60% 50% at 80% 20%, rgba(1,95,204,.62), transparent 64%),
+    radial-gradient(80% 66% at 52% 116%, rgba(3,31,100,.72), transparent 68%),
+    linear-gradient(165deg, rgba(1,95,204,.5) 0%, rgba(3,42,120,.55) 44%, rgba(2,14,48,.8) 100%)}
+  .bg-grid{position:absolute;inset:0;opacity:.12;
+    background-image:linear-gradient(to right,rgba(160,215,255,.12) 1px,transparent 1px),linear-gradient(to bottom,rgba(160,215,255,.12) 1px,transparent 1px);
+    background-size:104px 104px;
+    -webkit-mask-image:radial-gradient(ellipse 82% 72% at 50% 30%,#000 22%,transparent 82%);
+    mask-image:radial-gradient(ellipse 82% 72% at 50% 30%,#000 22%,transparent 82%)}
+  .bg-halftone{position:absolute;inset:0;opacity:.13;
+    background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);background-size:18px 18px}
+  .bg-vig{position:absolute;inset:0;background:radial-gradient(ellipse 92% 82% at 50% 40%,transparent 46%,rgba(2,14,48,.6) 100%)}
+
+  /* ===== 顶栏 ===== */
+  .topbar{position:relative;z-index:2;max-width:920px;margin:0 auto;padding:26px 24px 0;
+    display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:10px;color:#fff}
+  .brand img{width:34px;height:34px;border-radius:9px;background:#fff;padding:3px;box-shadow:0 0 18px rgba(56,189,248,.4)}
+  .brand b{font-family:"Oswald","Inter",sans-serif;letter-spacing:.22em;text-transform:uppercase;font-weight:600;font-size:15px}
+  .topnav{display:flex;align-items:center;gap:10px;font-size:13px}
+  .topnav a{color:var(--text-3);border:1px solid rgba(255,255,255,.18);padding:8px 14px;border-radius:9px;transition:all .2s;white-space:nowrap}
+  .topnav a:hover{color:#fff;border-color:var(--primary);background:rgba(22,207,251,.1);text-decoration:none}
+  .topnav a.cur{color:#04121f;background:var(--gradient);border-color:transparent;font-weight:600}
+
+  /* ===== 文档 ===== */
+  .doc-wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:26px 24px 80px}
+  .doc{position:relative;background:linear-gradient(180deg,rgba(4,26,74,.72),rgba(3,18,56,.86));
+    border:1px solid rgba(255,255,255,.16);border-radius:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    padding:clamp(26px,4vw,52px);box-shadow:0 24px 70px rgba(0,8,32,.45)}
+  .doc::before,.doc::after{content:"";position:absolute;width:18px;height:18px;pointer-events:none;border:1px solid var(--primary);opacity:.85}
+  .doc::before{top:-12px;left:-12px;border-right:none;border-bottom:none}
+  .doc::after{bottom:-12px;right:-12px;border-left:none;border-top:none}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.28em;
+    color:var(--primary);text-transform:uppercase;margin-bottom:14px;font-weight:600}
+  .eyebrow::before{content:"";width:0;height:0;flex:none;border-left:7px solid var(--primary);border-top:5px solid transparent;border-bottom:5px solid transparent}
+  h1{font-family:"Oswald","Inter",sans-serif;font-size:clamp(28px,4.4vw,42px);line-height:1.08;font-weight:600;letter-spacing:.01em;margin-bottom:14px}
+  .meta{font-size:13px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:8px 20px;padding-bottom:22px;margin-bottom:26px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .meta b{color:var(--text-2);font-weight:600}
+  .lead{font-size:15px;color:var(--text-2);margin-bottom:8px}
+
+  h2{font-size:17px;font-weight:700;color:#fff;margin:34px 0 12px;display:flex;align-items:baseline;gap:10px;letter-spacing:.01em}
+  h2 .n{font-family:"Oswald","Inter",sans-serif;color:var(--primary);font-size:15px;font-weight:500;letter-spacing:.08em;flex:none;
+    border-left:3px solid var(--primary);padding-left:9px;line-height:1}
+  h2:first-of-type{margin-top:6px}
+  p{color:var(--text-2);font-size:14.5px;margin:10px 0}
+  ul{margin:10px 0 10px 2px;padding:0;list-style:none}
+  li{color:var(--text-2);font-size:14.5px;position:relative;padding-left:18px;margin:7px 0}
+  li::before{content:"";position:absolute;left:2px;top:.72em;width:6px;height:6px;background:var(--primary);
+    box-shadow:0 0 8px rgba(22,207,251,.7);transform:rotate(45deg)}
+  strong{color:#fff;font-weight:600}
+  .note{margin-top:14px;padding:12px 16px;border-left:3px solid var(--gold);background:rgba(255,197,74,.08);
+    border-radius:0 10px 10px 0;font-size:13.5px;color:var(--text-2)}
+  .note b{color:var(--gold)}
+  .ph{color:var(--gold);border-bottom:1px dashed rgba(255,197,74,.6);padding:0 2px}
+
+  .doc-foot{margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.12);
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-size:13px;color:var(--text-3)}
+  .doc-foot .btn{display:inline-flex;align-items:center;gap:8px;color:#04121f;background:var(--gradient);
+    padding:11px 20px;border-radius:10px;font-weight:700;font-size:13.5px;box-shadow:0 10px 26px rgba(22,207,251,.32)}
+  .doc-foot .btn:hover{text-decoration:none;transform:translateY(-1px)}
+  @media (max-width:640px){ .topbar{flex-direction:column;align-items:flex-start;gap:14px} }
+</style>
+</head>
+<body>
+  <div class="bg-stage" aria-hidden="true">
+    <div class="bg-base"></div>
+    <div class="bg-halftone"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-vig"></div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="/"><img src="/logo.svg" alt="Fleta" /><b>Fleta</b></a>
+    <nav class="topnav">
+      <a class="cur" href="/terms.html">服务条款</a>
+      <a href="/privacy.html">隐私政策</a>
+      <a href="/">返回首页</a>
+    </nav>
+  </header>
+
+  <main class="doc-wrap">
+    <article class="doc">
+      <span class="eyebrow">Terms of Service / 服务条款</span>
+      <h1>Fleta 服务条款</h1>
+      <div class="meta">
+        <span>生效日期：<b>2026 年 9 月 20 日</b></span>
+        <span>更新日期：<b>2026 年 9 月 20 日</b></span>
+        <span>版本：<b>v1.0</b></span>
+      </div>
+
+      <p class="lead">欢迎使用 Fleta（以下简称"本平台"或"我们"）。本平台是一个面向电商与工厂商家的 AI 智能设计工具，提供 AI 提示词生成、视频反推、电商视觉设计等在线服务。在使用本平台前，请您（以下简称"用户"或"您"）仔细阅读并充分理解本条款的全部内容，特别是以加粗方式提示的免责、责任限制条款。您勾选"我已阅读并同意服务条款与隐私政策"并完成注册，即表示您已阅读、理解并同意接受本条款的全部约束。</p>
+
+      <h2><span class="n">01</span>服务内容</h2>
+      <p>本平台通过网站向用户提供以下在线服务（具体功能以平台实际提供为准）：</p>
+      <ul>
+        <li>AI 提示词生成：根据用户输入，生成适用于图像／视频生成模型的提示词；</li>
+        <li>视频反推：基于用户提供的视频或素材，反推可用于再创作的提示词与参数；</li>
+        <li>电商视觉设计辅助：为商品、详情页、落地页等场景提供 AI 视觉内容生成与处理工具；</li>
+        <li>其他由本平台不时推出或调整的功能与服务。</li>
+      </ul>
+      <p>本平台有权根据运营需要，对服务内容、功能范围、使用规则进行增加、调整或下架。</p>
+
+      <h2><span class="n">02</span>账户注册与安全</h2>
+      <ul>
+        <li>注册时您需提供真实、准确、有效的邮箱地址，并设置不少于 6 位的密码；我们还将向您的邮箱发送验证码用于校验邮箱真实性。</li>
+        <li>昵称为可选项。您应对以您账户名义实施的全部行为负责。</li>
+        <li>请妥善保管账户与密码。若发现账户被他人非法使用或存在安全隐患，请立即联系我们。因您保管不善导致的损失，由您自行承担。</li>
+        <li>不得使用他人信息注册，不得为规避规则而批量、重复注册账户，不得将账户出租、出借、出售给他人。</li>
+      </ul>
+
+      <h2><span class="n">03</span>使用规范</h2>
+      <p>您承诺在使用本平台时遵守中华人民共和国相关法律法规及本条款，且不得从事以下行为：</p>
+      <ul>
+        <li>上传、生成、传播任何违反法律法规、侵犯他人合法权益（包括但不限于知识产权、肖像权、名誉权）或违背公序良俗的内容；</li>
+        <li>利用本平台生成虚假宣传、违法广告、侵权商品或用于欺诈、误导消费者的内容；</li>
+        <li>以任何方式抓取、爬取、批量下载本平台数据，或对本平台进行反向工程、破解、攻击、压力测试；</li>
+        <li>滥用积分、优惠或接口，通过技术手段刷取、篡改用量数据；</li>
+        <li>将本平台服务或其生成能力转售、镜像、二次分发，除非获得我们的书面授权；</li>
+        <li>其他干扰本平台正常运营或损害其他用户、第三方合法权益的行为。</li>
+      </ul>
+
+      <h2><span class="n">04</span>积分、付费与结算</h2>
+      <ul>
+        <li>新用户完成注册即赠 <strong>70 张图片生成积分</strong>，用于体验平台的图片生成能力。</li>
+        <li>积分与具体功能的兑换比例、有效期、适用规则以平台页面展示为准。</li>
+        <li>除法律法规另有规定或我们另有说明外，已消耗的积分不可退还、不可折现、不可转让。</li>
+        <li>若未来推出付费套餐，相关价格、计费与退款规则将在购买页面另行说明，并作为本条款的补充。</li>
+      </ul>
+
+      <h2><span class="n">05</span>用户内容与知识产权</h2>
+      <ul>
+        <li>您上传的图片、素材、文本等内容（"用户内容"）的权属归您或原权利人所有。您保证对所上传内容拥有合法权利或已获得充分授权。</li>
+        <li>为向您提供服务之目的，您授权我们在必要范围内存储、处理、传输您的用户内容（例如将图片发送至 AI 生成服务完成处理）。</li>
+        <li>在您的用户内容不包含他人权利的前提下，您可将其用于合法用途。请您在使用生成结果前自行核查是否符合第三方权利与相关合规要求。</li>
+        <li>本平台的软件、界面、商标、文档及平台自身内容的知识产权归我们或相关权利人所有，未经许可不得使用。</li>
+      </ul>
+
+      <h2><span class="n">06</span>AI 生成内容免责</h2>
+      <ul>
+        <li>本平台基于第三方 AI 模型提供服务，<strong>生成结果由算法自动产生，仅供参考，我们不保证其准确性、完整性、适用性或可用性</strong>。</li>
+        <li>AI 生成内容可能与他人作品存在相似，或存在事实性错误、不合规元素。您应在使用（尤其是商业使用）前自行审核、修改，并对最终发布内容承担全部责任。</li>
+        <li>因您使用或依赖生成结果而产生的任何直接或间接损失，我们不承担责任。</li>
+      </ul>
+
+      <h2><span class="n">07</span>服务可用性与变更</h2>
+      <ul>
+        <li>本平台按"现状"和"现有可用"状态提供服务。我们尽力保障服务稳定，但<strong>不承诺服务绝对不中断、不出错</strong>。</li>
+        <li>因系统维护、升级、第三方服务故障、网络或不可抗力等原因导致的服务暂停、数据延迟或功能受限，我们不承担责任，但会尽力及时通知与恢复。</li>
+        <li>我们可能不定期进行功能更新、界面调整或服务下线。</li>
+      </ul>
+
+      <h2><span class="n">08</span>责任限制</h2>
+      <p>在法律法规允许的最大范围内：</p>
+      <ul>
+        <li>我们对本平台服务不作任何明示或默示的保证，包括但不限于适销性、特定用途适用性及不侵权的保证；</li>
+        <li>我们不对因使用或无法使用本平台而产生的任何间接、附带、特殊、惩罚性或后果性损失（包括利润损失、数据丢失、商誉损失）承担责任；</li>
+        <li>在法律允许的范围内，我们就本平台服务向您承担的赔偿责任总额，以您在过去 <strong>三（3）个月</strong>内因使用相关服务而实际向我们支付的费用为上限。</li>
+      </ul>
+
+      <h2><span class="n">09</span>违约与终止</h2>
+      <ul>
+        <li>若您违反本条款或相关法律法规，我们有权视情节采取警告、限制功能、暂停或永久封禁账户、清除违规内容等措施，且有权不退还已消耗的积分或费用。</li>
+        <li>您可随时停止使用本平台。您可联系我们申请注销账户，注销后相关数据将按隐私政策处理。</li>
+      </ul>
+
+      <h2><span class="n">10</span>条款修改</h2>
+      <p>我们可能根据业务与法律要求更新本条款。更新后我们会在本页面公布最新版本并更新"更新日期"，重大变更将以站内通知、邮件等合理方式提示。若您在条款更新后继续使用本平台，即视为您接受修订后的条款。</p>
+
+      <h2><span class="n">11</span>法律适用与争议解决</h2>
+      <p>本条款的订立、效力、解释、履行及争议解决均适用中华人民共和国法律。因本条款或本平台服务产生的争议，双方应首先友好协商解决；协商不成的，任何一方可向我们运营主体所在地有管辖权的人民法院提起诉讼。</p>
+
+      <h2><span class="n">12</span>联系我们</h2>
+      <p>如您对本条款有任何疑问、意见或投诉，欢迎通过以下方式联系我们：</p>
+      <ul>
+        <li>客服微信：<strong>cc44cc5</strong>（可通过本平台页脚"联系我"查看）</li>
+        <li>运营主体：<span class="ph">【请填写公司／主体全称】</span></li>
+      </ul>
+      <div class="note"><b>提示：</b>请将上方的<span class="ph">【运营主体】</span>替换为实际公司全称（如涉及备案主体、注册地址等信息，也建议一并补充），以便本条款具备完整的法律要素。</div>
+
+      <div class="doc-foot">
+        <span>© 2026 Fleta · 本条款自生效日期起施行</span>
+        <a class="btn" href="/privacy.html">查看《隐私政策》 →</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>
