@@ -877,7 +877,11 @@
   #navCodeStock{background:#0a0c0f!important;color:#fff!important;border:1px solid var(--line)!important;
     box-shadow:none!important;font-family:var(--mono)}
   #navUserPill{border-radius:var(--r)!important;background:rgba(255,255,255,.03)!important;border:1px solid var(--line)!important}
-  #navAvatar{border-radius:3px!important;background:linear-gradient(135deg,#dfe7ee,#8ea6bd)!important}
+  /* 导航头像：只锁形状(方角,与 navUserPill/nav-cta 一致)，**绝不锁 background**。
+     锁 background 的 !important 会压过 setAvatar() 写的内联样式(el.style.background 无 !important)，
+     于是用户上传的头像图永远被这层银灰渐变盖住、只显示一个空白方块。
+     用户 2026-09-18 截图反馈「头像显示有问题」（fleta 旁一个空白银灰方块）。 */
+  #navAvatar{border-radius:var(--r)!important}
 
   /* ---- 5) 首屏：电影感 HUD ---- */
   .hero{min-height:100svh;padding:0;display:block;text-align:left;overflow:hidden;position:relative;z-index:1;
