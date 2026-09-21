@@ -29,7 +29,7 @@
   a:hover{text-decoration:underline}
 
   .bg-stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#04205e}
-  .bg-base{position:absolute;inset:-12%;background:
+  .bg-base{position:absolute;inset:-12%;z-index:-1;background:
     radial-gradient(58% 46% at 22% 12%, rgba(22,207,251,.3), transparent 62%),
     radial-gradient(60% 50% at 80% 20%, rgba(1,95,204,.62), transparent 64%),
     radial-gradient(80% 66% at 52% 116%, rgba(3,31,100,.72), transparent 68%),
@@ -42,6 +42,9 @@
   .bg-halftone{position:absolute;inset:0;opacity:.13;
     background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);background-size:18px 18px}
   .bg-vig{position:absolute;inset:0;background:radial-gradient(ellipse 92% 82% at 50% 40%,transparent 46%,rgba(2,14,48,.6) 100%)}
+  /* WebGL 流光签名背景：全屏 canvas 作最底层主背景；.bg-base 退为兜底 */
+  #bgfx{position:absolute;inset:0;z-index:0;width:100%;height:100%;display:block}
+  .bg-page{position:absolute;inset:0;background:url("/assets/p3/web/art-page-bg.webp") center/cover no-repeat;opacity:.4;filter:saturate(1.06) contrast(1.05) brightness(.62)}
 
   .topbar{position:relative;z-index:2;max-width:920px;margin:0 auto;padding:26px 24px 0;
     display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -99,7 +102,9 @@
 </head>
 <body>
   <div class="bg-stage" aria-hidden="true">
+    <canvas id="bgfx" aria-hidden="true"></canvas>
     <div class="bg-base"></div>
+    <div class="bg-page"></div>
     <div class="bg-halftone"></div>
     <div class="bg-grid"></div>
     <div class="bg-vig"></div>
@@ -228,5 +233,6 @@
       </div>
     </article>
   </main>
+<script src="/bgfx.js"></script>
 </body>
 </html>

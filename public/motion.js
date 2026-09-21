@@ -283,6 +283,46 @@
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () { if (hasST) ScrollTrigger.refresh(); });
   }
+  /* ------------------------------------------------------------------
+   * 3.10 Hero / 章节美术 视差（滚动驱动，纯 transform / GPU 合成）
+   * ------------------------------------------------------------------ */
+  if (hasST && !REDUCE) {
+    var heroArt = document.querySelector('.hero-art');
+    if (heroArt) {
+      gsap.fromTo(heroArt, { yPercent: -6, scale: 1.06 }, {
+        yPercent: 10, scale: 1.12, ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
+      });
+    }
+    gsap.utils.toArray('.sec-art').forEach(function (el) {
+      var img = el.querySelector('img') || el;
+      gsap.fromTo(img, { yPercent: -10 }, {
+        yPercent: 12, ease: 'none',
+        scrollTrigger: { trigger: el.closest('section') || el, start: 'top bottom', end: 'bottom top', scrub: true }
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+   * 3.11 卡片 3D 倾斜微交互（仅精确指针、非降级；作用于无 transform 过渡的大卡）
+   * ------------------------------------------------------------------ */
+  if (!COARSE && !REDUCE && hasGSAP) {
+    document.querySelectorAll('.pg-card, .vu-card').forEach(function (card) {
+      gsap.set(card, { transformPerspective: 900, transformOrigin: 'center' });
+      var rx = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
+      var ry = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+      var sc = gsap.quickTo(card, 'scale', { duration: 0.5, ease: 'power3.out' });
+      card.style.willChange = 'transform';
+      card.addEventListener('mousemove', function (e) {
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        ry(px * 12); rx(-py * 12); sc(1.015);
+      });
+      card.addEventListener('mouseleave', function () { rx(0); ry(0); sc(1); });
+    });
+  }
+
   var rt = null;
   window.addEventListener('resize', function () {
     clearTimeout(rt);
