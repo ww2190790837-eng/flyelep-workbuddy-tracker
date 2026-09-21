@@ -4,18 +4,36 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#3aa8e6" />
-<title>Fleta · AI 提示词生成与视频反推</title>
-<meta name="description" content="Fleta — AI 提示词生成、Seedance 2.5 视频反推、电商视觉设计工具" />
-<meta name="keywords" content="Fleta,AI设计,视频提示词,Seedance,SD2.5,提示词生成,视频反推" />
-<meta property="og:title" content="Fleta · AI 提示词生成与视频反推" />
-<meta property="og:description" content="AI 驱动的提示词生成与视频反推平台" />
+<title>Fleta · AI 视频提示词生成与反推｜电商视觉设计工具</title>
+<meta name="description" content="Fleta 是面向电商与创作者的 AI 设计平台：一键生成 Seedance 2.5 专业视频提示词、上传视频反推五段式脚本、Agnes 文生视频。注册即送 70 张图片生成积分。" />
+<meta name="keywords" content="Fleta,AI设计,视频提示词,Seedance 2.5,SD2.5,提示词生成,视频反推,文生视频,电商视觉,短视频,抖音,1688,首尾帧,AI视频" />
+<meta name="author" content="Fleta" />
+<link rel="canonical" href="https://flyelep-wb-tracker.onrender.com/" />
+<meta property="og:title" content="Fleta · AI 视频提示词生成与反推" />
+<meta property="og:description" content="AI 视频提示词生成、原片反推与文生视频一体平台，注册即送 70 张图片生成积分。" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://flyelep-wb-tracker.onrender.com" />
-<meta property="og:image" content="/logo.svg" />
+<meta property="og:image" content="/assets/hero-p3-firstframe.webp" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Fleta · AI 视频提示词生成与反推" />
+<meta name="twitter:description" content="AI 视频提示词生成、原片反推与文生视频一体平台，注册即送 70 张图片生成积分。" />
+<meta name="twitter:image" content="/assets/hero-p3-firstframe.webp" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Fleta",
+  "url": "https://flyelep-wb-tracker.onrender.com",
+  "description": "AI 视频提示词生成、原片反推与文生视频一体平台",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+}
+</script>
 <link rel="icon" href="/logo.svg" type="image/png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -1390,7 +1408,7 @@
 <!-- 版本更新通知 -->
 <div id="versionModal" style="display:none;position:fixed;inset:0;z-index:220;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeVersionModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative">
-    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(124,164,200,.4)">v1.3.0</div>
+    <div id="versionBadge" style="position:absolute;top:-14px;left:32px;background:var(--gradient);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;box-shadow:0 4px 14px rgba(124,164,200,.4)">v1.4.0</div>
     <h3 id="versionTitle" style="margin:8px 0 6px;font-size:19px;font-weight:700;color:var(--text)">版本更新</h3>
     <p style="margin:0 0 16px;font-size:13px;color:var(--text-2)">本次更新内容</p>
     <ul id="versionItems" style="margin:0 0 22px;padding-left:20px;color:var(--text-2);font-size:14px;line-height:1.9"></ul>
@@ -1401,7 +1419,7 @@
 
 <header class="hero" id="heroSection">
   <div class="hero-art" aria-hidden="true">
-    <video class="hero-art-video" autoplay muted loop playsinline preload="auto"
+    <video class="hero-art-video" autoplay muted loop playsinline preload="metadata"
            poster="/assets/hero-p3-firstframe.webp">
       <source src="/assets/hero-p3.mp4" type="video/mp4" />
     </video>
@@ -1417,14 +1435,16 @@
     </div>
 
     <div class="hero-main">
-      <p class="hero-kicker">Rhodes Island — AI Design Agent</p>
+      <p class="hero-kicker">Fleta — AI Design Agent</p>
       <h1 class="hero-word" aria-label="Fleta"><span style="animation-delay:.05s">F</span><span style="animation-delay:.12s">L</span><span style="animation-delay:.19s">E</span><span style="animation-delay:.26s">T</span><span style="animation-delay:.33s">A</span></h1>
       <p class="hero-sub">AI 提示词生成 · 视频反推 · 电商视觉设计</p>
-      <p class="hero-url">https://fleta-ai.onrender.com/</p>
+      <p class="hero-url">https://flyelep-wb-tracker.onrender.com/</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="#prompt-gen"><svg class="ic" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9z"/></svg>开始生成提示词</a>
         <a class="btn btn-ghost" href="#video-reverse"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>视频反推</a>
       </div>
+
+      <p class="hero-lead" style="margin:22px auto 0;font-size:13px;color:rgba(255,255,255,.72);display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center">注册即送 <b style="color:var(--gold)">70 张</b> 图片生成积分 · 支持 Seedance 2.5 / SD 2.5 / Agnes · 无需信用卡</p>
 
       <div class="hero-side" aria-label="快捷入口">
         <a href="#prompt-gen"><span class="n">01</span>提示词</a>
@@ -2172,7 +2192,7 @@
         <span>Fleta</span>
       </div>
       <div>
-        <p>Fleta· AI 智能设计平台。</p>
+        <p>Fleta · 面向电商与创作者的 AI 智能设计平台，让好产品被看见。</p>
       </div>
       <div class="foot-col">
         <h5>功能</h5>
