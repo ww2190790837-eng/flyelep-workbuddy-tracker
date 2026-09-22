@@ -326,6 +326,8 @@
     var heroArt = heroSec.querySelector('.hero-art');
     var heroInner = heroSec.querySelector('.hero-inner');
     var hudFrame = heroSec.querySelector('.hud-frame');
+    if (heroArt) gsap.set(heroArt, { filter: 'brightness(1) saturate(1)' });
+    if (heroInner) gsap.set(heroInner, { filter: 'blur(0px)' });
     var htl = gsap.timeline({
       scrollTrigger: {
         trigger: heroSec,
