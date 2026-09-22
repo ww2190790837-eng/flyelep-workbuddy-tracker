@@ -326,8 +326,10 @@
     var heroArt = heroSec.querySelector('.hero-art');
     var heroInner = heroSec.querySelector('.hero-inner');
     var hudFrame = heroSec.querySelector('.hud-frame');
+    var heroScan = heroSec.querySelector('.hero-scan');
     if (heroArt) gsap.set(heroArt, { filter: 'brightness(1) saturate(1)' });
     if (heroInner) gsap.set(heroInner, { filter: 'blur(0px)' });
+    if (heroScan) gsap.set(heroScan, { top: '0%' });
     var htl = gsap.timeline({
       scrollTrigger: {
         trigger: heroSec,
@@ -341,6 +343,7 @@
     if (heroArt) htl.to(heroArt, { scale: 1.4, filter: 'brightness(1.4) saturate(1.2)', ease: 'none' }, 0);
     if (heroInner) htl.to(heroInner, { scale: 1.3, autoAlpha: 0, filter: 'blur(14px)', ease: 'none' }, 0);
     if (hudFrame) htl.to(hudFrame, { autoAlpha: 0, scale: 1.12, ease: 'none' }, 0);
+    if (heroScan) htl.to(heroScan, { top: '100%', ease: 'none' }, 0);
   }
 
   /* ------------------------------------------------------------------
@@ -361,7 +364,18 @@
           pin: true,
           scrub: 1,
           anticipatePin: 1,
-          invalidateOnRefresh: true
+          invalidateOnRefresh: true,
+          onUpdate: function (self) {
+            var f = document.getElementById('capRailFill');
+            if (f) f.style.width = (self.progress * 100).toFixed(1) + '%';
+            var tg = document.getElementById('capRailTag');
+            if (tg) tg.textContent = 'SCROLL ' + (self.progress * 100).toFixed(0) + '%';
+            var idx = document.getElementById('capRailIdx');
+            if (idx) {
+              var n = Math.min(6, 1 + Math.floor(self.progress * 6));
+              idx.textContent = ('0' + n).slice(-2) + ' / 06';
+            }
+          }
         }
       });
       gsap.utils.toArray('.cap-card').forEach(function (card) {
@@ -397,6 +411,7 @@
     var kmLoop = gsap.to(kmTrack, { xPercent: -50, duration: 26, ease: 'none', repeat: -1 });
     var kmSkew = gsap.quickTo(kmTrack, 'skewX', { duration: 0.5, ease: 'power3.out' });
     var kmSkewTarget = 0, kmTsTarget = 1;
+    var kmReadout = document.getElementById('kmReadout');
     ScrollTrigger.create({
       onUpdate: function (self) {
         var v = self.getVelocity();
@@ -409,6 +424,7 @@
       kmTsTarget += (1 - kmTsTarget) * 0.08;
       kmSkew(kmSkewTarget);
       kmLoop.timeScale(kmTsTarget);
+      if (kmReadout) kmReadout.textContent = 'STREAM x' + kmTsTarget.toFixed(1);
     });
   }
 

@@ -1272,13 +1272,25 @@
 </style>
 <style id="top-tier">
 /* ===== 顶级交互：核心能力横向画廊（pinned horizontal scroll） ===== */
-/* HUD 单色皮肤：发丝边线 + 单色卡片 + 仅以 --accent 作刻度强调，不再使用玻璃/辉光 */
+/* HUD 原生：发丝边线 + 单色卡片 + 仅 --accent 作刻度，叠加取景直角括号 / 进度轨 / 状态读数 */
 .cap-sec{position:relative;overflow:hidden}
 .cap-head{text-align:center;padding:96px 20px 26px}
 .cap-head .section-eyebrow{display:inline-block;margin-bottom:14px}
 .cap-head .section-title{margin:0}
 .cap-pin{height:100vh;display:flex;align-items:center;overflow:hidden;position:relative}
+/* 画廊视图框：4 角直角括号（--line，大号） */
+.cap-pin:before{content:"";position:absolute;inset:16px;pointer-events:none;z-index:3;opacity:.85;
+  background:
+    linear-gradient(var(--line),var(--line)) left top/34px 2px no-repeat,
+    linear-gradient(var(--line),var(--line)) left top/2px 34px no-repeat,
+    linear-gradient(var(--line),var(--line)) right top/34px 2px no-repeat,
+    linear-gradient(var(--line),var(--line)) right top/2px 34px no-repeat,
+    linear-gradient(var(--line),var(--line)) left bottom/34px 2px no-repeat,
+    linear-gradient(var(--line),var(--line)) left bottom/2px 34px no-repeat,
+    linear-gradient(var(--line),var(--line)) right bottom/34px 2px no-repeat,
+    linear-gradient(var(--line),var(--line)) right bottom/2px 34px no-repeat}
 .cap-track{display:flex;gap:24px;padding:0 8vw;will-change:transform;width:max-content}
+/* 卡片 4 角直角括号（--accent，小号） */
 .cap-card{position:relative;flex:0 0 clamp(290px,32vw,420px);height:62vh;max-height:560px;
   display:flex;flex-direction:column;justify-content:flex-end;gap:14px;
   padding:32px 30px;border-radius:16px;overflow:hidden;
@@ -1286,6 +1298,16 @@
   border:1px solid var(--border);
   box-shadow:0 4px 20px rgba(160,215,255,.09);
   transform-style:preserve-3d;will-change:transform}
+.cap-card:before{content:"";position:absolute;inset:14px;pointer-events:none;z-index:1;opacity:.5;
+  background:
+    linear-gradient(var(--accent),var(--accent)) left top/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) left top/2px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right top/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right top/2px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) left bottom/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) left bottom/2px 16px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right bottom/16px 2px no-repeat,
+    linear-gradient(var(--accent),var(--accent)) right bottom/2px 16px no-repeat}
 .cap-card:after{content:"";position:absolute;left:30px;top:44px;width:28px;height:2px;
   background:var(--accent);opacity:.85;border-radius:2px}
 .cap-idx{position:absolute;top:22px;left:30px;font-family:var(--mono);font-size:13px;
@@ -1298,18 +1320,36 @@
   border:1px solid var(--border);border-radius:99px;padding:5px 12px;background:transparent}
 .cap-card.cap-end{justify-content:center;align-items:center;text-align:center;gap:18px;
   border-color:rgba(22,207,251,.35);background:rgba(22,207,251,.04)}
+/* 底部进度轨 + 滚动提示（由 capTween 驱动） */
+.cap-rail{position:absolute;left:8vw;right:8vw;bottom:30px;height:2px;background:var(--line);z-index:4}
+.cap-rail-fill{position:absolute;left:0;top:0;height:100%;width:0;background:var(--accent);
+  box-shadow:0 0 10px var(--accent)}
+.cap-rail-idx{position:absolute;left:0;bottom:-22px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.18em;color:var(--text-3)}
+.cap-rail-tag{position:absolute;right:0;bottom:-22px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.18em;color:var(--text-3)}
 
 /* ===== 顶级交互：宣言式逐行揭示 ===== */
 .manifesto{position:relative;padding:120px 0}
 .manifesto .wrap{max-width:1180px}
+.manifesto-eyebrow{display:block;text-align:center;font-family:var(--mono);font-size:12px;
+  letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:26px;opacity:.85}
 .manifesto-text{font-size:clamp(22px,3.2vw,42px);line-height:1.3;font-weight:700;
   letter-spacing:-.01em;color:var(--text);text-align:center;margin:0}
 .manifesto-text em{font-style:normal;background:var(--gradient);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 
 /* ===== 顶级交互：滚动速度响应跑马灯 ===== */
+.km-wrap{position:relative}
+.km-head{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 8vw 12px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--text-3);border-top:1px solid var(--line)}
+.km-label{display:inline-flex;align-items:center;gap:9px;color:var(--accent)}
+.km-label:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 8px var(--accent)}
+.km-readout{color:var(--text-3);letter-spacing:.14em}
 .kmarquee{position:relative;overflow:hidden;padding:22px 0;
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-top:0;border-bottom:1px solid var(--line);
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .km-track{display:flex;align-items:center;gap:36px;width:max-content;will-change:transform;white-space:nowrap}
@@ -1317,6 +1357,11 @@
   letter-spacing:.02em;color:var(--text);text-transform:uppercase;display:inline-flex;align-items:center}
 .km-track .km-dot{color:var(--accent);font-size:.55em;-webkit-text-fill-color:var(--accent)}
 .kmarquee.km-light .km-track span{color:#fff}
+
+/* ===== hero 滚动扫描线 ===== */
+.hero-scan{position:absolute;left:0;right:0;top:0;height:2px;z-index:6;pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--accent) 18%,var(--accent) 82%,transparent);
+  box-shadow:0 0 14px var(--accent);opacity:.7}
 
 /* ===== 子页标题逐行揭示 ===== */
 .page-ttl{will-change:transform}
@@ -1482,6 +1527,7 @@
     <span class="hero-art-fade"></span>
   </div>
   <div class="hud-frame" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <span class="hero-scan" aria-hidden="true"></span>
   <div class="wrap hero-inner">
     <div class="hero-top">
       <span>Official Website · 官方网站</span>
@@ -2281,20 +2327,32 @@
         <a class="btn btn-ghost" href="/login.html">登录解锁全部 →</a>
       </article>
     </div>
+    <div class="cap-rail" aria-hidden="true">
+      <span class="cap-rail-fill" id="capRailFill"></span>
+      <span class="cap-rail-idx" id="capRailIdx">01 / 06</span>
+      <span class="cap-rail-tag" id="capRailTag">SCROLL →</span>
+    </div>
   </div>
 </section>
 
 <!-- 顶级交互：宣言式逐行揭示 -->
 <section class="manifesto">
   <div class="wrap">
+    <span class="manifesto-eyebrow">// SYSTEM MANIFESTO</span>
     <p class="manifesto-text" id="manifestoText">优质工厂在 1688 卖不动，往往不是产品不好，而是电商视觉太弱。<em>Fleta 用 AI，把强供应链做成一眼记住的好视觉。</em></p>
   </div>
 </section>
 
 <!-- 顶级交互：滚动速度响应跑马灯 -->
-<div class="kmarquee" aria-hidden="true">
-  <div class="km-track" id="kmTrack">
-    <span>FLETA</span><span class="km-dot">✦</span><span>AI 设计</span><span class="km-dot">✦</span><span>电商视觉</span><span class="km-dot">✦</span><span>详情页</span><span class="km-dot">✦</span><span>短视频</span><span class="km-dot">✦</span><span>SEEDANCE 2.5</span><span class="km-dot">✦</span>
+<div class="km-wrap">
+  <div class="km-head">
+    <span class="km-label">FLETA · LIVE FEED</span>
+    <span class="km-readout" id="kmReadout">STREAM x1.0</span>
+  </div>
+  <div class="kmarquee" aria-hidden="true">
+    <div class="km-track" id="kmTrack">
+      <span>FLETA</span><span class="km-dot">✦</span><span>AI 设计</span><span class="km-dot">✦</span><span>电商视觉</span><span class="km-dot">✦</span><span>详情页</span><span class="km-dot">✦</span><span>短视频</span><span class="km-dot">✦</span><span>SEEDANCE 2.5</span><span class="km-dot">✦</span>
+    </div>
   </div>
 </div>
 
