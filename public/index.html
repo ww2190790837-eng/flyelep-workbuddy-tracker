@@ -1270,6 +1270,58 @@
   @media (prefers-reduced-motion:reduce){.bg-glow{display:none}}
   /* 已删(2026-09-18):.bg-scan 浅色覆盖(元素已删) */
 </style>
+<style id="top-tier">
+/* ===== 顶级交互：核心能力横向画廊（pinned horizontal scroll） ===== */
+.cap-sec{position:relative;overflow:hidden}
+.cap-head{text-align:center;padding:96px 20px 26px}
+.cap-head .section-eyebrow{display:inline-block;margin-bottom:14px}
+.cap-head .section-title{margin:0}
+.cap-pin{height:100vh;display:flex;align-items:center;overflow:hidden;position:relative}
+.cap-track{display:flex;gap:30px;padding:0 8vw;will-change:transform;width:max-content}
+.cap-card{position:relative;flex:0 0 clamp(290px,32vw,430px);height:62vh;max-height:560px;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:14px;
+  padding:34px 32px;border-radius:22px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid var(--border);
+  box-shadow:0 30px 70px -30px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
+  transform-style:preserve-3d;will-change:transform}
+.cap-card:before{content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 80% at 82% 0%,rgba(22,207,251,.18),transparent 60%);pointer-events:none}
+.cap-idx{position:absolute;top:22px;left:26px;font-family:var(--mono);font-size:13px;
+  letter-spacing:.2em;color:var(--accent);font-weight:700}
+.cap-card h3{position:relative;margin:0;font-size:clamp(20px,2vw,28px);font-weight:700;
+  letter-spacing:-.01em;color:var(--text)}
+.cap-card p{position:relative;margin:0;font-size:14px;line-height:1.7;color:var(--text-2)}
+.cap-tag{position:relative;align-self:flex-start;margin-top:6px;font-family:var(--mono);
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--primary-2);
+  border:1px solid rgba(22,207,251,.4);border-radius:99px;padding:5px 12px;background:rgba(22,207,251,.08)}
+.cap-card.cap-end{justify-content:center;align-items:center;text-align:center;gap:18px;
+  background:linear-gradient(160deg,rgba(6,58,158,.28),rgba(22,207,251,.1));
+  border-color:rgba(22,207,251,.35)}
+
+/* ===== 顶级交互：宣言式逐行揭示 ===== */
+.manifesto{position:relative;padding:150px 0}
+.manifesto .wrap{max-width:1180px}
+.manifesto-text{font-size:clamp(26px,4.2vw,58px);line-height:1.24;font-weight:700;
+  letter-spacing:-.015em;color:var(--text);text-align:center;margin:0}
+.manifesto-text em{font-style:normal;background:linear-gradient(120deg,var(--primary),var(--primary-2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ===== 顶级交互：滚动速度响应跑马灯 ===== */
+.kmarquee{position:relative;overflow:hidden;padding:34px 0;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(2,14,48,.4),rgba(2,14,48,.1));
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.km-track{display:flex;align-items:center;gap:42px;width:max-content;will-change:transform;white-space:nowrap}
+.km-track span{font-family:var(--mono);font-weight:700;font-size:clamp(28px,5vw,72px);
+  letter-spacing:.02em;color:var(--text);text-transform:uppercase;display:inline-flex;align-items:center}
+.km-track .km-dot{color:var(--accent);font-size:.55em;-webkit-text-fill-color:var(--accent)}
+.kmarquee.km-light .km-track span{color:#fff}
+
+/* ===== 子页标题逐行揭示 ===== */
+.page-ttl{will-change:transform}
+</style>
 </head>
 <body>
 
@@ -2186,6 +2238,67 @@
     </g>
   </svg>
 </div>
+<!-- 顶级交互：核心能力横向画廊（pinned horizontal scroll） -->
+<section id="capabilities" class="cap-sec">
+  <div class="wrap cap-head">
+    <span class="section-eyebrow">Capabilities / 核心能力</span>
+    <h2 class="section-title">为电商而生的 <em>AI 设计矩阵</em></h2>
+  </div>
+  <div class="cap-pin">
+    <div class="cap-track" id="capTrack">
+      <article class="cap-card">
+        <span class="cap-idx">01</span>
+        <h3>AI 视频提示词</h3>
+        <p>五段式结构一键生成 Seedance 2.5 / SD 2.5 专业提示词，从一句话想法到可拍的成片脚本。</p>
+        <span class="cap-tag">Prompt Gen</span>
+      </article>
+      <article class="cap-card">
+        <span class="cap-idx">02</span>
+        <h3>视频反推</h3>
+        <p>粘贴爆款视频链接，AI 解析镜头语言、节奏与文案结构，反推出可复用的创作模板。</p>
+        <span class="cap-tag">Reverse</span>
+      </article>
+      <article class="cap-card">
+        <span class="cap-idx">03</span>
+        <h3>Agnes 视频</h3>
+        <p>面向跨境电商的 AI 视频生成与精修，批量产出多语言、多平台的带货短片。</p>
+        <span class="cap-tag">Agnes</span>
+      </article>
+      <article class="cap-card">
+        <span class="cap-idx">04</span>
+        <h3>5 屏详情页</h3>
+        <p>把优质供应链做成结构化、能转化的电商详情页，视觉升级带动点击与下单。</p>
+        <span class="cap-tag">Detail Page</span>
+      </article>
+      <article class="cap-card">
+        <span class="cap-idx">05</span>
+        <h3>电商视觉升级</h3>
+        <p>主图、场景图、短视频一体化设计，让好产品在 1688 与抖音被一眼记住。</p>
+        <span class="cap-tag">Visual</span>
+      </article>
+      <article class="cap-card cap-end">
+        <h3>还有更多能力</h3>
+        <p>详情页代运营 · 短视频代拍 · 品牌视觉定制</p>
+        <a class="btn btn-ghost" href="/login.html">登录解锁全部 →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 顶级交互：宣言式逐行揭示 -->
+<section class="manifesto">
+  <div class="wrap">
+    <p class="manifesto-text" id="manifestoText">优质工厂在 1688 卖不动，往往不是产品不好，而是电商视觉太弱。<em>Fleta 用 AI，把强供应链做成一眼记住的好视觉。</em></p>
+  </div>
+</section>
+
+<!-- 顶级交互：滚动速度响应跑马灯 -->
+<div class="kmarquee" aria-hidden="true">
+  <div class="km-track" id="kmTrack">
+    <span>FLETA</span><span class="km-dot">✦</span><span>AI 设计</span><span class="km-dot">✦</span><span>电商视觉</span><span class="km-dot">✦</span><span>详情页</span><span class="km-dot">✦</span><span>短视频</span><span class="km-dot">✦</span><span>SEEDANCE 2.5</span><span class="km-dot">✦</span>
+  </div>
+</div>
+
 <footer>
   <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-keyvisual.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="wrap">

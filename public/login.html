@@ -171,6 +171,13 @@
   @media (max-width:900px){ .brand-fig{display:none} .wave-band{height:74px} }
   @media (prefers-reduced-motion:reduce){ .parallax > use{animation:none} }
 </style>
+<style id="top-tier-sub">
+.kmarquee{position:relative;overflow:hidden;padding:30px 0;border-top:1px solid var(--border,#1b2230);border-bottom:1px solid var(--border,#1b2230);background:linear-gradient(180deg,rgba(2,14,48,.4),rgba(2,14,48,.1));-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.km-track{display:flex;align-items:center;gap:42px;width:max-content;will-change:transform;white-space:nowrap}
+.km-track span{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;font-weight:700;font-size:clamp(28px,5vw,56px);letter-spacing:.02em;color:var(--text,#e9eef6);text-transform:uppercase;display:inline-flex;align-items:center}
+.km-track .km-dot{color:#16CFFB;font-size:.55em}
+.page-ttl{will-change:transform}
+</style>
 </head>
 <body>
   <div class="bg-stage" aria-hidden="true">
@@ -223,7 +230,7 @@
       <div class="brand-fig" aria-hidden="true"></div>
       <div class="brand-mid">
         <span class="brand-eyebrow">Sign In / 登录</span>
-        <h1>欢迎来到<br/><span class="grad">Fleta</span></h1>
+        <h1 class="page-ttl">欢迎来到<br/><span class="grad">Fleta</span></h1>
         <p>AI 提示词生成 · 视频反推 · 电商视觉设计工具</p>
         <div class="brand-points">
           <div class="brand-point"><span class="ic">·</span> 一键生成专业级 AI 提示词</div>
@@ -482,6 +489,12 @@
   if (sendCodeBtn) sendCodeBtn.addEventListener("click", sendCode);
 })();
 </script>
+  <div class="kmarquee" aria-hidden="true">
+    <div class="km-track" id="kmTrack">
+      <span>FLETA</span><span class="km-dot">✦</span><span>AI 设计</span><span class="km-dot">✦</span><span>电商视觉</span><span class="km-dot">✦</span><span>详情页</span><span class="km-dot">✦</span><span>短视频</span><span class="km-dot">✦</span><span>SEEDANCE 2.5</span><span class="km-dot">✦</span>
+    </div>
+  </div>
 <script src="/bgfx.js"></script>
+<script src="/motion.js"></script>
 </body>
 </html>

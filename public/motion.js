@@ -160,15 +160,14 @@
     }, '+=0.05');
 
   whenFonts(function () {
+    var word = document.querySelector('.hero-word');
+    if (!word) return;                 /* 仅首页有 hero 入场，子页（无 .hero-word）直接跳过 */
     var heroChars = [];
     if (hasSplit) {
-      var word = document.querySelector('.hero-word');
-      if (word) {
-        var sp = new SplitText(word, { type: 'chars', charsClass: 'hc' });
-        heroChars = sp.chars;
-        word.style.perspective = '700px';
-        gsap.set(heroChars, { yPercent: 120, opacity: 0, rotateX: -70, transformOrigin: '50% 100%' });
-      }
+      var sp = new SplitText(word, { type: 'chars', charsClass: 'hc' });
+      heroChars = sp.chars;
+      word.style.perspective = '700px';
+      gsap.set(heroChars, { yPercent: 120, opacity: 0, rotateX: -70, transformOrigin: '50% 100%' });
     }
     gsap.timeline({ delay: 0.15 })
       /* 字标：慢入慢出 + 重叠跟进（follow-through） */
@@ -287,13 +286,7 @@
    * 3.10 Hero / 章节美术 视差（滚动驱动，纯 transform / GPU 合成）
    * ------------------------------------------------------------------ */
   if (hasST && !REDUCE) {
-    var heroArt = document.querySelector('.hero-art');
-    if (heroArt) {
-      gsap.fromTo(heroArt, { yPercent: -6, scale: 1.06 }, {
-        yPercent: 10, scale: 1.12, ease: 'none',
-        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
-      });
-    }
+    /* 首屏美术的视差已交给 3.12 的 pinned zoom-through，这里不再重复驱动 .hero-art */
     gsap.utils.toArray('.sec-art').forEach(function (el) {
       var img = el.querySelector('img') || el;
       gsap.fromTo(img, { yPercent: -10 }, {
@@ -307,7 +300,7 @@
    * 3.11 卡片 3D 倾斜微交互（仅精确指针、非降级；作用于无 transform 过渡的大卡）
    * ------------------------------------------------------------------ */
   if (!COARSE && !REDUCE && hasGSAP) {
-    document.querySelectorAll('.pg-card, .vu-card').forEach(function (card) {
+    document.querySelectorAll('.pg-card, .vu-card, .cap-card').forEach(function (card) {
       gsap.set(card, { transformPerspective: 900, transformOrigin: 'center' });
       var rx = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
       var ry = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
@@ -320,6 +313,116 @@
         ry(px * 12); rx(-py * 12); sc(1.015);
       });
       card.addEventListener('mouseleave', function () { rx(0); ry(0); sc(1); });
+    });
+  }
+
+  /* ------------------------------------------------------------------
+   * 3.12 Hero 沉浸式缩放穿过（pinned zoom-through）
+   *    首屏固定，向下滚动时背景美术放大、前景文字推向镜头并淡出模糊，
+   *    制造「俯冲进入」的纵深感。仅在精确指针、非降级时启用。
+   * ------------------------------------------------------------------ */
+  var heroSec = document.getElementById('heroSection');
+  if (heroSec && hasST && !COARSE && !REDUCE) {
+    var heroArt = heroSec.querySelector('.hero-art');
+    var heroInner = heroSec.querySelector('.hero-inner');
+    var hudFrame = heroSec.querySelector('.hud-frame');
+    var htl = gsap.timeline({
+      scrollTrigger: {
+        trigger: heroSec,
+        start: 'top top',
+        end: '+=130%',
+        pin: true,
+        scrub: true,
+        anticipatePin: 1
+      }
+    });
+    if (heroArt) htl.to(heroArt, { scale: 1.4, filter: 'brightness(1.4) saturate(1.2)', ease: 'none' }, 0);
+    if (heroInner) htl.to(heroInner, { scale: 1.3, autoAlpha: 0, filter: 'blur(14px)', ease: 'none' }, 0);
+    if (hudFrame) htl.to(hudFrame, { autoAlpha: 0, scale: 1.12, ease: 'none' }, 0);
+  }
+
+  /* ------------------------------------------------------------------
+   * 3.13 核心能力：pinned 横向画廊（containerAnimation）
+   * ------------------------------------------------------------------ */
+  var capSec = document.getElementById('capabilities');
+  if (capSec && hasST && !COARSE && !REDUCE) {
+    var capTrack = document.getElementById('capTrack');
+    if (capTrack) {
+      var getDist = function () { return Math.max(0, capTrack.scrollWidth - window.innerWidth); };
+      var capTween = gsap.to(capTrack, {
+        x: function () { return -getDist(); },
+        ease: 'none',
+        scrollTrigger: {
+          trigger: capSec,
+          start: 'top top',
+          end: function () { return '+=' + getDist(); },
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true
+        }
+      });
+      gsap.utils.toArray('.cap-card').forEach(function (card) {
+        gsap.from(card, {
+          y: 70, opacity: 0, duration: 0.9, ease: 'power3.out',
+          scrollTrigger: { trigger: card, containerAnimation: capTween, start: 'left 88%' }
+        });
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * 3.14 宣言式逐行揭示（SplitText mask）
+   * ------------------------------------------------------------------ */
+  var manifestoText = document.getElementById('manifestoText');
+  if (manifestoText && hasSplit && hasST && !REDUCE) {
+    try {
+      var mSplit = SplitText.create(manifestoText, { type: 'lines', mask: 'lines', linesClass: 'ml' });
+      gsap.set(mSplit.lines, { yPercent: 115 });
+      gsap.to(mSplit.lines, {
+        yPercent: 0, duration: 1.05, ease: 'power4.out', stagger: 0.12,
+        scrollTrigger: { trigger: manifestoText, start: 'top 80%' }
+      });
+    } catch (e) {}
+  }
+
+  /* ------------------------------------------------------------------
+   * 3.15 滚动速度响应跑马灯（velocity → 速度 + 倾斜，自动回弹）
+   * ------------------------------------------------------------------ */
+  var kmTrack = document.getElementById('kmTrack');
+  if (kmTrack && hasST && !REDUCE) {
+    if (!kmTrack.dataset.dup) { kmTrack.innerHTML += kmTrack.innerHTML; kmTrack.dataset.dup = '1'; }
+    var kmLoop = gsap.to(kmTrack, { xPercent: -50, duration: 26, ease: 'none', repeat: -1 });
+    var kmSkew = gsap.quickTo(kmTrack, 'skewX', { duration: 0.5, ease: 'power3.out' });
+    var kmSkewTarget = 0, kmTsTarget = 1;
+    ScrollTrigger.create({
+      onUpdate: function (self) {
+        var v = self.getVelocity();
+        kmSkewTarget = gsap.utils.clamp(-16, 16, v / 240);
+        kmTsTarget = 1 + Math.min(8, Math.abs(v) / 160);
+      }
+    });
+    gsap.ticker.add(function () {
+      kmSkewTarget += (0 - kmSkewTarget) * 0.1;
+      kmTsTarget += (1 - kmTsTarget) * 0.08;
+      kmSkew(kmSkewTarget);
+      kmLoop.timeScale(kmTsTarget);
+    });
+  }
+
+  /* ------------------------------------------------------------------
+   * 3.16 子页标题逐行揭示（.page-ttl，mask）
+   * ------------------------------------------------------------------ */
+  if (hasSplit && hasST && !REDUCE) {
+    gsap.utils.toArray('.page-ttl').forEach(function (t) {
+      try {
+        var s = SplitText.create(t, { type: 'lines', mask: 'lines', linesClass: 'ptl' });
+        gsap.set(s.lines, { yPercent: 115 });
+        gsap.to(s.lines, {
+          yPercent: 0, duration: 0.9, ease: 'power4.out', stagger: 0.1,
+          scrollTrigger: { trigger: t, start: 'top 85%' }
+        });
+      } catch (e) {}
     });
   }
 
