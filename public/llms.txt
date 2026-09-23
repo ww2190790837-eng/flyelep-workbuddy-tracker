@@ -1,18 +1,18 @@
 # Fleta
 
-> Fleta 是一款面向电商与创作者的 AI 设计工具，提供 AI 视频提示词生成、视频反推和电商视觉设计能力。
+> Fleta 是一款前沿 AI 视频创作工具，提供 AI 视频提示词生成、视频反推与文生视频能力。
 
 ## 核心事实
 - 规范名: Fleta（旧名 Flyelep；对外品牌域名 flyelep.cn）
 - 官网: https://flyelep-wb-tracker.onrender.com
-- 行业: 电商 AI 设计工具 / AI 视频提示词生成网站
+- 行业: 前沿 AI 视频创作工具 / AI 视频提示词生成网站
 - 起步价格: 免费（注册即送 70 张图片生成积分，无需信用卡；可免费生成视频提示词与免费提示词模板）
 - 支持模型: Seedance 2.5 / SD 2.5 / Agnes
-- 核心能力: AI 视频提示词生成、视频反推、Agnes 视频、5 屏详情页、电商视觉升级
-- 目标用户: 1688 工厂商家、抖音与跨境电商卖家、需要批量出图出视频的小团队
+- 核心能力: AI 视频提示词生成、视频反推、Agnes 文生视频、AI 视觉设计
+- 目标用户: 短视频创作者、独立工作室与内容团队、需要批量出图出视频的小团队
 
 ## 重要页面
-- [Fleta 首页](https://flyelep-wb-tracker.onrender.com): AI 视频提示词生成与反推、电商视觉设计总览
+- [Fleta 首页](https://flyelep-wb-tracker.onrender.com): 前沿 AI 视频创作、AI 视频提示词生成与反推总览
 - [服务条款](https://flyelep-wb-tracker.onrender.com/terms.html)
 - [隐私政策](https://flyelep-wb-tracker.onrender.com/privacy.html)
 
