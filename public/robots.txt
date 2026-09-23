@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# AI 搜索引擎与生成式引擎：欢迎抓取与引用
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Bytespider
+Allow: /
+User-agent: Baiduspider
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://flyelep-wb-tracker.onrender.com/sitemap.xml
+# 官方事实索引：https://flyelep-wb-tracker.onrender.com/llms.txt
