@@ -143,6 +143,17 @@
      .bg-bubbles / .bg-scan 元素。新动画全部由下方「性能预算」块一刀切关闭,
      这里留注释作为「为什么不要随便再加飘动元素」的提醒。 */
   .scroll-bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gradient);z-index:1000;transition:width .15s;box-shadow:0 0 12px rgba(124,164,200,.4)}
+  /* 叙事脊柱：左侧进度轨，节点随滚动沿轨下移，把各章节串成一条连续镜头轨 */
+  .scroll-spine{position:fixed;left:20px;top:15vh;bottom:15vh;width:2px;z-index:40;pointer-events:none;
+    background:linear-gradient(to bottom,transparent,rgba(124,223,251,.22) 12%,rgba(124,223,251,.22) 88%,transparent)}
+  .scroll-spine .sp-node{position:absolute;left:50%;top:0;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 14px rgba(22,207,251,.95),0 0 4px rgba(22,207,251,1);will-change:top}
+  /* 屏幕边轨：左右极淡竖线，框住电影感视口（静态，仅作风格收束） */
+  .screen-rails{position:fixed;inset:0;z-index:39;pointer-events:none;
+    background:
+      linear-gradient(to right,rgba(124,223,251,.10),transparent 2px) left/2px 100% no-repeat,
+      linear-gradient(to left,rgba(124,223,251,.10),transparent 2px) right/2px 100% no-repeat}
+  @media (max-width:1100px){.scroll-spine,.screen-rails{display:none}}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
 
   /* === 顶部导航 (大厂级玻璃态) === */
@@ -846,10 +857,19 @@
   /* 整页统一大底图（P3R「暗时」满月，取自官方商店页 page_bg_raw）。
      固定铺满视口 → 全站共享同一张连续底图，各 section 之间不再有接缝。
      压在 .bg-base 之上、.bg-scrim 之下，由压暗罩保证正文可读。 */
-  .bg-page{position:absolute;inset:0;
+  .bg-page{position:absolute;inset:-8%;
     background:url("/assets/p3/web/art-page-bg.webp") center/cover no-repeat;
     opacity:.46;
     filter:saturate(1.06) contrast(1.05) brightness(.62)}
+  /* 远景星云层：与近景大底图反向、更快地随滚动位移，拉开纵深（scroll-driven，不动 layout） */
+  .bg-deep{position:absolute;inset:-16%;z-index:0;opacity:.55;filter:blur(2px);
+    background:
+      radial-gradient(42% 36% at 28% 20%, rgba(22,207,251,.20), transparent 60%),
+      radial-gradient(48% 42% at 80% 68%, rgba(2,120,220,.26), transparent 62%),
+      radial-gradient(64% 52% at 52% 122%, rgba(6,30,110,.5), transparent 66%);
+    -webkit-mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,#000 26%,transparent 86%);
+    mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,#000 26%,transparent 86%)}
+  [data-theme="light"] .bg-deep{opacity:.22}
   [data-theme="light"] .bg-page{opacity:.20;filter:saturate(.92) contrast(1.02) brightness(1.22)}
   @media (max-width:760px){.bg-page{opacity:.36}}
   /* 压暗罩：把背景压到正文之后,保证左侧文字可读、整体不发花 */
@@ -857,10 +877,10 @@
     linear-gradient(100deg,rgba(3,26,86,.5) 4%,rgba(3,26,86,.26) 33%,rgba(3,26,86,.02) 66%,rgba(3,26,86,.16) 100%)}
   [data-theme="light"] .bg-scrim{background:
     linear-gradient(100deg,rgba(236,238,240,.88) 4%,rgba(236,238,240,.6) 33%,rgba(236,238,240,.18) 66%,rgba(236,238,240,.34) 100%)}
-  .bg-grid{position:absolute;inset:0;opacity:.08;
-    background-image:linear-gradient(to right,var(--line) 1px,transparent 1px),
-                     linear-gradient(to bottom,var(--line) 1px,transparent 1px);
-    background-size:104px 104px;
+  .bg-grid{position:absolute;inset:-10%;opacity:.10;
+    background-image:linear-gradient(to right,rgba(124,223,251,.14) 1px,transparent 1px),
+                     linear-gradient(to bottom,rgba(124,223,251,.14) 1px,transparent 1px);
+    background-size:120px 120px;
     -webkit-mask-image:radial-gradient(ellipse 82% 72% at 50% 38%,#000 22%,transparent 82%);
     mask-image:radial-gradient(ellipse 82% 72% at 50% 38%,#000 22%,transparent 82%);
   }
@@ -1449,6 +1469,7 @@
   <canvas id="bgfx" aria-hidden="true"></canvas>
   <div class="bg-base"></div>
   <div class="bg-page"></div>
+  <div class="bg-deep"></div>
   <div class="bg-slant"></div>
   <div class="bg-glow g1"></div>
   <div class="bg-glow g2"></div>
@@ -1459,6 +1480,8 @@
 </div>
 
 <div class="scroll-bar" id="scrollBar"></div>
+<div class="scroll-spine" aria-hidden="true"><span class="sp-node" id="spNode"></span></div>
+<div class="screen-rails" aria-hidden="true"></div>
 
 <nav class="top-nav">
   <div class="wrap top-nav-inner">

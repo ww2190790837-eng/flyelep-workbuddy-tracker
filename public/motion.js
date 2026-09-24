@@ -217,27 +217,40 @@
   }
 
   /* ------------------------------------------------------------------
-   * 3.7 背景层动效：漂浮光团 + 底色视差
-   *     （原手绘 SVG 线稿层已移除，动态部分交给 Vanta NET）
+   * 3.7 连贯背景视差：多层以不同速率随滚动分层位移，制造贯穿全站的纵深镜头感
+   *     全部 scroll-driven（scrub，transform-only，不动 layout）；
+   *     移除旧的发光体自动漂浮，尊重「性能预算 / 少自动飘动」纪律。
    * ---------------------------------------------------------------- */
-  var base = document.querySelector('.bg-base');
-  if (!REDUCE) {
-    /* 背景漂浮光团（纯 transform，GPU 合成） */
-    gsap.utils.toArray('.bg-glow').forEach(function (el, i) {
-      gsap.to(el, {
-        xPercent: i % 2 ? -18 : 16,
-        yPercent: i % 2 ? 14 : -12,
-        scale: i % 2 ? 0.88 : 1.22,
-        duration: 22 + i * 9,
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true
+  if (hasST && !REDUCE) {
+    /* 每层给一对 (y,x) 半幅位移：正负决定方向，大小决定纵深快慢。
+       近景(bg-page)慢、远景(bg-deep)反向更快，叠出"镜头穿过空间"的连贯感。 */
+    var parallaxLayers = [
+      { sel: '.bg-base',    y: 3,   x: 0 },
+      { sel: '.bg-deep',    y: -13, x: 0 },
+      { sel: '.bg-page',    y: 7,   x: 0 },
+      { sel: '.bg-grid',    y: 5,   x: -5 },
+      { sel: '.bg-glow.g1', y: -16, x: 0 },
+      { sel: '.bg-glow.g2', y: 14,  x: 0 }
+    ];
+    parallaxLayers.forEach(function (L) {
+      gsap.utils.toArray(L.sel).forEach(function (el) {
+        gsap.fromTo(el,
+          { yPercent: -L.y, xPercent: -L.x },
+          { yPercent: L.y, xPercent: L.x, ease: 'none',
+            scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: true } });
       });
     });
-    if (base && hasST) {
-      gsap.fromTo(base, { yPercent: 0 }, {
-        yPercent: 3, ease: 'none',
-        scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: true }
+
+    /* 3.7b 叙事脊柱：节点沿左侧轨道随滚动进度下移，把各章节串成一条连续镜头轨 */
+    var spine = document.querySelector('.scroll-spine');
+    var spNode = document.getElementById('spNode');
+    if (spine && spNode) {
+      ScrollTrigger.create({
+        trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: true,
+        onUpdate: function (self) {
+          var h = spine.clientHeight - spNode.offsetHeight;
+          spNode.style.top = (self.progress * Math.max(0, h)) + 'px';
+        }
       });
     }
   }
