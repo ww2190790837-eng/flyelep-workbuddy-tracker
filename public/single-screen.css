@@ -42,9 +42,14 @@ body{height:100svh}
 .pcard-send:hover{transform:translateY(-1px);box-shadow:0 0 22px rgba(255,255,255,.4)}
 
 /* ---- 首屏底部小入口 ---- */
-.ev-quick{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:18px}
-.ev-quick a{color:rgba(255,255,255,.55);font-size:12.5px;text-decoration:none;cursor:pointer}
-.ev-quick a:hover{color:#fff}
+.ev-quick{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.ev-quick a{
+  display:inline-flex;align-items:center;padding:9px 18px;border-radius:999px;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);
+  color:rgba(255,255,255,.82);font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;
+  transition:background .2s,color .2s,border-color .2s;
+}
+.ev-quick a:hover{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.34)}
 
 /* ============================================================================
  * 内容区（原弹层）：刻意做成「同一个页面」而不是另一个页面
@@ -148,7 +153,7 @@ body.ws-open .ev-inner{margin:0!important}
  * ========================================================================== */
 .pcard{position:relative;display:flex;flex-direction:column;overflow:hidden}
 .pcard textarea,.pcard-foot{flex:none}
-body.ws-open .pcard{width:min(960px,94%);max-height:calc(100svh - 186px)}
+body.ws-open .pcard{width:min(820px,94%);max-height:calc(100svh - 186px)}
 
 /* 卡片内的章节：去掉整屏时代的大留白/大标题/水印/背景图 */
 .ws section{padding:22px 0!important}
@@ -170,3 +175,61 @@ body.ws-open .pcard{width:min(960px,94%);max-height:calc(100svh - 186px)}
 .ws input,.ws textarea,.ws select{min-width:0;max-width:100%}
 .ws table{max-width:100%;table-layout:fixed}
 .ws pre,.ws code{white-space:pre-wrap;word-break:break-word}
+
+
+/* ============================================================================
+ * 阅读层（文字型内容：公告·留言板 / 核心能力 / 关于 Fleta / 页脚）
+ * 对话框保持"对话框"，长文字另开一层滑动阅读
+ * ========================================================================== */
+.reader-body section{padding:26px 0!important}
+.reader-body .wrap{max-width:100%!important;padding:0 2px!important}
+.reader-body .sec-art,.reader-body .sec-no{display:none!important}
+.reader-body .section-head{margin:0 0 18px!important;max-width:100%!important;text-align:left!important}
+.reader-body .section-title{font-size:clamp(20px,2.6vw,28px)!important;line-height:1.2!important}
+.reader-body .section-sub{font-size:13.5px!important;line-height:1.8!important}
+.reader-body .section-eyebrow{font-size:11px!important;letter-spacing:.22em!important}
+/* 揭示动画在弹层内不会触发，强制显示 */
+.reader-body .reveal,.reader-body .anim,.reader-body .num,
+.reader-body .section-title,.reader-body .section-sub,.reader-body .section-eyebrow{
+  opacity:1!important;transform:none!important;filter:none!important;
+}
+/* 核心能力：原站是 GSAP 钉住的横向画廊(.cap-pin height:100vh + transform)，
+   搬进弹层会整块被推到视口外 -> 在阅读层里改成自适应卡片网格 */
+.reader-body .cap-sec{overflow:visible!important}
+.reader-body .cap-head{padding:0 0 18px!important;text-align:left!important}
+.reader-body .cap-pin{height:auto!important;display:block!important;overflow:visible!important;padding:0!important}
+.reader-body .cap-pin:before{display:none!important}
+.reader-body .cap-track{width:auto!important;transform:none!important;will-change:auto!important;
+  display:flex!important;flex-wrap:wrap!important;gap:14px!important;padding:0!important}
+.reader-body .cap-card{flex:1 1 250px!important;height:auto!important;max-height:none!important;min-height:176px}
+.reader-body .cap-card:after,.reader-body .cap-rail{display:none!important}
+.reader-body #capabilities,.reader-body #capTrack{transform:none!important}
+/* 防溢出 */
+.reader-body img,.reader-body svg,.reader-body video,.reader-body input,
+.reader-body textarea,.reader-body select,.reader-body table{max-width:100%}
+.reader-body input,.reader-body textarea,.reader-body select{min-width:0}
+.reader-body table{table-layout:fixed}
+.reader-body pre,.reader-body code{white-space:pre-wrap;word-break:break-word}
+/* 页脚与宣言原本是为整屏设计的（footer: min-height:100vh / .manifesto: padding:120px 0）
+   -> 在阅读层里必须压扁，否则会在顶部撑出一整屏空白 */
+.reader-body footer{
+  min-height:0!important;display:block!important;justify-content:flex-start!important;
+  border-top:1px solid rgba(255,255,255,.1);margin-top:16px;padding:26px 0 6px!important;
+}
+.reader-body .foot-grid{display:grid!important;grid-template-columns:1.4fr 1fr 1fr!important;gap:22px!important;margin-bottom:22px!important}
+.reader-body .manifesto{padding:28px 0!important}
+.reader-body .manifesto .wrap{max-width:100%!important}
+.reader-body .manifesto-text{font-size:clamp(18px,2.2vw,24px)!important}
+.reader-body .manifesto-eyebrow{text-align:left!important}
+.reader-body .km-wrap{margin:10px 0 0!important}
+@media (max-width:720px){
+  .reader-body .foot-grid{grid-template-columns:1fr!important;gap:16px!important}
+}
+
+@media (max-width:720px){
+  #readerModal{padding:10px}
+  #readerModal > div{max-height:92svh;border-radius:14px}
+}
+
+/* 核心能力原件被 GSAP 包了 .pin-spacer 留在对话框里，隐藏掉避免留白 */
+.ws .pin-spacer{display:none!important}
