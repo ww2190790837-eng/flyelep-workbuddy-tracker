@@ -1,0 +1,83 @@
+/* ============================================================================
+ * login-new.css — 登录页：布局修复 + 新版黑白视觉
+ * 1) 布局修复：login.html 的 body{display:flex} 让页脚跑马灯 .kmarquee 与 .stage
+ *    并排（同为 flex 子项），把 .stage 挤到 ~239px → 整页挤在左侧。这里改回块级。
+ * 2) 视觉：统一到新版黑白极简（theme-new.css 之后再加载）。
+ * ========================================================================== */
+
+/* ---- 布局修复 ---- */
+body{display:block!important;background:#000!important}
+html,body{height:auto;min-height:100%}
+.stage{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr!important}
+@media (max-width:900px){ .stage{grid-template-columns:1fr!important} }
+
+/* ---- 背景层去蓝 ---- */
+.bg-stage{background:#000!important}
+.bg-base{background:
+  radial-gradient(58% 46% at 22% 12%, rgba(255,255,255,.06), transparent 62%),
+  radial-gradient(60% 50% at 80% 24%, rgba(255,255,255,.04), transparent 64%),
+  radial-gradient(80% 66% at 52% 116%, rgba(255,255,255,.03), transparent 68%),
+  linear-gradient(165deg, #0a0a0b 0%, #060607 48%, #000 100%)!important}
+.bg-draw,.bg-page,.bg-halftone,.bg-slant,.bg-grid,.bg-vig{filter:grayscale(1)!important}
+.bg-page{opacity:.20!important}
+.bg-halftone,.bg-slant{opacity:.06!important}
+/* 蓝色波浪带 → 移除 */
+.wave-band{display:none!important}
+#bgfx{filter:grayscale(1) brightness(.5)!important}
+
+/* ---- 左：品牌区 ---- */
+.brand-pane{color:#fff}
+.brand-logo{box-shadow:none!important;background:#fff!important;padding:4px!important}
+.brand-eyebrow{color:#8e8e93!important;font-family:"BubbledotICG-FinePos","Geist Pixel Circle","JetBrains Mono",monospace!important;letter-spacing:.24em!important}
+.brand-eyebrow::before{border-left-color:#8e8e93!important}
+.brand-mid h1{font-family:"Inter",sans-serif!important;font-weight:700!important;letter-spacing:-.02em!important}
+.brand-mid h1 .grad{
+  background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;
+}
+.brand-mid p{color:rgba(255,255,255,.6)!important}
+.brand-point{color:rgba(255,255,255,.78)!important}
+.brand-point .ic{background:#fff!important;box-shadow:none!important}
+.brand-foot{color:rgba(255,255,255,.4)!important}
+
+/* ---- 右：表单区 ---- */
+.form-pane{
+  background:transparent!important;border-left:1px solid rgba(255,255,255,.08)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.card-logo{box-shadow:none!important}
+.card-head h2{font-family:"Inter",sans-serif!important}
+
+/* Tabs */
+.tabs{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.10)!important}
+.tab{color:#8e8e93!important}
+.tab.active{color:#000!important}
+.tab-glider{
+  background:#fff!important;border-color:#fff!important;box-shadow:none!important;
+}
+
+/* 表单控件 */
+.field label{color:var(--text-2)!important}
+.input{background:rgba(255,255,255,.05)!important;border-color:rgba(255,255,255,.14)!important;color:#fff!important}
+.input::placeholder{color:rgba(255,255,255,.34)!important}
+.input:focus{border-color:rgba(255,255,255,.42)!important;background:rgba(255,255,255,.08)!important;box-shadow:0 0 0 4px rgba(255,255,255,.08)!important}
+.remember input,.terms input{accent-color:#fff!important}
+.forgot,.card-foot a,.terms a{color:#fff!important}
+
+/* 提交按钮：白底黑字 */
+.submit{
+  background:#fff!important;color:#000!important;box-shadow:none!important;
+  font-weight:700!important;
+}
+.submit:hover{background:#e9e9ec!important;box-shadow:0 0 26px rgba(255,255,255,.28)!important;transform:translateY(-1px)}
+.card-foot a:hover,.forgot:hover{opacity:.8}
+
+/* 提示条：改成暗底 */
+.alert{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.18)!important;color:#ff9a9a!important}
+
+/* 顶部返回 */
+.back-home{color:rgba(255,255,255,.7)!important}
+.back-home:hover{color:#fff!important}
+
+/* 底部跑马灯：黑白 */
+.kmarquee{border-color:rgba(255,255,255,.08)!important}
+.km-track .km-dot{color:#8e8e93!important}

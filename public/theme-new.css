@@ -1,0 +1,115 @@
+/* ============================================================================
+ * theme-new.css — Fleta「新版」统一视觉层
+ * 目标：推翻旧的「深蓝 + 霓虹青 + 玻璃光晕」HUD 皮肤，统一到新版首屏的黑白极简语言：
+ *   纯黑底 · 纯白/灰字 · 发丝级描边卡片 · 白色胶囊按钮 · 无霓虹光晕 · 圆点字体做点缀
+ * 加载位置：在各页原内联 <style> 之后 → 同权重后者生效；对硬编码色/内联样式用 !important 覆盖。
+ * ========================================================================== */
+
+:root{
+  --bg:#000000;            --bg-2:#070708;
+  --surface:#0e0e10;       --card:#141417;
+  --border:rgba(255,255,255,.10); --border-2:rgba(255,255,255,.18);
+  --text:#ffffff;          --text-2:#c7c7cb;      --text-3:#8e8e93;
+  --primary:#ffffff;       --primary-2:#e9e9ec;   --primary-3:#ffffff;
+  --accent:#ffffff;        --accent-2:#d9d9de;   --pink:#ffffff;
+  --success:#5fd39a;       --danger:#ff9a9a;     --gold:#ffffff;
+  --line:rgba(255,255,255,.12);
+  --gradient:linear-gradient(135deg,#ffffff 0%,#e6e6ea 100%);
+  --glow:none;
+  --disp:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+
+/* ---- 底：一律纯黑，去掉旧蓝色氛围光 ---- */
+html,body{background:#000!important;color:var(--text)}
+body{background-image:none!important}
+/* 旧背景层：保留层次但去色降亮，避免和黑白首屏打架 */
+#bgfx{filter:grayscale(1) brightness(.55) contrast(1.05)}
+.bg-glow{filter:grayscale(1);opacity:.16!important}
+.bg-deep,.bg-base,.bg-page{filter:grayscale(1)}
+.bg-grid{filter:grayscale(1);opacity:.5!important}
+
+/* ---- 导航 ---- */
+.top-nav{background:rgba(0,0,0,.55)!important;border-bottom-color:rgba(255,255,255,.08)!important}
+.top-nav::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent)!important;opacity:.55!important}
+.top-nav.scrolled{background:rgba(0,0,0,.78)!important;box-shadow:0 1px 0 rgba(255,255,255,.06)!important}
+.nav-links{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.10)!important}
+.nav-links a.active{background:rgba(255,255,255,.12)!important;color:#fff!important;box-shadow:none!important}
+.nav-links a.nav-agnes{color:var(--text-2)!important}
+.nav-cta{background:#fff!important;color:#000!important;box-shadow:none!important}
+.nav-cta:hover{background:#e9e9ec!important}
+#navCodeStock{background:#000!important;color:#fff!important;border-color:rgba(255,255,255,.28)!important}
+.theme-menu{background:var(--card)!important;border-color:var(--border)!important}
+
+/* ---- 按钮 ---- */
+.btn-primary{background:#fff!important;color:#000!important;box-shadow:none!important}
+.btn-primary:hover{background:#e9e9ec!important;transform:translateY(-1px)}
+.btn-ghost{background:transparent!important;color:#fff!important;border-color:rgba(255,255,255,.22)!important}
+.btn-ghost:hover{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.4)!important}
+.msg-page-btn{background:rgba(255,255,255,.06)!important;color:var(--text-2)!important;border-color:var(--border)!important}
+.msg-page-btn.active{background:#fff!important;color:#000!important}
+
+/* ---- 去掉霓虹青/渐变文字 ---- */
+.grad,.hero h1 .grad{
+  -webkit-text-fill-color:#fff!important;background:none!important;color:#fff!important;
+}
+/* 高亮强调色一律去青 */
+a,.link{color:inherit}
+.section-eyebrow,.sec-no,.hero-kicker,.stat-num,.lineup-btn i{
+  font-family:"BubbledotICG-FinePos","Geist Pixel Circle","JetBrains Mono",monospace!important;
+}
+
+/* ---- 卡片 / 表面：发丝描边、无光晕 ---- */
+.card,.gate-inner,.lineup-panel .card,.form-pane .card{
+  background:rgba(255,255,255,.03)!important;
+  border-color:rgba(255,255,255,.09)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+input,textarea,select{
+  background:rgba(255,255,255,.05)!important;
+  border-color:var(--border)!important;
+  color:var(--text)!important;
+}
+input:focus,textarea:focus{background:rgba(255,255,255,.07)!important;border-color:rgba(255,255,255,.35)!important}
+
+/* ---- 金色/青色的硬编码点 → 中性白 ---- */
+#codeStock .ic,.pg-warn b{color:#fff!important}
+[data-theme="light"] #codeDisplay,[data-theme="light"] #announcementBar strong{color:#fff!important}
+
+/* ---- 区块标题：去掉青色 em 渐变 ---- */
+.section-title em{color:#fff!important;font-style:normal;opacity:.62}
+
+/* ---- lineup 选项卡 ---- */
+.lineup-btn{background:rgba(255,255,255,.03)!important;border-color:var(--border)!important}
+.lineup-btn.active{background:rgba(255,255,255,.10)!important;border-color:rgba(255,255,255,.3)!important;box-shadow:none!important}
+
+/* ---- 揭示门槛 / 蒙层 ---- */
+.gate{background:rgba(0,0,0,.72)!important;backdrop-filter:blur(10px)!important}
+.gate-btn{background:#fff!important;color:#000!important;box-shadow:none!important}
+
+/* ---- 页脚 ---- */
+footer{background:transparent!important}
+
+/* ---- 消息板等小元素 ---- */
+#msgSendBtn{background:#fff!important;color:#000!important}
+
+/* ---- 弹窗统一 ---- */
+#authModal>div,#codeModal>div,#versionModal>div{
+  background:var(--card)!important;border-color:var(--border)!important;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)!important;
+}
+
+/* ---- 自定义光标：去青 ---- */
+#cursor{border-color:#fff!important}
+
+/* ---- 滚动条 ---- */
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18)!important}
+
+/* ---- 区块插画去色（保留质感，去掉旧蓝紫插画与黑白首屏的冲突） ---- */
+.sec-art img{filter:grayscale(1) brightness(.5) contrast(1.05)!important;opacity:.26!important}
+.sec-art{opacity:.9}
+
+/* ---- 零散硬编码青色 → 中性 ---- */
+#msgLoginHint{border-color:rgba(255,255,255,.22)!important;background:rgba(255,255,255,.06)!important;border-left-color:#fff!important}
+.pg-warn{border-color:rgba(255,255,255,.2)!important}
+
