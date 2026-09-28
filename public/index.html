@@ -1609,6 +1609,8 @@
 
     <p class="ev-subhead ev-anim" style="--d:.28s">用 AI 生成视频提示词、反向解析原片、一键生成视频——让好创意被更多人看见。</p>
 
+    <div class="pcard-modes ev-anim" id="pModes" style="--d:.36s" role="tablist" aria-label="功能分类"></div>
+
     <div class="pcard ev-anim" style="--d:.4s">
       <textarea id="pInput" rows="2" placeholder="描述你想要的视频，或贴一段素材链接…"></textarea>
       <div class="pcard-foot">
@@ -4627,8 +4629,8 @@
     Array.prototype.forEach.call(document.querySelectorAll('.ws-tab'), function(t){
       t.classList.toggle('active', !!key && t.getAttribute('data-open') === key);
     });
-    /* 首屏芯片兼作"模式标签"：选中的那个高亮 */
-    Array.prototype.forEach.call(document.querySelectorAll('.pchip[data-open]'), function(c){
+    /* 顶部「功能分类」模式栏：选中的那个高亮 */
+    Array.prototype.forEach.call(document.querySelectorAll('#pModes [data-open]'), function(c){
       c.classList.toggle('active', !!key && c.getAttribute('data-open') === key);
     });
   }
@@ -4674,6 +4676,7 @@
     if (window.__closeReaderPane) window.__closeReaderPane();   /* 阅读屏与工具区共用返回 */
   }
   window.closeFletaWs = closeWs;
+  window.syncFletaModes = syncWsTabs;   /* 供阅读屏同步顶部高亮 */
   function backOrClose(){
     if (history.state && history.state.fletaWs){ history.back(); } else { closeWs(); }
   }
@@ -4877,6 +4880,21 @@
   if (pc && wsCloseBtn) pc.appendChild(wsCloseBtn);          /* 返回按钮两屏共用 */
   if (rm && rm.parentNode) rm.parentNode.removeChild(rm);     /* 移除旧弹窗外壳 */
 
+  /* ---- 功能分类放到上面：芯片与三个文字入口合成一条模式栏（下方不再有入口） ---- */
+  var modesBar = document.getElementById('pModes');
+  if (modesBar){
+    ['prompt','reverse','agnes'].forEach(function(k){
+      var c = document.querySelector('.pchip[data-open="' + k + '"]');
+      if (c) modesBar.appendChild(c);
+    });
+    ['bulletin','capabilities','fleta-about'].forEach(function(k){
+      var a = document.querySelector('.ev-quick a[data-open="' + k + '"]');
+      if (a) modesBar.appendChild(a);
+    });
+    var q = document.querySelector('.ev-quick');
+    if (q) q.style.display = 'none';   /* 下方的入口已全部上移 */
+  }
+
   var PANELS = {
     bulletin:      function(){ return document.getElementById('bulletin'); },
     capabilities:  function(){ return rb.querySelector('[data-reader="capabilities"]'); },
@@ -4894,6 +4912,7 @@
     rb.hidden = false;
     rb.scrollTop = 0;
     document.body.classList.add('ws-open');
+    if (window.syncFletaModes) window.syncFletaModes(id);
     window.__readerOpen = true;
     try { history.pushState({ fletaWs: 1 }, ''); } catch (e) {}
   }
@@ -4901,6 +4920,7 @@
     rb.hidden = true;
     window.__readerOpen = false;
     document.body.classList.remove('ws-open');
+    if (window.syncFletaModes) window.syncFletaModes(null);
   }
   window.__closeReaderPane = closeReaderPane;
   window.openReader = openReader;

@@ -307,3 +307,30 @@ body.ws-open .ws-close{display:inline-flex;align-items:center}
 
 /* 阅读屏：与工具区同属一个对话框，样式沿用 .ws，只需保证内部可滚 */
 .reader-body{overflow-y:auto!important;overflow-x:hidden!important}
+
+
+/* ============================================================================
+ * 顶部「功能分类」模式栏（对齐参考图：分类在上，框内是当前功能自己的配置）
+ * ========================================================================== */
+.pcard-modes{
+  display:flex;gap:4px;flex-wrap:wrap;justify-content:center;align-items:center;
+  width:min(760px,92%);margin:0 auto 10px;
+}
+body.ws-open .pcard-modes{width:min(820px,94%)}
+.pcard-modes > *{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:999px;
+  background:transparent;border:1px solid transparent;
+  color:rgba(255,255,255,.6);font-size:13px;font-weight:500;font-family:inherit;
+  text-decoration:none;cursor:pointer;white-space:nowrap;
+  transition:background .2s,color .2s,border-color .2s,box-shadow .2s;
+}
+.pcard-modes > *:hover{color:#fff;background:rgba(255,255,255,.08)}
+.pcard-modes > *.active{
+  background:#fff;color:#0a0c0f;border-color:#fff;
+  box-shadow:0 0 26px rgba(255,255,255,.3);
+}
+.pcard-modes > *.active i{opacity:1}
+/* 入口上移后，下方那排留空的不显示 */
+.ev-quick:empty{display:none!important}
+body.ws-open .ev-quick:empty{display:none!important}
