@@ -12,11 +12,11 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --primary:#16CFFB;--primary-2:#7DE6FD;--pink:#3aa8e6;
+    --primary:#e6e6ea;--primary-2:#d8d8dc;--pink:#c9c9cc;
     --text:#ffffff;--text-2:#d3e3fb;--text-3:#9fbce8;
     --surface:#0d4fbc;--border:rgba(255,255,255,.22);
-    --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
-    --danger:#ff9a9a;--success:#5fd39a;--gold:#ffc54a;
+    --gradient:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 52%,#d8d8dc 100%);
+    --danger:#ff9a9a;--success:#5fd39a;--gold:#e6e6ea;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
   }
   html,body{height:100%}
@@ -132,7 +132,7 @@
     color:var(--primary);text-transform:uppercase;margin-bottom:16px}
   .brand-eyebrow::before{content:"";width:0;height:0;flex:none;
     border-left:7px solid var(--primary);border-top:5px solid transparent;border-bottom:5px solid transparent}
-  .brand-mid h1 .grad{background:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+  .brand-mid h1 .grad{background:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 52%,#d8d8dc 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
   .brand-point .ic{background:var(--primary);box-shadow:0 0 10px rgba(22,207,251,.7)}
   .card-head h2{letter-spacing:.02em;text-transform:none}
@@ -175,7 +175,7 @@
 .kmarquee{position:relative;overflow:hidden;padding:22px 0;border-top:1px solid var(--border,rgba(255,255,255,.22));border-bottom:1px solid var(--border,rgba(255,255,255,.22));-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .km-track{display:flex;align-items:center;gap:36px;width:max-content;will-change:transform;white-space:nowrap}
 .km-track span{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;font-weight:700;font-size:clamp(20px,3vw,40px);letter-spacing:.02em;color:var(--text,#e9eef6);text-transform:uppercase;display:inline-flex;align-items:center}
-.km-track .km-dot{color:var(--primary,#16CFFB);font-size:.55em}
+.km-track .km-dot{color:var(--primary,#e6e6ea);font-size:.55em}
 .page-ttl{will-change:transform}
 </style>
 <link rel="stylesheet" href="/theme-new.css" />
@@ -478,7 +478,7 @@
         }
         otpHint.style.display = "block";
         if (d.dev && d.devCode){
-          otpHint.innerHTML = "开发模式(未配置真实邮件):验证码已生成 → <b style=\"color:#f59e0b;letter-spacing:2px\">" + d.devCode + "</b><br>配置 SMTP/Resend 后将直接发送到邮箱";
+          otpHint.innerHTML = "开发模式(未配置真实邮件):验证码已生成 → <b style=\"color:#e6e6ea;letter-spacing:2px\">" + d.devCode + "</b><br>配置 SMTP/Resend 后将直接发送到邮箱";
         } else {
           otpHint.textContent = d.message || "验证码已发送,请查收邮箱(10 分钟内有效)";
         }

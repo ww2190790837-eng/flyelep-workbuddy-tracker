@@ -14,7 +14,7 @@
   --primary:#ffffff;       --primary-2:#e9e9ec;   --primary-3:#ffffff;
   --accent:#ffffff;        --accent-2:#d9d9de;   --pink:#ffffff;
   --wb:#ffffff;
-  --success:#5fd39a;       --danger:#ff9a9a;     --gold:#ffffff;   --warn:#ffffff;
+  --success:#e6e6ea;       --danger:#ff9a9a;     --gold:#ffffff;   --warn:#ffffff;
   --gradient:linear-gradient(135deg,#ffffff 0%,#e6e6ea 100%);
   --glow:none;
   --disp:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;

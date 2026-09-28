@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#3aa8e6" />
+<meta name="theme-color" content="#c9c9cc" />
 <title>Fleta · 前沿 AI 视频创作工具｜AI 视频提示词生成与反推</title>
 <meta name="description" content="Fleta 是前沿 AI 视频创作平台：一键生成 Seedance 2.5 专业视频提示词、上传视频反推五段式脚本、Agnes 文生视频。注册即送 70 张图片生成积分。" />
 <meta name="keywords" content="Fleta,前沿AI,AI视频生成工具,AI视频提示词,Seedance 2.5,SD2.5,提示词生成,视频反推,文生视频,首尾帧,AI创作" />
@@ -86,10 +86,10 @@
     --surface:#0a44a8;
     --border:rgba(255,255,255,.16);--border-2:rgba(255,255,255,.24);
     --text:#ffffff;--text-2:#c9dcf7;--text-3:#8fb0dd;
-    --primary:#16CFFB;--primary-2:#7DE6FD;--primary-3:#77FEFC;
-    --accent:#16CFFB;--accent-2:#7DE6FD;--pink:#3aa8e6;
-    --success:#22c55e;
-    --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    --primary:#e6e6ea;--primary-2:#d8d8dc;--primary-3:#e6e6ea;
+    --accent:#e6e6ea;--accent-2:#d8d8dc;--pink:#c9c9cc;
+    --success:#e6e6ea;
+    --gradient:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 52%,#d8d8dc 100%);
     --glow:0 0 40px rgba(22,207,251,.45),0 0 80px rgba(1,95,204,.3);
   }
   html{scroll-behavior:smooth;background:var(--bg)}
@@ -131,7 +131,7 @@
   .btn:hover .ic,.vu-btn:hover .ic{transform:translateX(3px)}
   .btn-primary:hover .ic,.vu-btn-primary:hover .ic{transform:translateX(3px) scale(1.05)}
   /* 物料库存 / 训练提示 图标着色 */
-  #codeStock .ic{color:#f59e0b;vertical-align:-0.15em}
+  #codeStock .ic{color:#e6e6ea;vertical-align:-0.15em}
   .section-note .ic{color:var(--primary-2)}
 
   /* === 全屏背景层 (大厂级动态) === */
@@ -308,7 +308,7 @@
   .pg-output-head span{font-size:13px;font-weight:600;color:var(--primary-2)}
   .pg-copy{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(111,209,251,.1);border:1px solid rgba(111,209,251,.25);cursor:pointer;transition:all .2s}
   .pg-copy:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
-  .pg-copy.copied{background:var(--success,#22c55e);color:#fff;border-color:var(--success,#22c55e)}
+  .pg-copy.copied{background:var(--success,#e6e6ea);color:#fff;border-color:var(--success,#e6e6ea)}
   #pgResult{margin:0;padding:18px 16px;font-size:13px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;font-family:"JetBrains Mono","SF Mono",Consolas,monospace;max-height:420px;overflow-y:auto}
   #pgResult::-webkit-scrollbar{width:5px}
   #pgResult::-webkit-scrollbar-track{background:transparent}
@@ -351,7 +351,7 @@
   .pg-engine-opt.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 2px 10px rgba(124,164,200,.3)}
   .pg-engine-opt:not(.active):hover{color:var(--text);background:rgba(255,255,255,.06)}
   .pg-engine-badge{margin-left:auto;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap}
-  .pg-engine-badge.ai-ok{background:rgba(34,197,94,.12);color:#22c55e}
+  .pg-engine-badge.ai-ok{background:rgba(34,197,94,.12);color:#e6e6ea}
   .pg-engine-badge.ai-no{background:rgba(239,68,68,.1);color:#f87171}
   /* AI 加载状态 */
   .pg-generate.loading{pointer-events:none;opacity:.8;position:relative}
@@ -374,7 +374,7 @@
   .pg-intent-k{color:var(--text-3);flex:0 0 auto;min-width:64px;font-weight:500}
   .pg-intent-v{color:var(--text);flex:1;word-break:break-word}
   .pg-warn{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;color:#fbbf24;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);line-height:1.6}
-  .pg-warn b{color:#f59e0b;font-weight:600}
+  .pg-warn b{color:#e6e6ea;font-weight:600}
   /* 提示文字 */
   .pg-idea-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
   .pg-idea{width:100%;padding:16px 18px;border:1px solid rgba(111,209,251,.28);border-radius:14px;font-size:14px;font-family:inherit;background:rgba(111,209,251,.05);color:var(--text);resize:vertical;line-height:1.6;transition:all .2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
@@ -433,10 +433,10 @@
     --surface:#fff;
     --border:rgba(0,0,0,.07);--border-2:rgba(0,0,0,.12);
     --text:#1a1d26;--text-2:#4a5068;--text-3:#8890a8;
-    --primary:#16CFFB;--primary-2:#7DE6FD;--primary-3:#77FEFC;
-    --accent:#6fd1fb;--accent-2:#9be1fd;--pink:#3aa8e6;
-    --success:#16a34a;
-    --gradient:linear-gradient(135deg,#6fd1fb 0%,#9be1fd 45%,#3aa8e6 100%);
+    --primary:#e6e6ea;--primary-2:#d8d8dc;--primary-3:#e6e6ea;
+    --accent:#e6e6ea;--accent-2:#9be1fd;--pink:#c9c9cc;
+    --success:#e6e6ea;
+    --gradient:linear-gradient(135deg,#e6e6ea 0%,#9be1fd 45%,#c9c9cc 100%);
     --glow:0 0 30px rgba(111,209,251,.18),0 0 60px rgba(111,209,251,.06);
   }
   [data-theme="light"] body{
@@ -461,7 +461,7 @@
   [data-theme="light"] .nav-links a:hover{color:var(--text);background:rgba(111,209,251,.1)}
   [data-theme="light"] .nav-links a.active{color:var(--text);background:linear-gradient(135deg,rgba(111,209,251,.18),rgba(79,184,238,.14));box-shadow:none}
   [data-theme="light"] .nav-links a.active .ic{color:var(--primary)}
-  [data-theme="light"] .nav-links a.nav-agnes{color:#3aa8e6}
+  [data-theme="light"] .nav-links a.nav-agnes{color:#c9c9cc}
   [data-theme="light"] .hero{background:
     radial-gradient(ellipse 80% 55% at 50% 0%, rgba(111,209,251,.08) 0%, transparent 60%),
     radial-gradient(ellipse 60% 40% at 20% 30%, rgba(79,184,238,.05) 0%, transparent 55%),
@@ -474,7 +474,7 @@
   }
   [data-theme="light"] .hero::after{display:none}
   [data-theme="light"] .hero h1{color:var(--text);text-shadow:none}
-  [data-theme="light"] .hero h1 .grad{background:linear-gradient(135deg,#6fd1fb 0%,#3aa8e6 60%,#6fd1fb 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  [data-theme="light"] .hero h1 .grad{background:linear-gradient(135deg,#e6e6ea 0%,#c9c9cc 60%,#e6e6ea 100%);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
   [data-theme="light"] .hero p.sub{color:var(--text-2);font-weight:400}
   [data-theme="light"] .hero p.sub strong{color:var(--text);font-weight:600}
   [data-theme="light"] .hero-eyebrow{background:rgba(111,209,251,.10);border-color:rgba(111,209,251,.18);color:var(--primary);box-shadow:0 4px 16px rgba(111,209,251,.10)}
@@ -593,7 +593,7 @@
   }
   [data-theme="light"] #authModal input::placeholder{color:#8890a8!important}
   [data-theme="light"] #authModal input:focus{
-    border-color:#6fd1fb!important;
+    border-color:#e6e6ea!important;
     box-shadow:0 0 0 3px rgba(111,209,251,.10)!important;
     background:#fff!important
   }
@@ -611,7 +611,7 @@
     transform:translateY(-2px);
     box-shadow:0 8px 24px rgba(111,209,251,.35),var(--glow)!important
   }
-  [data-theme="light"] #codeDisplay{color:#6fd1fb!important;font-weight:800;letter-spacing:3px}
+  [data-theme="light"] #codeDisplay{color:#e6e6ea!important;font-weight:800;letter-spacing:3px}
   [data-theme="light"] .nav-cta[id="navCodeBtn"]{
     box-shadow:0 4px 16px rgba(245,158,11,.25)!important;
   }
@@ -629,7 +629,7 @@
   [data-theme="light"] #versionClose{color:#4a5068!important;border:1px solid rgba(111,209,251,.25)!important}
   /* 公告栏 + 留言板 浅色适配 */
   [data-theme="light"] #announcementBar{background:linear-gradient(135deg,rgba(111,209,251,.08),rgba(79,184,238,.06))!important;border-color:rgba(111,209,251,.18)!important;box-shadow:0 4px 16px rgba(111,209,251,.06)!important}
-  [data-theme="light"] #announcementBar strong{color:#6fd1fb!important}
+  [data-theme="light"] #announcementBar strong{color:#e6e6ea!important}
   [data-theme="light"] #announcementBar p{color:#4a5068!important}
   [data-theme="light"] #messageBoard > div{background:#fff!important;border-color:rgba(111,209,251,.15)!important;box-shadow:0 8px 32px rgba(111,209,251,.08)!important}
   [data-theme="light"] #messageBoard h3{color:#1a1d26!important}
@@ -656,11 +656,11 @@
   #aiChatWidget{position:fixed;bottom:24px;right:24px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:0;font-family:inherit}
   /* P3 风：深玻璃底 + 细天蓝光圈，不再是亮蓝「SaaS 药丸」，与暗色动漫页统一 */
   #chatToggleBtn{display:flex;align-items:center;gap:9px;background:linear-gradient(135deg,rgba(3,18,58,.82),rgba(13,28,52,.82));color:#eaf6ff;border:1px solid rgba(56,189,248,.4);border-radius:6px;padding:11px 18px 11px 20px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .3s cubic-bezier(.4,0,.2,1);white-space:nowrap;position:relative;overflow:hidden}
-  #chatToggleBtn::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;background:linear-gradient(180deg,#7dd3fc,#0ea5e9);box-shadow:0 0 10px rgba(56,189,248,.7)}
+  #chatToggleBtn::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;background:linear-gradient(180deg,#e6e6ea,#e6e6ea);box-shadow:0 0 10px rgba(56,189,248,.7)}
   #chatToggleBtn:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.75);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 20px rgba(56,189,248,.22)}
   .chat-toggle-icon{font-size:18px;line-height:1}
   .chat-toggle-label{line-height:1}
-  .chat-toggle-dot{width:8px;height:8px;background:#38bdf8;border-radius:50%;animation:pulseDot 2s infinite;box-shadow:0 0 8px rgba(56,189,248,.7)}
+  .chat-toggle-dot{width:8px;height:8px;background:#d8d8dc;border-radius:50%;animation:pulseDot 2s infinite;box-shadow:0 0 8px rgba(56,189,248,.7)}
   @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.4}}
   #chatPanel{transition:all .3s cubic-bezier(.4,0,.2,1);transform-origin:bottom right;overflow:hidden}
   .chat-panel-hidden{opacity:0;transform:scale(.85) translateY(20px);pointer-events:none;position:absolute;bottom:0;right:0}
@@ -672,7 +672,7 @@
   .chat-header-left{display:flex;align-items:center;gap:10px}
   .chat-avatar{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0b1320,#1b2b44);color:#eaf6ff;border:1px solid rgba(56,189,248,.45);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.5px}
   .chat-title{font-size:14px;color:var(--text);display:block}
-  .chat-status{font-size:11px;color:#10b981;margin-left:6px}
+  .chat-status{font-size:11px;color:#e6e6ea;margin-left:6px}
   .chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
   .chat-messages::-webkit-scrollbar{width:5px}
   .chat-messages::-webkit-scrollbar-track{background:transparent}
@@ -684,7 +684,7 @@
   .chat-msg.user-msg{align-self:flex-end;flex-direction:row-reverse}
   .chat-bubble{padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.65;color:var(--text);word-break:break-word}
   .bot-msg .chat-bubble{background:#1e1f30;border:1px solid rgba(111,209,251,.18);border-bottom-left-radius:4px}
-  .user-msg .chat-bubble{background:linear-gradient(135deg,#6fd1fb,#a855f7);color:#fff;border-bottom-right-radius:4px}
+  .user-msg .chat-bubble{background:linear-gradient(135deg,#e6e6ea,#a855f7);color:#fff;border-bottom-right-radius:4px}
   .chat-bubble code{background:rgba(0,0,0,.2);padding:2px 6px;border-radius:4px;font-size:12.5px;font-family:'Cascadia Code','Fira Code',monospace}
   .user-msg .chat-bubble code{background:rgba(255,255,255,.2)}
   .chat-bubble pre{background:rgba(0,0,0,.25);padding:10px 12px;border-radius:8px;font-size:12px;overflow-x:auto;margin:8px 0 4px;line-height:1.5}
@@ -693,7 +693,7 @@
   .chat-input-wrap{display:flex;align-items:flex-end;gap:8px;background:#1e2030;border:1px solid rgba(111,209,251,.18);border-radius:12px;padding:6px 10px;transition:border .2s}
   .chat-input-wrap:focus-within{border-color:var(--primary)}
   .chat-input-wrap textarea{flex:1;border:none;background:none;color:var(--text);font-size:13.5px;font-family:inherit;resize:none;max-height:100px;line-height:1.45;outline:none;padding:4px 0}
-  .chat-send-btn,#chatSendBtn{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#04121f;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+  .chat-send-btn,#chatSendBtn{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#e6e6ea,#d8d8dc);color:#04121f;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
   #chatSendBtn:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(111,209,251,.4)}
   #chatSendBtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
   .chat-hint{text-align:center;font-size:11px;color:var(--text-3);margin-top:6px}
@@ -708,7 +708,7 @@
   [data-theme="light"] .chat-header{background:linear-gradient(135deg,rgba(111,209,251,.06),rgba(79,184,238,.04))!important;border-color:rgba(111,209,251,.12)!important}
   [data-theme="light"] .chat-title{color:#1a1d26!important}
   [data-theme="light"] .bot-msg .chat-bubble{background:linear-gradient(135deg,rgba(111,209,251,.06),rgba(79,184,238,.04))!important;border-color:rgba(111,209,251,.12)!important;color:#1a1d26!important}
-  [data-theme="light"] .user-msg .chat-bubble{background:linear-gradient(135deg,#6fd1fb,#6366f1)!important}
+  [data-theme="light"] .user-msg .chat-bubble{background:linear-gradient(135deg,#e6e6ea,#6366f1)!important}
   [data-theme="light"] .chat-input-area{background:#fafbff!important;border-color:rgba(111,209,251,.1)!important}
   [data-theme="light"] .chat-input-wrap{background:#f8f9fc!important;border-color:rgba(111,209,251,.18)!important}
   [data-theme="light"] .chat-input-wrap textarea{color:#1a1d26!important}
@@ -730,9 +730,9 @@
   #video-use .vu-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
   .vu-status{display:flex;align-items:center;gap:16px;padding:14px 16px;background:rgba(111,209,251,.06);border:1px solid rgba(111,209,251,.15);border-radius:12px;margin-bottom:18px}
   .vu-status-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-  .vu-dot{width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.18);flex-shrink:0}
+  .vu-dot{width:10px;height:10px;border-radius:50%;background:#e6e6ea;box-shadow:0 0 0 4px rgba(16,185,129,.18);flex-shrink:0}
   .vu-dot.off{background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.18)}
-  .vu-dot.wait{background:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.18)}
+  .vu-dot.wait{background:#e6e6ea;box-shadow:0 0 0 4px rgba(245,158,11,.18)}
   .vu-status-title{font-size:14px;font-weight:700;color:var(--text)}
   .vu-status-sub{font-size:12px;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .vu-quota{text-align:center;flex-shrink:0}
@@ -827,11 +827,11 @@
     --surface:#0b47ad; --card:#0d4fbc;
     --border:rgba(255,255,255,.20); --border-2:rgba(255,255,255,.3);
     --text:#ffffff; --text-2:#d3e3fb; --text-3:#a2c0ec;
-    --primary:#16CFFB; --primary-2:#7DE6FD; --primary-3:#77FEFC;
-    --accent:#16CFFB; --accent-2:#7DE6FD; --pink:#3aa8e6;
-    --success:#5fd39a; --danger:#ff9a9a; --gold:#ffc54a;
+    --primary:#e6e6ea; --primary-2:#d8d8dc; --primary-3:#e6e6ea;
+    --accent:#e6e6ea; --accent-2:#d8d8dc; --pink:#c9c9cc;
+    --success:#5fd39a; --danger:#ff9a9a; --gold:#e6e6ea;
     --line:rgba(255,255,255,.24);
-    --gradient:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+    --gradient:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 52%,#d8d8dc 100%);
     --glow:0 0 30px rgba(22,207,251,.38);
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
     --disp:"Oswald","Inter",-apple-system,sans-serif;
@@ -994,7 +994,7 @@
     .hero-art-video{object-position:right top}
   }
   /* P3 式揭幕（三次重做，对齐官方 p3_circle 参考帧 p3_circle_f.png）：
-     ① 靛蓝底 #1f217a 上，三圈天蓝 #6fd1fb 同心圆环交错向外扩散、渐隐 —— 官方签名视觉；
+     ① 靛蓝底 #1f217a 上，三圈天蓝 #e6e6ea 同心圆环交错向外扩散、渐隐 —— 官方签名视觉；
      ② 随后「中心开孔」由内向外放大，孔沿是一道天蓝厚带，直到整屏让出首屏。
      颜色/尺寸实测自参考帧（1280×720：外环 r≈173px·描边 12px，内环 r≈76px·描边 7px）。
      ⚠️ 不做「黑底收束」（上一版被否的"虹膜"），孔由 radial-gradient 变量驱动，环走 transform（GPU）。 */
@@ -1002,12 +1002,12 @@
   #wipe{position:fixed;inset:0;z-index:9997;pointer-events:none;display:none;overflow:hidden;--p3hole:0%;
     background:radial-gradient(circle at 50% 46%,
       rgba(111,209,251,0) 0 calc(var(--p3hole) - 5%),
-      #6fd1fb calc(var(--p3hole) - 5%) var(--p3hole),
+      #e6e6ea calc(var(--p3hole) - 5%) var(--p3hole),
       #1f217a var(--p3hole) 100%)}
   #wipe.play{animation:p3-hole 0.98s cubic-bezier(.62,0,.30,1) .48s forwards}
   @keyframes p3-hole{from{--p3hole:0%}to{--p3hole:180%}}
   .pw-ring{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;border-radius:50%;
-    border:2px solid #6fd1fb;transform:translate(-50%,-50%) scale(.05);opacity:0;pointer-events:none}
+    border:2px solid #e6e6ea;transform:translate(-50%,-50%) scale(.05);opacity:0;pointer-events:none}
   #wipe.play .pw-ring{animation:p3-ring 1.15s cubic-bezier(.22,.6,.30,1) both}
   #wipe.play .pw-ring:nth-child(1){border-width:10px;animation-delay:0s}
   #wipe.play .pw-ring:nth-child(2){border-width:6px;animation-delay:.17s}
@@ -1212,8 +1212,8 @@
   .lineup-btn span{display:block;font-size:11px;letter-spacing:.1em;color:var(--text-2)}
   .lineup-btn:hover{transform:translateY(-2px);border-color:var(--primary-3);background:linear-gradient(180deg,rgba(14,64,150,.95),rgba(4,26,74,.95))}
   /* 选中态：P3 青实底 + 深色字（对比拉满，和站内主按钮同一套） */
-  .lineup-btn.active{border-color:#77FEFC;
-    background:linear-gradient(135deg,#16CFFB 0%,#77FEFC 52%,#7DE6FD 100%);
+  .lineup-btn.active{border-color:#e6e6ea;
+    background:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 52%,#d8d8dc 100%);
     box-shadow:3px 4px 0 rgba(2,10,36,.62),7px 9px 0 rgba(2,10,36,.3),0 0 30px rgba(22,207,251,.42)}
   .lineup-btn.active i{color:#04121f;opacity:.85}
   .lineup-btn.active b{color:#04121f}
@@ -1271,14 +1271,14 @@
 
   /* 10.1 天蓝强调色：导航下划线、悬停、聚焦、按钮主色 */
   :root{
-    --accent:#38bdf8; --accent-2:#7dd3fc; --pink:#0ea5e9;
-    --gradient:linear-gradient(135deg,#bae6fd 0%,#4cc2f8 52%,#0ea5e9 100%);
+    --accent:#d8d8dc; --accent-2:#e6e6ea; --pink:#e6e6ea;
+    --gradient:linear-gradient(135deg,#bae6fd 0%,#4cc2f8 52%,#e6e6ea 100%);
     --glow:0 0 32px rgba(56,189,248,.28);
     color-scheme:dark;          /* 关键：原生下拉列表/滚动条按深色渲染 */
   }
   [data-theme="light"]{
-    --accent:#0369a1; --accent-2:#0284c7; --pink:#0c4a6e;
-    --gradient:linear-gradient(135deg,#0369a1 0%,#0284c7 55%,#0c4a6e 100%);
+    --accent:#0369a1; --accent-2:#c9c9cc; --pink:#0c4a6e;
+    --gradient:linear-gradient(135deg,#0369a1 0%,#c9c9cc 55%,#0c4a6e 100%);
     color-scheme:light;
   }
 
@@ -1304,7 +1304,7 @@
   option{background-color:#0e1116;color:#edf0f3}
   option:checked,option:hover{background-color:#0b5f85;color:#fff}
   [data-theme="light"] option{background-color:#fff;color:#101418}
-  [data-theme="light"] option:checked,[data-theme="light"] option:hover{background-color:#0284c7;color:#fff}
+  [data-theme="light"] option:checked,[data-theme="light"] option:hover{background-color:#c9c9cc;color:#fff}
 
   /* 10.4 滚动条：全站统一细条深色（修「白色系统滚动条」） */
   *{scrollbar-width:thin;scrollbar-color:rgba(125,211,252,.35) transparent}
@@ -1578,10 +1578,10 @@
 <div id="codeModal" style="display:none;position:fixed;inset:0;z-index:210;align-items:center;justify-content:center;background:rgba(10,10,40,.6);backdrop-filter:blur(8px);padding:24px" onclick="if(event.target===this)closeCodeModal()">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)">
     <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:var(--text)">免费领取 70 张图片生成积分</h3>
-    <div id="codeStock" style="margin:0 0 18px;font-size:13px;color:var(--text-2)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg> 当前库存：<strong id="codeStockNum" style="color:#f59e0b">--</strong> / <span id="codeStockTotal">70</span> 份</div>
+    <div id="codeStock" style="margin:0 0 18px;font-size:13px;color:var(--text-2)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg> 当前库存：<strong id="codeStockNum" style="color:#e6e6ea">--</strong> / <span id="codeStockTotal">70</span> 份</div>
     <p style="margin:0 0 16px;font-size:12px;color:var(--text-3);text-align:center">可在 Flyelep 平台使用</p>
     <div id="codeContent">
-      <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">70 张图片生成积分</strong>，每个账户限领一次。</p>
+      <p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#e6e6ea">70 张图片生成积分</strong>，每个账户限领一次。</p>
       <button onclick="closeCodeModal();document.getElementById('navAuthLink').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>
     </div>
     <button onclick="closeCodeModal()" id="codeClose" style="margin-top:14px;width:100%;padding:10px;background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer">关闭</button>
@@ -1654,7 +1654,7 @@
 
 <!-- 公告 + 留言板 -->
 <!-- 工作台弹层：原有全部区块收纳于此，首页本身不滚动 -->
-<div id="workspace" class="ws" hidden>
+<div id="workspace" class="ws" hidden data-lenis-prevent>
   <button id="wsClose" class="ws-close" type="button" aria-label="返回">← 返回</button>
 
 <section id="bulletin">
@@ -2676,7 +2676,7 @@
     fetch('/api/auth/me', {credentials:'include', cache:'no-store'}).then(function(r){ return r.json(); }).then(function(ud){
       var u = ud && ud.user;
       if (!u) {
-        c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#f59e0b">70 张图片生成积分</strong>，每个账户限领一次。</p>'
+        c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 20px">登录后即可领取 <strong style="color:#e6e6ea">70 张图片生成积分</strong>，每个账户限领一次。</p>'
           + '<button onclick="closeCodeModal();document.getElementById(\'navAuthLink\').click()" style="width:100%;padding:14px;background:var(--gradient);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">去登录 / 注册 →</button>';
         return;
       }
@@ -2685,8 +2685,8 @@
         if (d.claimed && d.code) {
           showClaimedCode(c, d.code);
         } else {
-          c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px"><strong style="color:#f59e0b">' + (u.name || '您') + '</strong>，点击下方按钮即可领取 70 张图片生成积分（限领一次）</p>'
-            + '<button id="doClaimBtn" onclick="doClaimCode(this)" style="width:100%;padding:14px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">立即领取积分</button>';
+          c.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px"><strong style="color:#e6e6ea">' + (u.name || '您') + '</strong>，点击下方按钮即可领取 70 张图片生成积分（限领一次）</p>'
+            + '<button id="doClaimBtn" onclick="doClaimCode(this)" style="width:100%;padding:14px;background:linear-gradient(135deg,#e6e6ea,#ef4444);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">立即领取积分</button>';
         }
       });
     }).catch(function(){
@@ -2712,9 +2712,9 @@
   }
   function showClaimedCode(container, code){
     container.innerHTML = '<p style="color:var(--text-2);font-size:14px;line-height:1.7;margin:0 0 16px">领取成功！您的 70 张图片积分：</p>'
-      + '<div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.12));border:2px dashed #f59e0b;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px">'
-      + '<span id="codeDisplay" style="font-size:28px;font-weight:800;letter-spacing:4px;color:#f59e0b;font-family:monospace;user-select:all">' + code + '</span></div>'
-      + '<button onclick="copyCode()" style="width:100%;padding:12px;background:#f59e0b;color:#000;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">一键复制积分码</button>'
+      + '<div style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.12));border:2px dashed #e6e6ea;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px">'
+      + '<span id="codeDisplay" style="font-size:28px;font-weight:800;letter-spacing:4px;color:#e6e6ea;font-family:monospace;user-select:all">' + code + '</span></div>'
+      + '<button onclick="copyCode()" style="width:100%;padding:12px;background:#e6e6ea;color:#000;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">一键复制积分码</button>'
       + '<p style="margin-top:12px;font-size:12px;color:var(--text-3);text-align:center">请前往 Fleta 平台使用此码兑换 70 张图片生成积分</p>';
   }
   function copyCode(){
@@ -2724,8 +2724,8 @@
       var b = event.target;
       var t = b.textContent;
       b.textContent = '已复制';
-      b.style.background = '#22c55e';
-      setTimeout(function(){ b.textContent = t; b.style.background = '#f59e0b'; }, 2000);
+      b.style.background = '#e6e6ea';
+      setTimeout(function(){ b.textContent = t; b.style.background = '#e6e6ea'; }, 2000);
     });
   }
 
@@ -2801,7 +2801,7 @@
         }
         otpHint.style.display = "block";
         if (d.dev && d.devCode) {
-          otpHint.innerHTML = "开发模式(未配置真实邮件):验证码已生成 → <b style=\"color:#f59e0b;letter-spacing:2px\">" + d.devCode + "</b><br>配置 SMTP/Resend 后将直接发送到邮箱";
+          otpHint.innerHTML = "开发模式(未配置真实邮件):验证码已生成 → <b style=\"color:#e6e6ea;letter-spacing:2px\">" + d.devCode + "</b><br>配置 SMTP/Resend 后将直接发送到邮箱";
         } else {
           otpHint.textContent = d.message || "验证码已发送,请查收邮箱(10 分钟内有效)";
         }
@@ -2980,8 +2980,8 @@
       if (num) {
         num.textContent = "剩 " + d.available;
         if (d.available <= 0) { num.textContent = "已发完"; num.style.background = "#ef4444"; }
-        else if (d.available <= 5) { num.style.background = "#f59e0b"; }
-        else { num.style.background = "#10b981"; }
+        else if (d.available <= 5) { num.style.background = "#e6e6ea"; }
+        else { num.style.background = "#e6e6ea"; }
       }
     }).catch(function(){});
   }
@@ -3533,7 +3533,7 @@
     html.setAttribute('data-theme', resolved);
     // 更新 meta theme-color
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = resolved === 'light' ? '#f8f9fc' : '#3aa8e6';
+    if (meta) meta.content = resolved === 'light' ? '#f8f9fc' : '#c9c9cc';
     // 更新按钮图标
     if (toggle) toggle.textContent = resolved === 'light' ? '浅色' : '深色';
     // 更新菜单 active 状态
