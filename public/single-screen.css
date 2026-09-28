@@ -102,3 +102,6 @@ body{height:100svh}
 @media (max-width:720px),(max-height:740px){
   .ev-hero{min-height:auto!important;padding-top:30px!important}
 }
+
+/* 右下角悬浮「AI 写代码助手」不要了（DOM 保留，避免其脚本取不到元素） */
+#aiChatWidget{display:none!important}

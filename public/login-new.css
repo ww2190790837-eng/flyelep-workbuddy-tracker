@@ -82,3 +82,8 @@ html,body{height:auto;min-height:100%}
 /* 底部跑马灯：黑白 */
 .kmarquee{border-color:rgba(255,255,255,.08)!important}
 .km-track .km-dot{color:#8e8e93!important}
+
+/* 不要左侧的动漫人物立绘 */
+.brand-fig{display:none!important}
+/* 立绘撤掉后，左侧文案不再被挤，稍微加宽一点更平衡 */
+.brand-mid{max-width:520px}
