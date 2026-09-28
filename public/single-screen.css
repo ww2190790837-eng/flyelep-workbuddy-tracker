@@ -89,3 +89,16 @@ body{height:100svh}
 /* 弹层内：横向 pinned 画廊降级为可横滑条 */
 .ws #capabilities,.ws #capTrack{transform:none!important}
 .ws #capTrack{overflow-x:auto;scrollbar-width:thin}
+
+/* ============================================================================
+ * 取消顶部导航栏
+ * 注意：导航栏的 DOM 必须保留 —— 它挂着登录态、邀请码弹窗、主题切换的 JS 钩子
+ * （#navAuthLink/#navUserBox/#navCodeBtn/#themeToggle 等），直接删会让脚本取不到元素。
+ * 这里只把它「隐藏」，功能改从首屏对话框里的入口触发。
+ * ========================================================================== */
+.top-nav{display:none!important}
+.scroll-spine,.screen-rails{display:none!important}   /* 导航同系的装饰轨一并撤掉 */
+.ev-hero{min-height:100svh!important}
+@media (max-width:720px),(max-height:740px){
+  .ev-hero{min-height:auto!important;padding-top:30px!important}
+}

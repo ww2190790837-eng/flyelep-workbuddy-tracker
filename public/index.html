@@ -1633,7 +1633,9 @@
       <a data-open="bulletin">公告 · 留言板</a>
       <a data-open="capabilities">核心能力</a>
       <a data-open="fleta-about">关于 Fleta</a>
-      <a href="/login.html">登录 / 注册</a>
+      <a id="quickInvite" href="#">免费积分邀请码</a>
+      <a id="quickAuth" href="/login.html">登录 / 注册</a>
+      <a id="quickLogout" href="#" style="display:none">退出登录</a>
     </div>
   </div>
 
@@ -4738,6 +4740,34 @@
   /* 深链 / 旧书签：带着 #hash 落地时也要正确打开
      （服务端 /agnes-video → /#agnes-video，以及历史书签 #prompt-gen 等） */
   if (location.hash) setTimeout(function(){ routeHash(location.hash); }, 260);
+
+  /* ---- 导航栏已取消：把它原本的功能搬到首屏对话框入口 ---- */
+  var qi = document.getElementById('quickInvite');
+  if (qi) qi.addEventListener('click', function(e){
+    e.preventDefault();
+    if (typeof window.openCodeModal === 'function') window.openCodeModal();
+  });
+  var ql = document.getElementById('quickLogout');
+  if (ql) ql.addEventListener('click', function(e){
+    e.preventDefault();
+    var b = document.getElementById('menuLogout');
+    if (b) b.click();
+  });
+  /* 登录态同步：未登录→「登录 / 注册」；已登录→「我的账户（昵称）」+「退出登录」 */
+  function syncAuthUI(){
+    var box = document.getElementById('navUserBox');
+    var logged = !!(box && getComputedStyle(box).display !== 'none');
+    var auth = document.getElementById('quickAuth');
+    var nm = document.getElementById('navName');
+    var name = nm ? String(nm.textContent || '').trim() : '';
+    if (auth){
+      auth.textContent = logged ? ('我的账户' + (name ? '（' + name + '）' : '')) : '登录 / 注册';
+      auth.setAttribute('href', logged ? '/settings' : '/login.html');
+    }
+    if (ql) ql.style.display = logged ? '' : 'none';
+  }
+  syncAuthUI();
+  setInterval(syncAuthUI, 1500);
 })();
 </script>
 </body>

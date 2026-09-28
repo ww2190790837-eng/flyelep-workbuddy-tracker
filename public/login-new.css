@@ -11,19 +11,20 @@ html,body{height:auto;min-height:100%}
 .stage{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr!important}
 @media (max-width:900px){ .stage{grid-template-columns:1fr!important} }
 
-/* ---- 背景层去蓝 ---- */
+/* ---- 背景层同步主页：全屏视频 + 压暗（不再用旧的蓝色氛围/插画层） ---- */
 .bg-stage{background:#000!important}
-.bg-base{background:
-  radial-gradient(58% 46% at 22% 12%, rgba(255,255,255,.06), transparent 62%),
-  radial-gradient(60% 50% at 80% 24%, rgba(255,255,255,.04), transparent 64%),
-  radial-gradient(80% 66% at 52% 116%, rgba(255,255,255,.03), transparent 68%),
-  linear-gradient(165deg, #0a0a0b 0%, #060607 48%, #000 100%)!important}
-.bg-draw,.bg-page,.bg-halftone,.bg-slant,.bg-grid,.bg-vig{filter:grayscale(1)!important}
-.bg-page{opacity:.20!important}
-.bg-halftone,.bg-slant{opacity:.06!important}
+.bg-video{
+  position:absolute;inset:0;z-index:-3;width:100%;height:100%;
+  object-fit:cover;pointer-events:none;
+}
+.bg-base{background:transparent!important}
+.bg-draw,.bg-page,.bg-halftone,.bg-slant,.bg-grid{display:none!important}
+#bgfx{display:none!important}
+.bg-vig{background:
+  radial-gradient(ellipse 74% 60% at 50% 44%, rgba(0,0,0,.42) 0%, rgba(0,0,0,.12) 60%, rgba(0,0,0,0) 100%),
+  linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.22) 34%, rgba(0,0,0,.3) 66%, rgba(0,0,0,.72) 100%)!important}
 /* 蓝色波浪带 → 移除 */
 .wave-band{display:none!important}
-#bgfx{filter:grayscale(1) brightness(.5)!important}
 
 /* ---- 左：品牌区 ---- */
 .brand-pane{color:#fff}
