@@ -60,7 +60,7 @@ body{height:100svh}
 .ws{
   /* 收进对话框内部：不再是整屏弹层，而是卡片里的可滚动区域 */
   position:static;
-  flex:1 1 auto;min-height:0;
+  flex:0 1 auto;min-height:0;   /* 不自动撑满卡片，避免底部留一大片空白 */
   margin-top:14px;padding:14px 2px 2px;
   border-top:1px solid rgba(255,255,255,.12);
   background:transparent;
@@ -242,7 +242,7 @@ body.ws-open .pcard{width:min(820px,94%);max-height:calc(100svh - 186px)}
  * 不再是"点一下弹出一个独立面板" —— 去掉大标题、拍平套壳卡片、控件收紧
  * ========================================================================== */
 .ws .section-head{display:none!important}
-.ws section{padding:0!important}
+.ws section{padding:0!important;min-height:0!important}   /* 原站每个 section 有 min-height:100vh，会撑出一整屏空白 */
 .ws .wrap{max-width:100%!important;padding:0!important}
 .ws .pg-card,.ws .vr-card,.ws .agv-card,.ws .vu-card{
   background:transparent!important;border:0!important;border-radius:0!important;
@@ -263,3 +263,39 @@ body.ws-open .pcard{width:min(820px,94%);max-height:calc(100svh - 186px)}
 /* 首屏芯片：选中的那个 = 当前模式，高亮成实心白 */
 .pchip.active{background:#fff!important;color:#000!important;border-color:#fff!important}
 .pchip.active i{opacity:1!important}
+
+
+/* ============================================================================
+ * 只有一个对话框：工具控件与输入框同属一个盒子
+ *   1) 去掉工具区上方的分隔线/外边距 —— 那正是"第二个盒子"的观感来源
+ *   2) 首屏输入框就是唯一输入框：收掉工具自带的那个大输入框
+ *   3) 上传区、引擎栏、操作行全部压成细条
+ * ========================================================================== */
+.ws{margin-top:0!important;padding-top:0!important;border-top:0!important}
+body.ws-open .pcard #pInput{min-height:88px}
+body.ws-open .pcard-foot{margin-top:8px}
+
+/* 只藏掉工具自带的那一行"标签+输入框"（首屏输入框是唯一输入框，值已同步过去）；
+   上传区 / 引擎栏等仍保留，跟着同一个盒子往下排 */
+.ws #pgIdea,.ws #vrIdea,.ws #agvPrompt{display:none!important}
+.ws .pg-label:has(+ #pgIdea),
+.ws .pg-label:has(+ #vrIdea),
+.ws .agv-label:has(+ #agvPrompt),
+.ws .pg-idea-wrap > .pg-label:first-child{display:none!important}
+.ws .pg-idea-wrap{padding-top:0!important}
+
+/* 上传区压成一行细条 */
+.ws .pg-upload{margin-top:10px!important}
+.ws .pg-upload-zone{display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:flex-start!important;gap:10px!important;min-height:0!important;height:auto!important;
+  padding:11px 14px!important;text-align:left!important;border-style:solid!important}
+.ws .pg-upload-zone .pg-upload-text{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important}
+.ws .pg-upload-icon{width:26px!important;height:26px!important;min-width:26px!important;font-size:12px!important;margin:0!important}
+.ws .pg-upload-text{font-size:12.5px!important;line-height:1.4!important}
+.ws .pg-upload-hint{display:none!important}
+.ws .pg-upload-remove{top:50%!important;transform:translateY(-50%)!important;right:10px!important}
+
+/* 引擎栏 / 操作行 / 生成行 压薄 */
+.ws .pg-engine-bar{margin-top:10px!important;padding:8px 12px!important;border-radius:10px!important}
+.ws .pg-idea-actions{margin-top:8px!important}
+.ws .pg-manual{margin-top:10px!important;padding-top:10px!important}

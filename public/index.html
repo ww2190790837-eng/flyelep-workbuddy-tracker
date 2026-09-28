@@ -4653,18 +4653,9 @@
     }
     syncWsTabs(sid);
     if (!wasOpen){ try { history.pushState({ fletaWs: 1 }, ''); } catch (e) {} }
-    /* 首屏输入框里已打的字，带进工具的主输入框（避免"点了工具字就没了"） */
-    setTimeout(function(){
-      var src = document.getElementById('pInput');
-      if (!src || !src.value.trim()) return;
-      var map = { 'prompt-gen':'pgIdea', 'video-reverse':'vrIdea', 'agnes-video':'agvPrompt' };
-      var tid = map[sid];
-      var tgt = tid ? document.getElementById(tid) : null;
-      if (tgt && !tgt.value.trim()){
-        tgt.value = src.value;
-        tgt.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    }, 140);
+    /* 首屏输入框 = 唯一输入框：与当前工具的主输入框双向同步 */
+    window.__toolSid = sid;
+    setTimeout(function(){ if (window.__syncPInput) window.__syncPInput(true); }, 140);
     /* 关键：滚动到目标区块本身（而不是弹层顶部），否则会停在"公告·留言板"上，看着像没跳 */
     setTimeout(function(){
       window.dispatchEvent(new Event('resize'));
@@ -4891,6 +4882,24 @@
   if (rc) rc.addEventListener('click', closeReader);
   rm.addEventListener('click', function(e){ if (e.target === rm) closeReader(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && rm.style.display === 'flex') closeReader(); });
+})();
+</script>
+
+<script>
+(function(){
+  /* 首屏输入框是唯一输入框：与当前工具的主输入框实时双向同步，
+     这样工具里就不用再摆一个自己的大输入框（避免"盒中盒"） */
+  var MAP = { 'prompt-gen':'pgIdea', 'video-reverse':'vrIdea', 'agnes-video':'agvPrompt' };
+  var src = document.getElementById('pInput');
+  if (!src) return;
+  window.__syncPInput = function(fromHero){
+    var id = MAP[window.__toolSid];
+    var el = id ? document.getElementById(id) : null;
+    if (!el) return;
+    if (fromHero || !el.value.trim()) el.value = src.value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  src.addEventListener('input', function(){ if (window.__toolSid) window.__syncPInput(true); });
 })();
 </script>
 
