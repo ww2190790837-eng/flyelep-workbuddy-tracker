@@ -187,7 +187,9 @@ body.ws-open .pcard{width:min(820px,94%);max-height:calc(100svh - 186px)}
 .reader-body .section-head{margin:0 0 18px!important;max-width:100%!important;text-align:left!important}
 .reader-body .section-title{font-size:clamp(20px,2.6vw,28px)!important;line-height:1.2!important}
 .reader-body .section-sub{font-size:13.5px!important;line-height:1.8!important}
-.reader-body .section-eyebrow{font-size:11px!important;letter-spacing:.22em!important}
+/* 阅读层顶部标题条已经写了区块名（核心能力 / 公告·留言板 / 关于 Fleta），
+   面板里再出现一行同名小字就是重复 -> 去掉（大标题保留，它带实际内容） */
+.reader-body .section-eyebrow{display:none!important}
 /* 揭示动画在弹层内不会触发，强制显示 */
 .reader-body .reveal,.reader-body .anim,.reader-body .num,
 .reader-body .section-title,.reader-body .section-sub,.reader-body .section-eyebrow{
