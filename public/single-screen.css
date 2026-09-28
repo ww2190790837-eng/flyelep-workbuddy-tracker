@@ -299,3 +299,11 @@ body.ws-open .pcard-foot{margin-top:8px}
 .ws .pg-engine-bar{margin-top:10px!important;padding:8px 12px!important;border-radius:10px!important}
 .ws .pg-idea-actions{margin-top:8px!important}
 .ws .pg-manual{margin-top:10px!important;padding-top:10px!important}
+
+
+/* 「← 返回」按钮现在挂在卡片上、由工具区与阅读屏共用 -> 默认隐藏，打开时才显示 */
+.ws-close{display:none}
+body.ws-open .ws-close{display:inline-flex;align-items:center}
+
+/* 阅读屏：与工具区同属一个对话框，样式沿用 .ws，只需保证内部可滚 */
+.reader-body{overflow-y:auto!important;overflow-x:hidden!important}

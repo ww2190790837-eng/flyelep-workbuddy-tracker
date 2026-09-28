@@ -4642,6 +4642,7 @@
   function openWs(sectionId, tabIdx){
     if (!ws) return;
     var wasOpen = ws.isOpen;
+    if (window.__closeReaderPane) window.__closeReaderPane();   /* 切到工具时先收起阅读屏 */
     ws.hidden = false;
     ws.isOpen = true;
     document.body.classList.add('ws-open');
@@ -4670,12 +4671,16 @@
     document.body.classList.remove('ws-open');
     ws.scrollTop = 0;
     syncWsTabs(null);
+    if (window.__closeReaderPane) window.__closeReaderPane();   /* 阅读屏与工具区共用返回 */
   }
   window.closeFletaWs = closeWs;
   function backOrClose(){
     if (history.state && history.state.fletaWs){ history.back(); } else { closeWs(); }
   }
-  window.addEventListener('popstate', function(){ if (ws && ws.isOpen) closeWs(); });
+  window.addEventListener('popstate', function(){
+    if (ws && ws.isOpen) closeWs();
+    else if (window.__readerOpen && window.__closeReaderPane) window.__closeReaderPane();
+  });
   Array.prototype.forEach.call(document.querySelectorAll('[data-open]'), function(el){
     el.addEventListener('click', function(e){
       e.preventDefault();
@@ -4859,29 +4864,50 @@
   var ft = document.querySelector('#workspace > footer');
   if (ft) rb.appendChild(ft);
 
+  /* ===== 关键：文字型内容不再另开弹窗，而是就地显示在对话框里 =====
+     阅读面板与工具区共用同一个盒子(.pcard)与同一个「← 返回」按钮 */
+  var wsEl = document.getElementById('workspace');
+  var pc   = document.querySelector('.pcard');
+  var wsCloseBtn = document.getElementById('wsClose');
+
+  rb.removeAttribute('style');          /* 丢掉弹窗里的内联布局，改用 .ws 的样式 */
+  rb.className = 'ws reader-body';
+  rb.hidden = true;
+  if (pc) pc.appendChild(rb);
+  if (pc && wsCloseBtn) pc.appendChild(wsCloseBtn);          /* 返回按钮两屏共用 */
+  if (rm && rm.parentNode) rm.parentNode.removeChild(rm);     /* 移除旧弹窗外壳 */
+
   var PANELS = {
     bulletin:      function(){ return document.getElementById('bulletin'); },
     capabilities:  function(){ return rb.querySelector('[data-reader="capabilities"]'); },
     'fleta-about': function(){ return document.getElementById('fleta-about'); }
   };
   var TITLE = { bulletin:'公告 · 留言板', capabilities:'核心能力', 'fleta-about':'关于 Fleta' };
+
   function openReader(id){
     if (!TITLE[id]) return;
-    if (window.closeFletaWs) window.closeFletaWs();
+    if (wsEl){ wsEl.hidden = true; wsEl.isOpen = false; wsEl.scrollTop = 0; }
     Object.keys(PANELS).forEach(function(k){
       var el = PANELS[k]();
       if (el) el.style.display = (k === id) ? '' : 'none';
     });
-    if (rt) rt.textContent = TITLE[id];
-    rm.style.display = 'flex';
+    rb.hidden = false;
     rb.scrollTop = 0;
+    document.body.classList.add('ws-open');
+    window.__readerOpen = true;
+    try { history.pushState({ fletaWs: 1 }, ''); } catch (e) {}
   }
-  function closeReader(){ rm.style.display = 'none'; }
+  function closeReaderPane(){
+    rb.hidden = true;
+    window.__readerOpen = false;
+    document.body.classList.remove('ws-open');
+  }
+  window.__closeReaderPane = closeReaderPane;
   window.openReader = openReader;
-  window.closeReader = closeReader;
-  if (rc) rc.addEventListener('click', closeReader);
-  rm.addEventListener('click', function(e){ if (e.target === rm) closeReader(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && rm.style.display === 'flex') closeReader(); });
+  window.closeReader = function(){ closeReaderPane(); if (window.closeFletaWs) window.closeFletaWs(); };
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && window.__readerOpen) window.closeReader();
+  });
 })();
 </script>
 
