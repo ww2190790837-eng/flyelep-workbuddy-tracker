@@ -4635,22 +4635,52 @@
 (function(){
   "use strict";
   var ws = document.getElementById('workspace');
+  var TAB2SEC = { 0: 'prompt-gen', 1: 'video-reverse', 2: 'agnes-video' };
+  var WS_BAR_H = 62;   /* 弹层顶部 sticky 页签栏高度 */
+  var SEC2TAB = { 'prompt-gen': 'prompt', 'video-reverse': 'reverse', 'agnes-video': 'agnes' };
+  function syncWsTabs(sid){
+    var key = sid ? (SEC2TAB[sid] || sid) : null;
+    Array.prototype.forEach.call(document.querySelectorAll('.ws-tab'), function(t){
+      t.classList.toggle('active', !!key && t.getAttribute('data-open') === key);
+    });
+  }
+  function scrollWsTo(id){
+    if (!id){ ws.scrollTop = 0; return; }
+    var el = document.getElementById(id);
+    if (!el) return;
+    var top = el.getBoundingClientRect().top - ws.getBoundingClientRect().top + ws.scrollTop - WS_BAR_H;
+    ws.scrollTop = Math.max(0, top);
+  }
   function openWs(sectionId, tabIdx){
     if (!ws) return;
+    var wasOpen = ws.isOpen;
     ws.hidden = false;
+    ws.isOpen = true;
+    var sid = sectionId;
     if (typeof tabIdx === 'number'){
       var b = document.querySelector('.lineup-btn[data-tab="' + tabIdx + '"]');
       if (b) b.click();
+      if (!sid) sid = TAB2SEC[tabIdx];
     }
+    syncWsTabs(sid);
+    if (!wasOpen){ try { history.pushState({ fletaWs: 1 }, ''); } catch (e) {} }
+    /* 关键：滚动到目标区块本身（而不是弹层顶部），否则会停在"公告·留言板"上，看着像没跳 */
     setTimeout(function(){
       window.dispatchEvent(new Event('resize'));
-      if (sectionId){
-        var el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ block: 'start' });
-      } else { ws.scrollTop = 0; }
-    }, 80);
+      scrollWsTo(sid);
+    }, 90);
   }
-  function closeWs(){ if (!ws) return; ws.hidden = true; ws.scrollTop = 0; }
+  function closeWs(){
+    if (!ws) return;
+    ws.isOpen = false;
+    ws.hidden = true;
+    ws.scrollTop = 0;
+    syncWsTabs(null);
+  }
+  function backOrClose(){
+    if (history.state && history.state.fletaWs){ history.back(); } else { closeWs(); }
+  }
+  window.addEventListener('popstate', function(){ if (ws && ws.isOpen) closeWs(); });
   Array.prototype.forEach.call(document.querySelectorAll('[data-open]'), function(el){
     el.addEventListener('click', function(e){
       e.preventDefault();
@@ -4662,9 +4692,9 @@
     });
   });
   var c = document.getElementById('wsClose');
-  if (c) c.addEventListener('click', closeWs);
+  if (c) c.addEventListener('click', backOrClose);
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape' && ws && !ws.hidden) closeWs();
+    if (e.key === 'Escape' && ws && !ws.hidden) backOrClose();
   });
 
   /* ---- 锚点路由：原先指向文档流的锚点现在都在弹层里，必须改为"打开弹层" ---- */
