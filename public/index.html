@@ -1623,6 +1623,8 @@
         <button class="pchip" type="button" data-open="prompt"><i class="fa-solid fa-wand-magic-sparkles"></i>提示词生成</button>
         <button class="pchip" type="button" data-open="reverse"><i class="fa-solid fa-rotate-left"></i>视频反推</button>
         <button class="pchip" type="button" data-open="agnes"><i class="fa-solid fa-clapperboard"></i>Agnes 视频</button>
+        <button class="pchip pchip-upload" type="button" id="pUpload"><i class="fa-solid fa-paperclip"></i>上传图片</button>
+        <input type="file" id="pUploadInput" accept="image/*" hidden />
         <button class="pcard-send" type="button" data-open="prompt" aria-label="开始">↑</button>
       </div>
     </div>
@@ -4664,6 +4666,44 @@
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape' && ws && !ws.hidden) closeWs();
   });
+
+  /* ---- 锚点路由：原先指向文档流的锚点现在都在弹层里，必须改为"打开弹层" ---- */
+  var TABMAP = { 'prompt-gen': 0, 'video-reverse': 1, 'agnes-video': 2 };
+  function routeHash(hash){
+    if (!hash || hash === '#'){ closeWs(); return true; }
+    var id = hash.slice(1);
+    if (Object.prototype.hasOwnProperty.call(TABMAP, id)){ openWs(null, TABMAP[id]); return true; }
+    var el = document.getElementById(id);
+    if (el && ws && ws.contains(el)){ openWs(id); return true; }
+    return false;
+  }
+  document.addEventListener('click', function(e){
+    var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) return;
+    if (routeHash(a.getAttribute('href'))){ e.preventDefault(); }
+  }, true);
+
+  /* ---- 首屏「上传图片」→ 打开提示词生成并把文件交给它的上传控件 ---- */
+  var up = document.getElementById('pUpload');
+  var upIn = document.getElementById('pUploadInput');
+  if (up && upIn){
+    up.addEventListener('click', function(){
+      openWs(null, 0);
+      setTimeout(function(){ upIn.click(); }, 160);
+    });
+    upIn.addEventListener('change', function(){
+      if (!upIn.files || !upIn.files.length) return;
+      var tgt = document.getElementById('pgImageInput');
+      if (tgt && window.DataTransfer){
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(upIn.files[0]);
+          tgt.files = dt.files;
+          tgt.dispatchEvent(new Event('change', { bubbles: true }));
+        } catch (err) {}
+      }
+    });
+  }
 })();
 </script>
 </body>
