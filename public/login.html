@@ -150,17 +150,6 @@
   .bg-slant{position:absolute;inset:-30% -15%;pointer-events:none;opacity:.06;
     background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
 
-  /* P3 分层波浪（贴底，SVG 取自官网 #gentle-wave） */
-  .wave-band{position:absolute;left:0;right:0;bottom:0;height:110px;overflow:hidden;line-height:0;
-    pointer-events:none;z-index:1}
-  .waves{position:relative;width:100%;height:100%}
-  .parallax > use{animation:waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
-  .parallax > use:nth-child(1){animation-delay:-2s;animation-duration:12s}
-  .parallax > use:nth-child(2){animation-delay:-3s;animation-duration:16s}
-  .parallax > use:nth-child(3){animation-delay:-4s;animation-duration:20s}
-  .parallax > use:nth-child(4){animation-delay:-5s;animation-duration:24s}
-  @keyframes waveMove{0%{transform:translate3d(-90px,0,0)}100%{transform:translate3d(85px,0,0)}}
-
   /* 表单卡：P3 直角角标 */
   .card{position:relative}
   .card::before,.card::after{content:"";position:absolute;width:16px;height:16px;pointer-events:none;
@@ -168,8 +157,7 @@
   .card::before{top:-14px;left:-14px;border-right:none;border-bottom:none}
   .card::after{bottom:-14px;right:-14px;border-left:none;border-top:none}
 
-  @media (max-width:900px){ .brand-fig{display:none} .wave-band{height:74px} }
-  @media (prefers-reduced-motion:reduce){ .parallax > use{animation:none} }
+  @media (max-width:900px){ .brand-fig{display:none} }
 </style>
 <style id="top-tier-sub">
 .kmarquee{position:relative;overflow:hidden;padding:22px 0;border-top:1px solid var(--border,rgba(255,255,255,.22));border-bottom:1px solid var(--border,rgba(255,255,255,.22));-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
@@ -211,17 +199,6 @@
     <div class="bg-slant"></div>
     <div class="bg-grid"></div>
     <div class="bg-vig"></div>
-    <div class="wave-band" aria-hidden="true">
-      <svg class="waves" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-        <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
-        <g class="parallax">
-          <use href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,.5)"/>
-          <use href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,.34)"/>
-          <use href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,.7)"/>
-          <use href="#gentle-wave" x="48" y="7" fill="rgba(8,8,10,.9)"/>
-        </g>
-      </svg>
-    </div>
   </div>
   <a class="back-home" href="/">← 返回首页</a>
 

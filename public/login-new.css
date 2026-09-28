@@ -23,9 +23,6 @@ html,body{height:auto;min-height:100%}
 .bg-vig{background:
   radial-gradient(ellipse 74% 60% at 50% 44%, rgba(0,0,0,.42) 0%, rgba(0,0,0,.12) 60%, rgba(0,0,0,0) 100%),
   linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.22) 34%, rgba(0,0,0,.3) 66%, rgba(0,0,0,.72) 100%)!important}
-/* 蓝色波浪带 → 移除 */
-.wave-band{display:none!important}
-
 /* ---- 左：品牌区 ---- */
 .brand-pane{color:#fff}
 .brand-logo{box-shadow:none!important;background:#fff!important;padding:4px!important}

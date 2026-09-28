@@ -46,16 +46,6 @@
     background-image:radial-gradient(rgba(255,255,255,.6) 1.2px,transparent 1.6px);background-size:18px 18px}
   .p3-slant{position:absolute;inset:-30% -15%;opacity:.06;
     background:repeating-linear-gradient(118deg,rgba(255,255,255,.85) 0 1.5px,transparent 1.5px 54px)}
-  .p3-wave{position:absolute;left:0;right:0;bottom:0;height:110px;overflow:hidden;line-height:0}
-  .p3-waves{position:relative;width:100%;height:100%}
-  .p3-plx > use{animation:p3waveMove 20s cubic-bezier(.55,.5,.45,.5) infinite}
-  .p3-plx > use:nth-child(1){animation-delay:-2s;animation-duration:12s}
-  .p3-plx > use:nth-child(2){animation-delay:-3s;animation-duration:16s}
-  .p3-plx > use:nth-child(3){animation-delay:-4s;animation-duration:20s}
-  .p3-plx > use:nth-child(4){animation-delay:-5s;animation-duration:24s}
-  @keyframes p3waveMove{0%{transform:translate3d(-90px,0,0)}100%{transform:translate3d(85px,0,0)}}
-  @media (max-width:760px){.p3-wave{height:74px}}
-  @media (prefers-reduced-motion:reduce){.p3-plx > use{animation:none}}
 </style>
 <link rel="stylesheet" href="/theme-new.css" />
 </head>
@@ -63,17 +53,6 @@
 <div class="p3-bg" aria-hidden="true">
   <div class="p3-halftone"></div>
   <div class="p3-slant"></div>
-  <div class="p3-wave">
-    <svg class="p3-waves" viewBox="0 24 150 28" preserveAspectRatio="none">
-      <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
-      <g class="p3-plx">
-        <use href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,.5)"/>
-        <use href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,.34)"/>
-        <use href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,.7)"/>
-        <use href="#gentle-wave" x="48" y="7" fill="rgba(8,8,10,.9)"/>
-      </g>
-    </svg>
-  </div>
 </div>
 
   <div class="wrap">
