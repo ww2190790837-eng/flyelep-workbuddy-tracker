@@ -4704,6 +4704,10 @@
       }
     });
   }
+
+  /* 深链 / 旧书签：带着 #hash 落地时也要正确打开
+     （服务端 /agnes-video → /#agnes-video，以及历史书签 #prompt-gen 等） */
+  if (location.hash) setTimeout(function(){ routeHash(location.hash); }, 260);
 })();
 </script>
 </body>
