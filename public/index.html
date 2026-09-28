@@ -1609,6 +1609,12 @@
   </div>
   <span class="ev-scrim" aria-hidden="true"></span>
 
+  <div class="ev-topbar">
+    <button class="ev-btn ev-btn-ghost" type="button" id="quickInvite">免费积分邀请码 <span class="ev-stock" id="evStock"></span></button>
+    <a class="ev-btn ev-btn-solid" id="quickAuth" href="/login.html">登录 / 注册</a>
+    <button class="ev-btn ev-btn-ghost" type="button" id="quickLogout" style="display:none">退出登录</button>
+  </div>
+
   <div class="ev-inner">
     <h1 class="ev-headline">
       <span class="line">Fleta</span>
@@ -1633,9 +1639,6 @@
       <a data-open="bulletin">公告 · 留言板</a>
       <a data-open="capabilities">核心能力</a>
       <a data-open="fleta-about">关于 Fleta</a>
-      <a id="quickInvite" href="#">免费积分邀请码</a>
-      <a id="quickAuth" href="/login.html">登录 / 注册</a>
-      <a id="quickLogout" href="#" style="display:none">退出登录</a>
     </div>
   </div>
 
@@ -4629,8 +4632,17 @@
 (function(){
   "use strict";
   var ws = document.getElementById('workspace');
+  /* 内容区从对话框正下方开始，铺到屏幕底部 —— 标题/对话框仍然留在上面，观感是同一页 */
+  function positionWs(){
+    var pc = document.querySelector('.pcard');
+    if (!pc) return;
+    var top = Math.round(pc.getBoundingClientRect().bottom + 18);
+    document.documentElement.style.setProperty('--wsTop', top + 'px');
+  }
+  window.addEventListener('resize', function(){ if (ws && ws.isOpen) positionWs(); });
+
   var TAB2SEC = { 0: 'prompt-gen', 1: 'video-reverse', 2: 'agnes-video' };
-  var WS_BAR_H = 62;   /* 弹层顶部 sticky 页签栏高度 */
+  var WS_BAR_H = 8;   /* 弹层顶部 sticky 页签栏高度 */
   var SEC2TAB = { 'prompt-gen': 'prompt', 'video-reverse': 'reverse', 'agnes-video': 'agnes' };
   function syncWsTabs(sid){
     var key = sid ? (SEC2TAB[sid] || sid) : null;
@@ -4662,6 +4674,7 @@
     /* 关键：滚动到目标区块本身（而不是弹层顶部），否则会停在"公告·留言板"上，看着像没跳 */
     setTimeout(function(){
       window.dispatchEvent(new Event('resize'));
+      positionWs();
       scrollWsTo(sid);
     }, 90);
   }
@@ -4759,6 +4772,9 @@
       auth.setAttribute('href', logged ? '/settings' : '/login.html');
     }
     if (ql) ql.style.display = logged ? '' : 'none';
+    var st = document.getElementById('navCodeStock');
+    var ev = document.getElementById('evStock');
+    if (ev && st) ev.textContent = String(st.textContent || '').trim();
   }
   syncAuthUI();
   setInterval(syncAuthUI, 1500);

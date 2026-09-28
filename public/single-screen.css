@@ -48,21 +48,31 @@ body{height:100svh}
 
 /* ============================================================================
  * 内容区（原弹层）：刻意做成「同一个页面」而不是另一个页面
- *   - 半透明 + 模糊：底下还是首页那张视频背景，不换页
- *   - 去掉顶部像导航一样的页签条，只留一个「← 返回」
- *   - 打开时首屏文案淡出，内容在同页里被换掉
+ *   - 不盖住整屏：从对话框正下方开始铺到屏幕底部，上面那部分（标题+对话框）还在
+ *   - 背景仍是首页那张视频（透明），不换页
+ *   - 打开时只收起 标题/副文案/数据/小入口，把高度让给内容区；对话框(切换入口)保留
  * ========================================================================== */
 .ws{
-  position:fixed;inset:0;z-index:400;
-  background:rgba(0,0,0,.84);
-  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  position:fixed;left:0;right:0;bottom:0;
+  top:var(--wsTop,58%);
+  z-index:400;
+  background:transparent;
   overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  padding:0 clamp(16px,3vw,32px) 22px;
+  scrollbar-width:thin;
+  /* 顶部柔化，避免内容区出现"硬边"像一块独立面板 */
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 46px);
+  mask-image:linear-gradient(180deg,transparent 0,#000 46px);
 }
 .ws[hidden]{display:none!important}
-.ev-inner,.ev-stats,.ev-quick{transition:opacity .3s ease}
-body.ws-open .ev-inner,
+body.ws-open .ev-headline,
+body.ws-open .ev-subhead,
 body.ws-open .ev-stats,
-body.ws-open .ev-quick{opacity:0!important;pointer-events:none}
+body.ws-open .ev-quick{display:none!important}
+.ev-headline,.ev-subhead,.ev-stats,.ev-quick{transition:opacity .25s ease}
+/* 标题收起后让对话框靠上，把屏幕高度尽量留给内容区 */
+body.ws-open .ev-hero{justify-content:flex-start!important;padding-top:78px!important}
+body.ws-open .ev-inner{margin:0!important}
 .ws-close{
   position:fixed;top:14px;left:16px;z-index:406;height:38px;padding:0 16px;border-radius:999px;
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;
@@ -73,6 +83,32 @@ body.ws-open .ev-quick{opacity:0!important;pointer-events:none}
 /* 内容里原有的工具页签条（PROMPT/REVERSE/AGNES）也去掉：
    功能的切换统一在首屏对话框里选，避免同页再冒出一条"导航" */
 .ws .lineup{display:none!important}
+
+/* ============================================================================
+ * 首页右上角：登录 / 送积分（按用户要求恢复成明显的按钮）
+ * ========================================================================== */
+.ev-topbar{
+  position:absolute;top:18px;right:20px;z-index:6;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;
+}
+.ev-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:42px;padding:0 18px;border-radius:999px;
+  font-size:14px;font-weight:600;font-family:inherit;text-decoration:none;
+  cursor:pointer;border:1px solid transparent;transition:all .2s;white-space:nowrap;
+}
+.ev-btn-solid{background:#fff;color:#000;box-shadow:0 0 22px rgba(255,255,255,.28)}
+.ev-btn-solid:hover{background:#e9e9ec;transform:translateY(-1px)}
+.ev-btn-ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.22)}
+.ev-btn-ghost:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4)}
+.ev-stock{
+  display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;
+  background:#fff;color:#000;font-size:11px;font-weight:700;letter-spacing:.02em;
+}
+.ev-stock:empty{display:none}
+@media (max-width:720px){
+  .ev-topbar{position:static;margin:0 0 6px;justify-content:center}
+}
 
 /* 弹层内：强制揭示滚动动画元素（ScrollTrigger 依赖窗口滚动，弹层内不会触发） */
 .ws .reveal{opacity:1!important;transform:none!important;filter:none!important}
