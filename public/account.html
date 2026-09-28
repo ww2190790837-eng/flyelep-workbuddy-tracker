@@ -12,9 +12,9 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#04205e;--surface:#0a3d8f;
+    --bg:#000000;--surface:#101013;
     --border:rgba(255,255,255,.09);--border-2:rgba(255,255,255,.14);
-    --text:#ffffff;--text-2:#cfe0f8;--text-3:#9fbce8;
+    --text:#ffffff;--text-2:#c7c7cb;--text-3:#8e8e93;
     --primary:#e6e6ea;--primary-2:#d8d8dc;
     --accent:#e6e6ea;--pink:#c9c9cc;
     --wb:#e6e6ea;--wb-2:#d8d8dc;
@@ -23,7 +23,7 @@
     --gold:linear-gradient(135deg,#f6c75a,#e0962a);
   }
   html{background:var(--bg)}
-  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(1,95,204,.42),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1000px 560px at 50% -8%,rgba(255,255,255,.42),transparent 60%),var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
   ::selection{background:var(--primary);color:#fff}
   a{color:inherit;text-decoration:none}
   img{max-width:100%;display:block}
@@ -31,12 +31,12 @@
   .top-nav{background:rgba(10,12,24,.7);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
   .top-nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
   .nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.3px}
-  .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(91,59,255,.25)}
-  .nav-back{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(91,59,255,.3)}
-  .nav-back:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,59,255,.4)}
+  .nav-logo img{width:36px;height:36px;border-radius:10px;box-shadow:0 4px 16px rgba(255,255,255,.25)}
+  .nav-back{padding:9px 18px;border-radius:10px;background:var(--gradient);color:#fff;font-size:13px;font-weight:600;transition:all .2s;box-shadow:0 4px 16px rgba(255,255,255,.3)}
+  .nav-back:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,255,255,.4)}
   .account-shell{padding:40px 0 80px}
   .loading{text-align:center;padding:80px 0;color:var(--text-3)}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(91,59,255,.25);overflow:hidden}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px -10px rgba(255,255,255,.25);overflow:hidden}
 
   /* 会员卡 */
   .member{position:relative;color:#fff;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;overflow:hidden}
@@ -74,7 +74,7 @@
   .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:900px){.tools{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.tools{grid-template-columns:1fr}}
   .tool{padding:18px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.04);transition:all .3s;cursor:pointer;display:block}
-  .tool:hover{transform:translateY(-3px);border-color:rgba(91,59,255,.3);box-shadow:0 12px 24px -8px rgba(91,59,255,.15)}
+  .tool:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.3);box-shadow:0 12px 24px -8px rgba(255,255,255,.15)}
   .tool .ti{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:11px;font-weight:700}
   .tool.wb .ti{background:linear-gradient(135deg,var(--wb),var(--wb-2))}
   .tool h4{font-size:15px;font-weight:600;margin-bottom:4px}
@@ -85,13 +85,13 @@
   .timeline::before{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:var(--border)}
   .tl-item{position:relative;padding:0 0 18px}
   .tl-item:last-child{padding-bottom:0}
-  .tl-item::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(91,59,255,.2)}
+  .tl-item::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(255,255,255,.2)}
   .tl-title{font-size:14px;font-weight:600}
   .tl-time{font-size:12px;color:var(--text-3);margin-top:2px}
 
   /* 邀请 */
-  .refbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border:1px dashed rgba(91,59,255,.4);border-radius:14px;background:rgba(91,59,255,.07)}
-  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#0a3376;color:var(--text)}
+  .refbox{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;border:1px dashed rgba(255,255,255,.4);border-radius:14px;background:rgba(255,255,255,.07)}
+  .refbox input{flex:1;min-width:220px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;background:#101013;color:var(--text)}
   .btn-copy{padding:11px 18px;border:none;border-radius:10px;background:var(--gradient);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s}
   .btn-copy:hover{transform:translateY(-1px)}
 
@@ -115,8 +115,8 @@
   .modal-card h3{font-size:18px;font-weight:700;margin-bottom:18px}
   .modal-card .field{margin-bottom:14px}
   .modal-card label{display:block;font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:500}
-  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#0a3376;color:var(--text);transition:all .2s}
-  .modal-card input:focus{outline:none;border-color:var(--primary);background:#0b3d86}
+  .modal-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;background:#101013;color:var(--text);transition:all .2s}
+  .modal-card input:focus{outline:none;border-color:var(--primary);background:#363636}
   .modal-err{display:none;color:var(--danger);font-size:13px;margin:4px 0 12px}
   .modal-actions{display:flex;gap:10px;margin-top:8px}
   .modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
@@ -131,7 +131,7 @@
   /* 编辑资料弹层 */
   .profile-ava-wrap{display:flex;align-items:center;gap:16px;margin-bottom:18px}
   .profile-ava{width:72px;height:72px;border-radius:50%;overflow:hidden;flex:none;border:1px solid var(--border);background:linear-gradient(135deg,var(--primary),var(--pink));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;cursor:pointer;transition:all .2s}
-  .profile-ava:hover{box-shadow:0 0 0 3px rgba(91,59,255,.25)}
+  .profile-ava:hover{box-shadow:0 0 0 3px rgba(255,255,255,.25)}
   .profile-ava img{width:100%;height:100%;object-fit:cover}
   .profile-ava-actions{display:flex;flex-direction:column;gap:8px}
   .profile-ava-actions .btn-mini{font-size:12px;padding:7px 13px}
@@ -171,10 +171,10 @@
     <svg class="p3-waves" viewBox="0 24 150 28" preserveAspectRatio="none">
       <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
       <g class="p3-plx">
-        <use href="#gentle-wave" x="48" y="0" fill="rgba(1,95,204,.5)"/>
-        <use href="#gentle-wave" x="48" y="3" fill="rgba(22,207,251,.34)"/>
-        <use href="#gentle-wave" x="48" y="5" fill="rgba(3,31,100,.7)"/>
-        <use href="#gentle-wave" x="48" y="7" fill="rgba(2,14,48,.9)"/>
+        <use href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,.5)"/>
+        <use href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,.34)"/>
+        <use href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,.7)"/>
+        <use href="#gentle-wave" x="48" y="7" fill="rgba(8,8,10,.9)"/>
       </g>
     </svg>
   </div>

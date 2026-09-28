@@ -12,28 +12,28 @@
   :root{--primary:#e6e6ea;--primary-2:#e6e6ea;--pink:#c9c9cc;--wb:#e6e6ea;--gradient:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 50%,#c9c9cc 100%);--danger:#ff9a9a}
   html,body{height:100%}
   body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#04121f;display:flex;align-items:center;justify-content:center;min-height:100vh;background:
-    radial-gradient(120% 120% at 80% -10%, #063a9e 0%, transparent 55%),
-    radial-gradient(120% 120% at 0% 100%, #0a3d8f 0%, transparent 50%), #04205e;
+    radial-gradient(120% 120% at 80% -10%, #000000 0%, transparent 55%),
+    radial-gradient(120% 120% at 0% 100%, #101013 0%, transparent 50%), #000000;
     position:relative;overflow:hidden}
   body::before,body::after{content:"";position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;mix-blend-mode:screen}
   body::before{width:480px;height:480px;background:radial-gradient(circle,#e6e6ea,transparent 70%);top:-120px;left:-80px}
   body::after{width:420px;height:420px;background:radial-gradient(circle,#c9c9cc,transparent 70%);bottom:-120px;right:-60px}
   .wrap{position:relative;z-index:1;width:100%;max-width:400px;padding:24px}
   .card{background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-radius:22px;padding:40px 36px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
-  .badge{width:56px;height:56px;border-radius:16px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;margin:0 auto 18px;box-shadow:0 10px 30px rgba(91,59,255,.4)}
+  .badge{width:56px;height:56px;border-radius:16px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;margin:0 auto 18px;box-shadow:0 10px 30px rgba(255,255,255,.4)}
   h1{text-align:center;font-size:21px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
-  .sub{text-align:center;font-size:13px;color:#8a8aa8;margin-bottom:26px}
-  .field label{display:block;font-size:12px;color:#4a4a6a;margin-bottom:6px;font-weight:500}
+  .sub{text-align:center;font-size:13px;color:#8d8d8d;margin-bottom:26px}
+  .field label{display:block;font-size:12px;color:#4e4e4e;margin-bottom:6px;font-weight:500}
   .input{width:100%;padding:13px 14px;border:1.5px solid rgba(15,15,40,.1);border-radius:11px;font-size:14px;font-family:inherit;background:#fafafe;transition:all .2s}
-  .input:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(91,59,255,.1)}
+  .input:focus{outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.1)}
   .err{display:none;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
   .err.show{display:flex}
-  .submit{width:100%;padding:14px;border:none;border-radius:11px;background:var(--gradient);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 8px 24px rgba(91,59,255,.4)}
-  .submit:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(91,59,255,.5)}
+  .submit{width:100%;padding:14px;border:none;border-radius:11px;background:var(--gradient);color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 8px 24px rgba(255,255,255,.4)}
+  .submit:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(255,255,255,.5)}
   .submit:disabled{opacity:.7;cursor:default}
   .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:middle}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .foot{text-align:center;margin-top:20px;font-size:12px;color:#8a8aa8}
+  .foot{text-align:center;margin-top:20px;font-size:12px;color:#8d8d8d}
   .foot a{color:var(--primary);text-decoration:none;font-weight:600}
   .back{display:block;text-align:center;margin-top:16px;font-size:12px;color:rgba(255,255,255,.6);text-decoration:none}
   .back:hover{color:#fff}
@@ -67,10 +67,10 @@
     <svg class="p3-waves" viewBox="0 24 150 28" preserveAspectRatio="none">
       <defs><path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"/></defs>
       <g class="p3-plx">
-        <use href="#gentle-wave" x="48" y="0" fill="rgba(1,95,204,.5)"/>
-        <use href="#gentle-wave" x="48" y="3" fill="rgba(22,207,251,.34)"/>
-        <use href="#gentle-wave" x="48" y="5" fill="rgba(3,31,100,.7)"/>
-        <use href="#gentle-wave" x="48" y="7" fill="rgba(2,14,48,.9)"/>
+        <use href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,.5)"/>
+        <use href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,.34)"/>
+        <use href="#gentle-wave" x="48" y="5" fill="rgba(255,255,255,.7)"/>
+        <use href="#gentle-wave" x="48" y="7" fill="rgba(8,8,10,.9)"/>
       </g>
     </svg>
   </div>
