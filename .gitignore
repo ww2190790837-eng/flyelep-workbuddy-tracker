@@ -32,3 +32,6 @@ public/_gradtest.html
 public/_wipeproof.html
 shot_*.png
 _*.png
+
+# 本地验证截图（不提交）
+.shots/

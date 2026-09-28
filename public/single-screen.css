@@ -1,0 +1,91 @@
+/* ============================================================================
+ * single-screen.css — 首屏单屏化：所有内容收进一个「对话框」入口，首页本身不滚动
+ * 结构：.ev-hero（首屏）内嵌 .pcard 提示输入卡 → 提交/点芯片 → 打开 .ws 工作台弹层
+ *      原有全部区块（留言板 / 三大功能 / 核心能力 / 关于 / 页脚）都搬进 .ws，弹层内部滚动
+ * ========================================================================== */
+
+/* ---- 首屏独占一屏，不滚动 ---- */
+html,body{overflow:hidden!important;height:100%}
+body{height:100svh}
+
+/* ---- 提示输入卡（对话框） ---- */
+.pcard{
+  width:min(760px,92%);
+  margin-top:clamp(20px,3vh,32px);
+  background:rgba(26,26,28,.72);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:22px;
+  padding:18px 18px 14px;
+  box-shadow:0 26px 70px -24px rgba(0,0,0,.78);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  text-align:left;
+}
+.pcard textarea{
+  width:100%;min-height:56px;max-height:140px;background:transparent;border:0;outline:0;resize:none;
+  color:#fff;font:400 15px/1.6 "Inter",system-ui,sans-serif;
+}
+.pcard textarea::placeholder{color:rgba(255,255,255,.42)}
+.pcard-foot{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px}
+.pchip{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  color:#d8d8dc;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .2s;
+  font-family:inherit;
+}
+.pchip:hover{background:rgba(255,255,255,.13);color:#fff;border-color:rgba(255,255,255,.3)}
+.pchip i{font-size:11px;opacity:.85}
+.pcard-send{
+  margin-left:auto;width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;
+  background:#fff;color:#000;display:grid;place-items:center;font-size:15px;
+  transition:transform .2s,box-shadow .2s;flex:none;
+}
+.pcard-send:hover{transform:translateY(-1px);box-shadow:0 0 22px rgba(255,255,255,.4)}
+
+/* ---- 首屏底部小入口 ---- */
+.ev-quick{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.ev-quick a{color:rgba(255,255,255,.55);font-size:12.5px;text-decoration:none;cursor:pointer}
+.ev-quick a:hover{color:#fff}
+
+/* ============================================================================
+ * 工作台弹层：承载原有全部区块；首屏不动，弹层内部滚动
+ * ========================================================================== */
+.ws{
+  position:fixed;inset:0;z-index:400;background:#000;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+}
+.ws[hidden]{display:none!important}
+.ws-bar{
+  position:sticky;top:0;z-index:405;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 64px 12px 16px;background:rgba(0,0,0,.78);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.ws-tab{
+  padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);color:#c9c9cc;font-size:13px;cursor:pointer;
+  font-family:inherit;transition:all .2s;
+}
+.ws-tab:hover{background:rgba(255,255,255,.13);color:#fff}
+.ws-tab.active{background:#fff;color:#000;border-color:#fff}
+.ws-close{
+  position:fixed;top:9px;right:14px;z-index:406;width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;
+  font-size:17px;cursor:pointer;display:grid;place-items:center;
+}
+.ws-close:hover{background:rgba(255,255,255,.22)}
+
+/* 弹层内：强制揭示滚动动画元素（ScrollTrigger 依赖窗口滚动，弹层内不会触发） */
+.ws .reveal{opacity:1!important;transform:none!important;filter:none!important}
+.ws .anim{opacity:1!important;transform:none!important;filter:none!important}
+.ws .section-title,.ws .section-sub,.ws .section-eyebrow{opacity:1!important}
+
+/* ---- 小屏 / 矮屏兜底：宁可允许滚动，也不要把内容裁掉 ---- */
+@media (max-width:720px),(max-height:740px){
+  html,body{overflow:auto!important;height:auto!important}
+  body{height:auto}
+  .ev-hero{min-height:auto;padding-top:84px;padding-bottom:30px}
+}
+
+/* 弹层内：横向 pinned 画廊降级为可横滑条 */
+.ws #capabilities,.ws #capTrack{transform:none!important}
+.ws #capTrack{overflow-x:auto;scrollbar-width:thin}
