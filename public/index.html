@@ -1506,7 +1506,7 @@
           <div id="menuUserName" style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
           <div id="menuUserEmail" style="font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px"></div>
         </div>
-        <a href="/settings" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text);transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='transparent'">
+        <a href="/settings" class="js-open-embed" data-embed="/settings" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text);transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='transparent'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           账户设置
         </a>
@@ -1556,9 +1556,6 @@
         <span id="authToggleText">还没有账户?</span>
         <a href="#" id="authToggle" style="color:var(--primary);font-weight:600;margin-left:4px">立即注册</a>
       </p>
-      <p style="text-align:center;margin-top:6px;font-size:12px">
-        <a href="/login.html" style="color:var(--text-3);text-decoration:none">在完整登录页操作 →</a>
-      </p>
     </form>
   </div>
 </div>
@@ -1600,7 +1597,7 @@
 
   <div class="ev-topbar">
     <button class="ev-btn ev-btn-ghost" type="button" id="quickInvite">免费积分邀请码 <span class="ev-stock" id="evStock"></span></button>
-    <a class="ev-btn ev-btn-solid" id="quickAuth" href="/login.html">登录 / 注册</a>
+    <a class="ev-btn ev-btn-solid js-open-auth" id="quickAuth" href="/login.html">登录 / 注册</a>
     <button class="ev-btn ev-btn-ghost" type="button" id="quickLogout" style="display:none">退出登录</button>
   </div>
 
@@ -1682,7 +1679,7 @@
           <div id="msgLoginHint" style="display:none;margin:0 0 14px;padding:10px 14px;border:1px solid rgba(255,255,255,.35);
             border-left:3px solid var(--accent);background:rgba(255,255,255,.08);border-radius:4px;
             font-size:12.5px;color:var(--text-2)">
-            留言需要登录后才能发送 · <a href="/login.html" style="color:var(--accent);font-weight:700;text-decoration:none">去登录 / 注册 →</a>
+            留言需要登录后才能发送 · <a href="/login.html" class="js-open-auth" style="color:var(--accent);font-weight:700;text-decoration:none">去登录 / 注册 →</a>
           </div>
           <div id="msgList" style="display:flex;flex-direction:column;gap:10px;padding-right:4px"></div>
           <div id="msgLoading" style="text-align:center;padding:16px;color:var(--text-3);font-size:13px">加载中...</div>
@@ -1717,7 +1714,7 @@
       <span class="gate-tag">Members Only</span>
       <h3 class="gate-title">登录后即可使用</h3>
       <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
-      <a class="gate-btn" href="/login.html">登录 / 注册</a>
+      <a class="gate-btn js-open-auth" href="/login.html">登录 / 注册</a>
       <div class="gate-note">已有账号？返回首页点「登录 / 注册」</div>
     </div>
   </div>
@@ -1852,7 +1849,7 @@
       <span class="gate-tag">Members Only</span>
       <h3 class="gate-title">登录后即可使用</h3>
       <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
-      <a class="gate-btn" href="/login.html">登录 / 注册</a>
+      <a class="gate-btn js-open-auth" href="/login.html">登录 / 注册</a>
       <div class="gate-note">已有账号？返回首页点「登录 / 注册」</div>
     </div>
   </div>
@@ -1971,7 +1968,7 @@
       <span class="gate-tag">Members Only</span>
       <h3 class="gate-title">登录后即可使用</h3>
       <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
-      <a class="gate-btn" href="/login.html">登录 / 注册</a>
+      <a class="gate-btn js-open-auth" href="/login.html">登录 / 注册</a>
       <div class="gate-note">已有账号？返回首页点「登录 / 注册」</div>
     </div>
   </div>
@@ -2394,7 +2391,7 @@
       <article class="cap-card cap-end">
         <h3>还有更多能力</h3>
         <p>AI 视觉定制 · 短视频代拍 · 品牌视觉服务</p>
-        <a class="btn btn-ghost" href="/login.html">登录解锁全部 →</a>
+        <a class="btn btn-ghost js-open-auth" href="/login.html">登录解锁全部 →</a>
       </article>
     </div>
     <div class="cap-rail" aria-hidden="true">
@@ -2483,7 +2480,7 @@
 
     <h2 class="geo-h2">参考来源与更新时间</h2>
     <ul class="geo-src">
-      <li>官网：<a href="https://flyelep-wb-tracker.onrender.com/">flyelep-wb-tracker.onrender.com</a> · <a href="/terms.html">服务条款</a> · <a href="/privacy.html">隐私政策</a></li>
+      <li>官网：<a href="https://flyelep-wb-tracker.onrender.com/">flyelep-wb-tracker.onrender.com</a> · <a href="/terms.html" class="js-open-embed" data-embed="/terms.html">服务条款</a> · <a href="/privacy.html" class="js-open-embed" data-embed="/privacy.html">隐私政策</a></li>
       <li>最后更新：2026-09-23</li>
     </ul>
   </div>
@@ -2634,6 +2631,8 @@
     setTimeout(function(){authForm.querySelector("input[name=email]").focus()},100);
   }
   function closeModal(){ authModal.style.display = "none"; }
+  window.openFletaAuth = openModal;   /* 全站登录入口统一走页内弹窗，不跳页 */
+  window.closeFletaAuth = closeModal;
 
   authClose.addEventListener("click", closeModal);
   authModal.addEventListener("click", function(e){ if(e.target === authModal) closeModal(); });
@@ -2846,7 +2845,7 @@
     var t = e.target;
     if (t && t.id === "navAuthLink") {
       e.preventDefault();
-      location.href = "/login.html";
+      if (window.openFletaAuth) window.openFletaAuth("login");
     }
   });
 
@@ -4383,7 +4382,7 @@
           <div class="chat-bubble">你好！我是 <strong>AI 写代码助手</strong><br><br>我可以帮你从零实现各种技术系统（数据库、区块链、操作系统、编程语言、Web 服务器等），并给出可直接运行的代码。也可以回答关于<strong>提示词生成</strong>和<strong>视频反推</strong>的问题。<br><br>试试问我：<code>从零写一个 Web 服务器</code></div>
         </div>
       </div>
-      <div id="chatLoginHint" style="display:none;margin:0 0 10px;padding:10px 14px;border:1px solid rgba(255,255,255,.35);border-left:3px solid var(--accent);background:rgba(255,255,255,.08);border-radius:4px;font-size:12.5px;color:var(--text-2)">AI 助手需要登录后才能使用 · <a href="/login.html" style="color:var(--accent);font-weight:700;text-decoration:none">去登录 / 注册 →</a></div>
+      <div id="chatLoginHint" style="display:none;margin:0 0 10px;padding:10px 14px;border:1px solid rgba(255,255,255,.35);border-left:3px solid var(--accent);background:rgba(255,255,255,.08);border-radius:4px;font-size:12.5px;color:var(--text-2)">AI 助手需要登录后才能使用 · <a href="/login.html" class="js-open-auth" style="color:var(--accent);font-weight:700;text-decoration:none">去登录 / 注册 →</a></div>
       <div class="chat-input-area">
         <div class="chat-input-wrap">
           <textarea id="chatInput" rows="1" placeholder="输入消息... (Enter 发送)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}" oninput="autoResize(this)"></textarea>
@@ -4757,5 +4756,47 @@
   setInterval(syncAuthUI, 1500);
 })();
 </script>
+<!-- 页内嵌入弹窗：账户设置 / 条款 / 隐私 一律在当前页打开，不跳转 -->
+<div id="embedModal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(6,6,8,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:24px">
+  <div style="position:relative;width:min(960px,96%);height:min(84svh,820px);background:var(--surface,#101013);border:1px solid rgba(255,255,255,.14);border-radius:18px;overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.85);display:flex;flex-direction:column">
+    <button id="embedClose" type="button" aria-label="关闭" style="position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;font-size:17px;cursor:pointer;display:grid;place-items:center;font-family:inherit">×</button>
+    <iframe id="embedFrame" title="内容" style="flex:1;width:100%;border:0;background:#0a0a0c"></iframe>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ===== 1) 内容区搬进对话框卡片内部 —— 所有功能都在对话框里就地完成 ===== */
+  var pc = document.querySelector('.pcard');
+  var ws = document.getElementById('workspace');
+  if (pc && ws) pc.appendChild(ws);
+
+  /* ===== 2) 页内嵌入弹窗（设置/条款/隐私）===== */
+  var em = document.getElementById('embedModal');
+  var ef = document.getElementById('embedFrame');
+  var ec = document.getElementById('embedClose');
+  function openEmbed(src){ if(!em||!src) return; ef.src = src; em.style.display = 'flex'; }
+  function closeEmbed(){ if(!em) return; em.style.display = 'none'; ef.src = 'about:blank'; }
+  window.openEmbed = openEmbed;
+  if (ec) ec.addEventListener('click', closeEmbed);
+  if (em) em.addEventListener('click', function(e){ if(e.target === em) closeEmbed(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && em && em.style.display === 'flex') closeEmbed(); });
+
+  /* ===== 3) 全站登录 / 账户 / 条款入口：一律页内处理，不跳页 ===== */
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('.js-open-embed');
+    if (a){ e.preventDefault(); openEmbed(a.getAttribute('data-embed')); return; }
+    var g = t.closest('.js-open-auth');
+    if (g){
+      e.preventDefault();
+      if (window.__user) { openEmbed('/settings'); }
+      else if (window.openFletaAuth) { window.openFletaAuth('login'); }
+    }
+  }, false);
+})();
+</script>
+
 </body>
 </html>

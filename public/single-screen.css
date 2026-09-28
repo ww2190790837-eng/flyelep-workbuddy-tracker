@@ -53,29 +53,28 @@ body{height:100svh}
  *   - 打开时只收起 标题/副文案/数据/小入口，把高度让给内容区；对话框(切换入口)保留
  * ========================================================================== */
 .ws{
-  position:fixed;left:0;right:0;bottom:0;
-  top:var(--wsTop,58%);
-  z-index:400;
+  /* 收进对话框内部：不再是整屏弹层，而是卡片里的可滚动区域 */
+  position:static;
+  flex:1 1 auto;min-height:0;
+  margin-top:14px;padding:14px 2px 2px;
+  border-top:1px solid rgba(255,255,255,.12);
   background:transparent;
   overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  padding:0 clamp(16px,3vw,32px) 22px;
   scrollbar-width:thin;
   overscroll-behavior:contain;
-  /* 顶部柔化，避免内容区出现"硬边"像一块独立面板 */
-  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 46px);
-  mask-image:linear-gradient(180deg,transparent 0,#000 46px);
+  -webkit-mask-image:none;mask-image:none;
 }
 .ws[hidden]{display:none!important}
 body.ws-open .ev-headline,
 body.ws-open .ev-subhead,
-body.ws-open .ev-stats,
-body.ws-open .ev-quick{display:none!important}
+body.ws-open .ev-stats{display:none!important}
+body.ws-open .ev-quick{display:flex!important;margin-top:12px}
 .ev-headline,.ev-subhead,.ev-stats,.ev-quick{transition:opacity .25s ease}
 /* 标题收起后让对话框靠上，把屏幕高度尽量留给内容区 */
 body.ws-open .ev-hero{justify-content:flex-start!important;padding-top:78px!important}
 body.ws-open .ev-inner{margin:0!important}
 .ws-close{
-  position:fixed;top:14px;left:16px;z-index:406;height:38px;padding:0 16px;border-radius:999px;
+  position:absolute;top:10px;right:10px;left:auto;z-index:6;height:30px;padding:0 12px;border-radius:8px;
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;
   font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
@@ -142,3 +141,32 @@ body.ws-open .ev-inner{margin:0!important}
 
 /* 右下角悬浮「AI 写代码助手」不要了（DOM 保留，避免其脚本取不到元素） */
 #aiChatWidget{display:none!important}
+
+
+/* ============================================================================
+ * 内容区收进对话框：卡片既是输入框也是结果区，所有功能都在这里就地完成
+ * ========================================================================== */
+.pcard{position:relative;display:flex;flex-direction:column;overflow:hidden}
+.pcard textarea,.pcard-foot{flex:none}
+body.ws-open .pcard{width:min(960px,94%);max-height:calc(100svh - 186px)}
+
+/* 卡片内的章节：去掉整屏时代的大留白/大标题/水印/背景图 */
+.ws section{padding:22px 0!important}
+.ws .wrap{max-width:100%!important;padding:0 6px!important}
+.ws .sec-art,.ws .sec-no{display:none!important}
+.ws .section-head{margin:0 0 16px!important;max-width:100%!important;text-align:left!important}
+.ws .section-title{font-size:clamp(19px,2.4vw,26px)!important;line-height:1.2!important}
+.ws .section-sub{font-size:13px!important;line-height:1.7!important;margin-top:8px!important}
+.ws .section-eyebrow{font-size:11px!important;letter-spacing:.2em!important}
+.ws .sec-art{height:0!important}
+
+@media (max-width:720px),(max-height:740px){
+  body.ws-open .pcard{max-height:none}
+  .ws{max-height:52svh}
+}
+
+/* 卡片内防溢出保险：任何内联宽元素都不得把卡片撑破 */
+.ws img,.ws svg,.ws video,.ws iframe{max-width:100%}
+.ws input,.ws textarea,.ws select{min-width:0;max-width:100%}
+.ws table{max-width:100%;table-layout:fixed}
+.ws pre,.ws code{white-space:pre-wrap;word-break:break-word}
