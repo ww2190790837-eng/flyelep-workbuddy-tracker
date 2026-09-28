@@ -1652,15 +1652,7 @@
 <!-- 公告 + 留言板 -->
 <!-- 工作台弹层：原有全部区块收纳于此，首页本身不滚动 -->
 <div id="workspace" class="ws" hidden>
-  <button id="wsClose" class="ws-close" type="button" aria-label="返回首页">✕</button>
-  <div class="ws-bar">
-    <button class="ws-tab" type="button" data-open="prompt">提示词生成</button>
-    <button class="ws-tab" type="button" data-open="reverse">视频反推</button>
-    <button class="ws-tab" type="button" data-open="agnes">Agnes 视频</button>
-    <button class="ws-tab" type="button" data-open="bulletin">留言板</button>
-    <button class="ws-tab" type="button" data-open="capabilities">核心能力</button>
-    <button class="ws-tab" type="button" data-open="fleta-about">关于</button>
-  </div>
+  <button id="wsClose" class="ws-close" type="button" aria-label="返回">← 返回</button>
 
 <section id="bulletin">
   <div class="sec-art" aria-hidden="true"><img src="/assets/p3/web/art-bulletin.webp" alt="" loading="lazy" decoding="async"></div>
@@ -1734,7 +1726,7 @@
       <h3 class="gate-title">登录后即可使用</h3>
       <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
       <a class="gate-btn" href="/login.html">登录 / 注册</a>
-      <div class="gate-note">已有账号？右上角直接登录</div>
+      <div class="gate-note">已有账号？返回首页点「登录 / 注册」</div>
     </div>
   </div>
 
@@ -1869,7 +1861,7 @@
       <h3 class="gate-title">登录后即可使用</h3>
       <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
       <a class="gate-btn" href="/login.html">登录 / 注册</a>
-      <div class="gate-note">已有账号？右上角直接登录</div>
+      <div class="gate-note">已有账号？返回首页点「登录 / 注册」</div>
     </div>
   </div>
 
@@ -1988,7 +1980,7 @@
       <h3 class="gate-title">登录后即可使用</h3>
       <p class="gate-sub">该功能需要登录 / 注册后使用。<br>注册即送 <b style="color:var(--gold)">70 张</b>图片生成积分。</p>
       <a class="gate-btn" href="/login.html">登录 / 注册</a>
-      <div class="gate-note">已有账号？右上角直接登录</div>
+      <div class="gate-note">已有账号？返回首页点「登录 / 注册」</div>
     </div>
   </div>
 
@@ -4658,6 +4650,7 @@
     var wasOpen = ws.isOpen;
     ws.hidden = false;
     ws.isOpen = true;
+    document.body.classList.add('ws-open');
     var sid = sectionId;
     if (typeof tabIdx === 'number'){
       var b = document.querySelector('.lineup-btn[data-tab="' + tabIdx + '"]');
@@ -4676,6 +4669,7 @@
     if (!ws) return;
     ws.isOpen = false;
     ws.hidden = true;
+    document.body.classList.remove('ws-open');
     ws.scrollTop = 0;
     syncWsTabs(null);
   }

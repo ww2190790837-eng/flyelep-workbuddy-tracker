@@ -47,32 +47,32 @@ body{height:100svh}
 .ev-quick a:hover{color:#fff}
 
 /* ============================================================================
- * 工作台弹层：承载原有全部区块；首屏不动，弹层内部滚动
+ * 内容区（原弹层）：刻意做成「同一个页面」而不是另一个页面
+ *   - 半透明 + 模糊：底下还是首页那张视频背景，不换页
+ *   - 去掉顶部像导航一样的页签条，只留一个「← 返回」
+ *   - 打开时首屏文案淡出，内容在同页里被换掉
  * ========================================================================== */
 .ws{
-  position:fixed;inset:0;z-index:400;background:#000;
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,.84);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
 }
 .ws[hidden]{display:none!important}
-.ws-bar{
-  position:sticky;top:0;z-index:405;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  padding:12px 64px 12px 16px;background:rgba(0,0,0,.78);
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(255,255,255,.08);
-}
-.ws-tab{
-  padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);color:#c9c9cc;font-size:13px;cursor:pointer;
-  font-family:inherit;transition:all .2s;
-}
-.ws-tab:hover{background:rgba(255,255,255,.13);color:#fff}
-.ws-tab.active{background:#fff;color:#000;border-color:#fff}
+.ev-inner,.ev-stats,.ev-quick{transition:opacity .3s ease}
+body.ws-open .ev-inner,
+body.ws-open .ev-stats,
+body.ws-open .ev-quick{opacity:0!important;pointer-events:none}
 .ws-close{
-  position:fixed;top:9px;right:14px;z-index:406;width:38px;height:38px;border-radius:50%;
+  position:fixed;top:14px;left:16px;z-index:406;height:38px;padding:0 16px;border-radius:999px;
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;
-  font-size:17px;cursor:pointer;display:grid;place-items:center;
+  font-size:13px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
 }
 .ws-close:hover{background:rgba(255,255,255,.22)}
+/* 内容里原有的工具页签条（PROMPT/REVERSE/AGNES）也去掉：
+   功能的切换统一在首屏对话框里选，避免同页再冒出一条"导航" */
+.ws .lineup{display:none!important}
 
 /* 弹层内：强制揭示滚动动画元素（ScrollTrigger 依赖窗口滚动，弹层内不会触发） */
 .ws .reveal{opacity:1!important;transform:none!important;filter:none!important}
