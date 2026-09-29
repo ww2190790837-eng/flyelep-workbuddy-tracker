@@ -688,3 +688,20 @@ body.ws-open #toolHost{display:flex!important}
   box-shadow:0 10px 24px -12px rgba(0,0,0,.6)!important}
 #toolSheet .gate-btn:hover{background:#000!important;transform:translateY(-1px)}
 #toolSheet .gate-note{color:#9c9ca4!important}
+
+/* ---- Agnes：常驻查询按钮 / 生成记录删除 ---- */
+#toolSheet .agv-btn{background:#fff!important;color:#3c3c43!important;border:1px solid #e6e6ea!important;
+  border-radius:12px!important;padding:13px 22px!important;font-size:14px!important;font-weight:600!important;
+  cursor:pointer!important;font-family:inherit!important;transition:all .18s!important}
+#toolSheet .agv-btn:hover:not(:disabled){border-color:#111!important;color:#111!important}
+#toolSheet .agv-btn:disabled{opacity:.45!important;cursor:not-allowed!important}
+#toolSheet .agv-gallery-title{display:flex!important;align-items:center!important;justify-content:center!important;gap:2px!important}
+#toolSheet #agvClear{background:#fff!important;border:1px solid #e6e6ea!important;border-radius:999px!important;
+  padding:4px 12px!important;font-size:12px!important;cursor:pointer!important;color:#5c5c64!important;
+  font-family:inherit!important;margin-left:10px!important}
+#toolSheet #agvClear:hover{border-color:#111!important;color:#111!important}
+#toolSheet .agv-del{background:#fff!important;border:1px solid #e6e6ea!important;border-radius:8px!important;
+  padding:2px 9px!important;font-size:11.5px!important;cursor:pointer!important;color:#b42318!important;
+  margin-left:8px!important;font-family:inherit!important}
+#toolSheet .agv-del:hover{background:#fdf2f2!important;border-color:#f6d9d7!important}
+#toolSheet .agv-empty{color:#9c9ca4!important;font-size:12.5px!important;text-align:center!important;padding:14px 0!important}

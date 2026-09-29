@@ -2035,6 +2035,7 @@
 
       <div class="agv-actions">
         <button class="agv-gen" id="agvGen">生成视频</button>
+        <button class="agv-btn" type="button" id="agvQuery" title="按当前 video_id 再查一次">查询</button>
         <span class="agv-status" id="agvStatus"></span>
       </div>
 
@@ -2048,7 +2049,9 @@
       <div class="agv-result" id="agvResult"></div>
     </div>
 
-    <div class="agv-gallery-title">本会话生成记录</div>
+    <div class="agv-gallery-title">生成记录
+      <button type="button" id="agvClear" style="display:none">清空记录</button>
+    </div>
     <div class="agv-gallery" id="agvHistory"></div>
   </div>
 </section>
@@ -2074,6 +2077,7 @@
     if (!l || !c) return;
     c.textContent = String(id || "");
     l.style.display = "flex";
+    if (window.__agvSyncQueryBtn) window.__agvSyncQueryBtn();
   }
   (function(){
     var tc = $("agvTaskCopy");
@@ -2287,14 +2291,67 @@
     pollTimer = setTimeout(tick, delay);
   }
 
+  /* ---- 生成记录：可删除 / 可清空，并保存在本机（刷新不丢） ---- */
+  function agvSaveHistory(){ try{ localStorage.setItem('agvHistory', JSON.stringify(history.slice(0,12))); }catch(e){} }
+  function agvLoadHistory(){ try{ var raw=localStorage.getItem('agvHistory'); history = raw ? (JSON.parse(raw)||[]) : []; }catch(e){ history=[]; } }
+  function agvSyncClear(){ var b=$("agvClear"); if(b) b.style.display = history.length ? 'inline-flex' : 'none'; }
+  function agvRenderHistory(){
+    var box = $("agvHistory"); if (!box) return;
+    if (!history.length){
+      box.innerHTML = '<div class="agv-empty">还没有生成记录</div>';
+      agvSyncClear(); return;
+    }
+    box.innerHTML = history.map(function(it, i){
+      return '<div class="card"><video src="'+it.url+'" controls muted playsinline preload="metadata"></video>'
+        + '<div class="meta">'+it.mode+' · '+String(it.vid).slice(0,14)+'…'
+        + '<button type="button" class="agv-del" data-i="'+i+'" title="删除这条记录">删除</button></div></div>';
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll('.agv-del'), function(b){
+      b.addEventListener('click', function(){
+        var i = Number(b.getAttribute('data-i'));
+        if (history[i]) { history.splice(i,1); agvSaveHistory(); agvRenderHistory(); }
+      });
+    });
+    agvSyncClear();
+  }
+
   function showResult(url, vid){
     $("agvResult").innerHTML = '<div class="card"><video src="'+url+'" controls autoplay muted playsinline></video><div class="meta">video_id='+vid+'</div></div>';
     history.unshift({ url:url, vid:vid, mode:MODE });
     if (history.length>12) history.pop();
-    $("agvHistory").innerHTML = history.map(function(it){
-      return '<div class="card"><video src="'+it.url+'" controls muted playsinline></video><div class="meta">'+it.mode+' · '+String(it.vid).slice(0,12)+'…</div></div>';
-    }).join("");
+    agvSaveHistory();
+    agvRenderHistory();
   }
+
+  /* ---- 常驻「查询」按钮：按当前 video_id 再查一次 ---- */
+  function agvCurrentId(){
+    var c = $("agvTaskId"); var id = c ? String(c.textContent||"").trim() : "";
+    if (id) return id;
+    try { var o = JSON.parse(localStorage.getItem('agvPending')||'null'); return (o && o.vid) || ""; } catch(e){ return ""; }
+  }
+  function agvSyncQueryBtn(){
+    var q = $("agvQuery"); if (!q) return;
+    var has = !!agvCurrentId();
+    q.disabled = !has;
+    q.title = has ? "按当前 video_id 再查一次" : "还没有任务：先点「生成视频」";
+  }
+  (function(){
+    var q = $("agvQuery");
+    if (q) q.onclick = function(){
+      var id = agvCurrentId();
+      if (!id){ setStatus('<span class="pill fail">还没有可查询的任务，请先点「生成视频」</span>'); return; }
+      setStatus('<span class="pill run">正在查询 '+id.slice(0,20)+'…</span>');
+      pollStatus(id);
+    };
+    var c = $("agvClear");
+    if (c) c.onclick = function(){
+      if (!history.length) return;
+      if (!confirm('确定清空全部生成记录？')) return;
+      history = []; agvSaveHistory(); agvRenderHistory();
+    };
+    agvLoadHistory(); agvRenderHistory(); agvSyncQueryBtn();
+  })();
+  window.__agvSyncQueryBtn = agvSyncQueryBtn;
 
   $("agvGen").onclick = function(){
     if (pollTimer){ clearInterval(pollTimer); pollTimer=null; }
