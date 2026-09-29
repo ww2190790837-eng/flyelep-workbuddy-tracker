@@ -1443,6 +1443,8 @@
 .geo-src a{color:var(--primary);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.4)}
 </style>
 <link rel="stylesheet" href="/theme-new.css" />
+<link rel="stylesheet" href="https://db.onlinewebfonts.com/c/5ac3fe7c6abd2f62067f266d89671492?family=HelveticaNowDisplay-Medium" />
+<link rel="stylesheet" href="https://db.onlinewebfonts.com/c/1aa3377e489837a26d019bba501e779d?family=HelveticaNowDisplayW01-Rg" />
 <link rel="stylesheet" href="/single-screen.css" />
 </head>
 <body>
@@ -1586,57 +1588,62 @@
   </div>
 </div>
 
-<!-- 融合版全屏视频 Hero（evolve 效果 + Fleta 内容） -->
-<header class="ev-hero" aria-label="Fleta 首屏">
-  <div class="ev-bg" aria-hidden="true">
-    <video class="ev-bg-video" autoplay muted loop playsinline preload="auto">
-      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4" type="video/mp4" />
-    </video>
+<!-- ===== 全新首屏：按 Mainframe 规范重建（鼠标横滑控制背景视频） ===== -->
+<video id="mfVideo" class="mf-video" muted playsinline preload="auto" aria-hidden="true">
+  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260530_042513_df96a13b-6155-4f6e-8b93-c9dee66fba08.mp4" type="video/mp4" />
+</video>
+
+<nav class="mf-nav">
+  <a class="mf-logo" href="/" aria-label="Fleta">
+    <span class="mf-logo-text">Fleta<sup class="mf-reg">&#174;</sup></span>
+    <span class="mf-asterisk" aria-hidden="true">&#10035;&#65038;</span>
+  </a>
+  <div class="mf-links">
+    <a href="#" data-open="capabilities">Labs</a><span>,&nbsp;</span><a href="#" data-open="fleta-about">Studio</a><span>,&nbsp;</span><a href="#" data-open="bulletin">Openings</a><span>,&nbsp;</span><a href="#" data-open="prompt">Shop</a>
   </div>
-  <span class="ev-scrim" aria-hidden="true"></span>
-
-  <div class="ev-topbar">
-    <button class="ev-btn ev-btn-ghost" type="button" id="quickInvite">免费积分邀请码 <span class="ev-stock" id="evStock"></span></button>
-    <a class="ev-btn ev-btn-solid js-open-auth" id="quickAuth" href="/login.html">登录 / 注册</a>
-    <button class="ev-btn ev-btn-ghost" type="button" id="quickLogout" style="display:none">退出登录</button>
+  <div class="mf-nav-right">
+    <a class="mf-cta js-open-auth" id="quickAuth" href="/login.html">Get in touch</a>
+    <button class="mf-ghostbtn" type="button" id="quickLogout" style="display:none">退出登录</button>
+    <button class="mf-burger" id="mfBurger" type="button" aria-label="菜单"><span></span><span></span><span></span></button>
   </div>
+</nav>
 
-  <div class="ev-inner">
-    <h1 class="ev-headline">
-      <span class="line">Fleta</span>
-      <span class="line">前沿 AI 视频创作</span>
-    </h1>
+<div class="mf-overlay" id="mfOverlay">
+  <a href="#" data-open="capabilities">Labs</a>
+  <a href="#" data-open="fleta-about">Studio</a>
+  <a href="#" data-open="bulletin">Openings</a>
+  <a href="#" data-open="prompt">Shop</a>
+  <a href="#" class="mf-u js-open-auth">Get in touch</a>
+</div>
 
-    <p class="ev-subhead ev-anim" style="--d:.28s">用 AI 生成视频提示词、反向解析原片、一键生成视频——让好创意被更多人看见。</p>
-
-    <div class="pcard-modes ev-anim" id="pModes" style="--d:.36s" role="tablist" aria-label="功能分类"></div>
-
-    <div class="pcard ev-anim" style="--d:.4s">
-      <textarea id="pInput" rows="2" placeholder="描述你想要的视频，或贴一段素材链接…"></textarea>
-      <div class="pcard-foot">
-        <button class="pchip" type="button" data-open="prompt"><i class="fa-solid fa-wand-magic-sparkles"></i>提示词生成</button>
-        <button class="pchip" type="button" data-open="reverse"><i class="fa-solid fa-rotate-left"></i>视频反推</button>
-        <button class="pchip" type="button" data-open="agnes"><i class="fa-solid fa-clapperboard"></i>Agnes 视频</button>
-        <button class="pchip pchip-upload" type="button" id="pUpload"><i class="fa-solid fa-paperclip"></i>上传图片</button>
-        <input type="file" id="pUploadInput" accept="image/*" hidden />
-        <button class="pcard-send" type="button" data-open="prompt" aria-label="开始">↑</button>
-      </div>
-    </div>
-
-    <div class="ev-quick ev-anim" style="--d:.5s">
-      <a data-open="bulletin">公告 · 留言板</a>
-      <a data-open="capabilities">核心能力</a>
-      <a data-open="fleta-about">关于 Fleta</a>
+<section class="mf-hero">
+  <div class="mf-hero-inner">
+    <p class="mf-blur">Hey there, meet A.R.I.A,<br />Fleta&#39;s Adaptive Response Interface Agent</p>
+    <p class="mf-type"><span id="mfTypeText"></span><span class="mf-caret" id="mfCaret"></span></p>
+    <div class="mf-pills mf-pills-wrap" id="mfPills">
+      <button class="mf-pill" type="button" data-open="prompt">提示词生成 <i>Prompt</i></button>
+      <button class="mf-pill" type="button" data-open="reverse">视频反推 <i>Reverse</i></button>
+      <button class="mf-pill" type="button" data-open="agnes">Agnes 视频</button>
+      <button class="mf-pill" type="button" data-open="capabilities">核心能力</button>
+      <button class="mf-pill mf-pill-outline" type="button" id="mfCopyContact"><span class="u">Reach us: 微信 cc44cc5</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><rect x="3" y="3" width="12" height="12" rx="2"/></svg></button>
     </div>
   </div>
+</section>
 
-  <div class="ev-stats" aria-label="关键数据">
-    <div class="ev-stat ev-anim" style="--d:.5s"><span class="ev-stat-icon">#</span><span class="ev-stat-value" data-target="2.4" data-suffix="M" data-decimals="1">0</span><span class="ev-stat-label">已生成视频</span></div>
-    <div class="ev-stat ev-anim" style="--d:.58s"><span class="ev-stat-icon">%</span><span class="ev-stat-value" data-target="99.9" data-suffix="%" data-decimals="1">0</span><span class="ev-stat-label">创作成功率</span></div>
-    <div class="ev-stat ev-anim" style="--d:.66s"><span class="ev-stat-icon">*</span><span class="ev-stat-value" data-target="24" data-suffix="/7" data-decimals="0">0</span><span class="ev-stat-label">全天候服务</span></div>
-    <div class="ev-stat ev-anim" style="--d:.74s"><span class="ev-stat-icon">&lt;</span><span class="ev-stat-value" data-target="120" data-suffix="s" data-decimals="0">0</span><span class="ev-stat-label">平均出片</span></div>
+<!-- 功能面板：三个功能沿用原有工作台，换新的外观壳（JS 通过 .pcard 挂载内容） -->
+<div class="pcard mf-panel" id="toolHost">
+  <textarea id="pInput" class="mf-panel-input" rows="2" placeholder="描述你想要的视频，或贴一段素材链接&#8230;"></textarea>
+  <div id="pModes" hidden></div>
+  <div class="pcard-foot" style="display:none">
+    <button class="pchip" type="button" data-open="prompt">提示词生成</button>
+    <button class="pchip" type="button" data-open="reverse">视频反推</button>
+    <button class="pchip" type="button" data-open="agnes">Agnes 视频</button>
+    <button class="pchip pchip-upload" type="button" id="pUpload">上传图片</button>
+    <input type="file" id="pUploadInput" accept="image/*" hidden />
+    <button class="pcard-send" type="button" data-open="prompt" aria-label="开始">&#8593;</button>
   </div>
-</header>
+  <button class="ev-btn ev-btn-ghost" type="button" id="quickInvite" style="display:none">免费积分邀请码 <span class="ev-stock" id="evStock"></span></button>
+</div>
 
 <!-- 公告 + 留言板 -->
 
@@ -4630,7 +4637,7 @@
       t.classList.toggle('active', !!key && t.getAttribute('data-open') === key);
     });
     /* 顶部「功能分类」模式栏：选中的那个高亮 */
-    Array.prototype.forEach.call(document.querySelectorAll('#pModes [data-open]'), function(c){
+    Array.prototype.forEach.call(document.querySelectorAll('#pModes [data-open], .mf-pill[data-open]'), function(c){
       c.classList.toggle('active', !!key && c.getAttribute('data-open') === key);
     });
   }
@@ -4764,7 +4771,7 @@
     var nm = document.getElementById('navName');
     var name = nm ? String(nm.textContent || '').trim() : '';
     if (auth){
-      auth.textContent = logged ? ('我的账户' + (name ? '（' + name + '）' : '')) : '登录 / 注册';
+      auth.textContent = logged ? ('我的账户' + (name ? '（' + name + '）' : '')) : 'Get in touch';
       auth.setAttribute('href', logged ? '/settings' : '/login.html');
     }
     if (ql) ql.style.display = logged ? '' : 'none';
@@ -4946,6 +4953,80 @@
     el.dispatchEvent(new Event('input', { bubbles: true }));
   };
   src.addEventListener('input', function(){ if (window.__toolSid) window.__syncPInput(true); });
+})();
+</script>
+
+<script>
+(function(){
+  /* ===== 背景视频：鼠标横向滑动控制进度（不自动播放） ===== */
+  var v = document.getElementById('mfVideo');
+  if (v){
+    var prevX = null, targetTime = 0, seeking = false, SENS = 0.8;
+    v.addEventListener('loadeddata', function(){ v.style.opacity = '1'; });
+    window.addEventListener('mousemove', function(e){
+      var d = v.duration;
+      if (!d || isNaN(d) || !isFinite(d)) return;
+      if (prevX === null){ prevX = e.clientX; return; }
+      var delta = e.clientX - prevX;
+      prevX = e.clientX;
+      targetTime += (delta / window.innerWidth) * SENS * d;
+      targetTime = Math.max(0, Math.min(d, targetTime));
+      if (!seeking){
+        seeking = true;
+        try { v.currentTime = targetTime; } catch (err) { seeking = false; }
+      }
+    });
+    v.addEventListener('seeked', function(){
+      if (Math.abs(v.currentTime - targetTime) > 0.01){
+        try { v.currentTime = targetTime; } catch (e) { seeking = false; }
+      } else { seeking = false; }
+    });
+  }
+
+  /* ===== 打字机 ===== */
+  var ty = document.getElementById('mfTypeText'), caret = document.getElementById('mfCaret');
+  var TEXT = 'Glad you stopped in. Good taste tends to find us. Now, what are we building?';
+  if (ty){
+    var i = 0;
+    setTimeout(function(){
+      var timer = setInterval(function(){
+        i++;
+        ty.textContent = TEXT.slice(0, i);
+        if (i >= TEXT.length){ clearInterval(timer); if (caret) caret.style.display = 'none'; }
+      }, 38);
+    }, 600);
+  }
+
+  /* ===== 药丸按钮：400ms 后淡入上滑（不等打字动画结束） ===== */
+  var pills = document.getElementById('mfPills');
+  if (pills) setTimeout(function(){ pills.classList.add('show'); }, 400);
+
+  /* ===== 移动端菜单 ===== */
+  var burger = document.getElementById('mfBurger'), ov = document.getElementById('mfOverlay');
+  if (burger && ov){
+    burger.addEventListener('click', function(){
+      var open = ov.classList.toggle('open');
+      burger.classList.toggle('open', open);
+    });
+    ov.addEventListener('click', function(e){
+      if (e.target.closest && e.target.closest('a')){
+        ov.classList.remove('open'); burger.classList.remove('open');
+      }
+    });
+  }
+
+  /* ===== 复制联系方式 ===== */
+  var cp = document.getElementById('mfCopyContact');
+  if (cp) cp.addEventListener('click', function(){
+    var val = 'cc44cc5';
+    try { if (navigator.clipboard) navigator.clipboard.writeText(val); } catch (e) {}
+    var u = cp.querySelector('.u');
+    if (u){
+      var old = u.textContent;
+      u.textContent = '已复制 \u2713 微信 ' + val;
+      setTimeout(function(){ u.textContent = old; }, 1600);
+    }
+  });
 })();
 </script>
 

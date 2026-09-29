@@ -334,3 +334,110 @@ body.ws-open .pcard-modes{width:min(820px,94%)}
 /* 入口上移后，下方那排留空的不显示 */
 .ev-quick:empty{display:none!important}
 body.ws-open .ev-quick:empty{display:none!important}
+
+/* ============================================================================
+ * 全新首屏（Mainframe 规范）
+ * 字体 / 鼠标横滑视频 / 导航 / 打字机 / 药丸按钮
+ * ========================================================================== */
+:root{
+  --mf-heading:"HelveticaNowDisplay-Medium","Helvetica Neue",Arial,sans-serif;
+  --mf-body:"HelveticaNowDisplayW01-Rg","Helvetica Neue",Arial,sans-serif;
+}
+body{font-family:var(--mf-body)}
+.mf-nav,.mf-hero,.mf-overlay,#toolHost,.mf-pill{font-family:var(--mf-body)}
+
+/* ---- 背景视频：固定铺满，鼠标横向滑动控制进度 ---- */
+.mf-video{position:fixed;inset:0;z-index:0;width:100%;height:100%;
+  object-fit:cover;object-position:70% center;opacity:0;transition:opacity .5s ease;background:#eceae6}
+
+/* ---- 导航 ---- */
+.mf-nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;
+  justify-content:space-between;padding:16px 20px}
+@media(min-width:640px){.mf-nav{padding:20px 32px}}
+.mf-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.mf-logo-text{font-family:var(--mf-heading);font-size:21px;line-height:1;letter-spacing:-.02em;color:#000;white-space:nowrap}
+@media(min-width:640px){.mf-logo-text{font-size:26px}}
+.mf-reg{font-size:.5em;vertical-align:super;line-height:0}
+.mf-asterisk{font-size:25px;line-height:1;color:#000;user-select:none;letter-spacing:-.02em}
+@media(min-width:640px){.mf-asterisk{font-size:30px}}
+.mf-links{display:none;align-items:center;font-size:23px;color:#000}
+@media(min-width:768px){.mf-links{display:flex}}
+.mf-links a{color:#000;text-decoration:none;transition:opacity .2s}
+.mf-links a:hover{opacity:.6}
+.mf-nav-right{display:flex;align-items:center;gap:14px}
+.mf-cta{display:none;font-size:23px;color:#000;text-decoration:underline;text-underline-offset:2px;transition:opacity .2s}
+@media(min-width:768px){.mf-cta{display:inline}}
+.mf-cta:hover{opacity:.6}
+.mf-ghostbtn{display:none;font-size:15px;color:#000;background:transparent;border:1px solid rgba(0,0,0,.35);
+  border-radius:999px;padding:6px 14px;cursor:pointer;font-family:inherit}
+.mf-burger{display:flex;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:4px}
+@media(min-width:768px){.mf-burger{display:none}}
+.mf-burger span{display:block;width:24px;height:2px;background:#000;transition:all .3s}
+.mf-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.mf-burger.open span:nth-child(2){opacity:0}
+.mf-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ---- 移动端覆盖菜单 ---- */
+.mf-overlay{position:fixed;inset:0;z-index:9;background:rgba(255,255,255,.95);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+  padding:0 32px;gap:32px;opacity:0;pointer-events:none;transition:opacity .3s}
+.mf-overlay.open{opacity:1;pointer-events:auto}
+@media(min-width:768px){.mf-overlay{display:none}}
+.mf-overlay a{font-size:32px;font-weight:500;color:#000;text-decoration:none}
+.mf-overlay a.mf-u{text-decoration:underline;text-underline-offset:2px}
+
+/* ---- 首屏主体 ---- */
+.mf-hero{position:relative;z-index:1;height:100svh;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:0 20px 48px;overflow:hidden}
+@media(min-width:640px){.mf-hero{padding-left:32px;padding-right:32px}}
+@media(min-width:768px){.mf-hero{justify-content:center;padding-bottom:0;padding-left:40px;padding-right:40px}}
+.mf-hero-inner{max-width:36rem;position:relative;z-index:10}
+.mf-blur{pointer-events:none;user-select:none;margin:0 0 20px;font-size:clamp(18px,4vw,26px);
+  line-height:1.3;font-weight:400;color:#000;filter:blur(4px)}
+@media(min-width:640px){.mf-blur{margin-bottom:24px}}
+.mf-type{margin:0 0 20px;color:#000;font-size:clamp(18px,4vw,26px);line-height:1.35;font-weight:400;min-height:54px}
+@media(min-width:640px){.mf-type{margin-bottom:24px}}
+.mf-caret{display:inline-block;width:2px;height:1.1em;background:#000;vertical-align:middle;
+  margin-left:2px;animation:mfblink 1s step-end infinite}
+@keyframes mfblink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ---- 药丸按钮 ---- */
+.mf-pills-wrap{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease}
+.mf-pills-wrap.show{opacity:1;transform:translateY(0)}
+.mf-pills{display:flex;flex-wrap:wrap}
+.mf-pill{display:inline-flex;align-items:center;gap:6px;justify-content:center;
+  background:#fff;color:#000;border:1px solid rgba(0,0,0,.1);border-radius:999px;
+  font-size:13px;line-height:1.2;padding:.3em 16px;margin:0 .2em .4em;white-space:nowrap;
+  cursor:pointer;font-family:inherit;transition:background-color .2s,color .2s}
+@media(min-width:640px){.mf-pill{font-size:15px;padding:.3em 20px}}
+.mf-pill i{font-style:normal;opacity:.5;font-size:.85em}
+.mf-pill:hover,.mf-pill.active{background:#000;color:#fff;border-color:#000}
+.mf-pill:hover i,.mf-pill.active i{opacity:.7}
+.mf-pill-outline{background:transparent;color:#fff;border-color:#fff;gap:8px}
+@media(min-width:640px){.mf-pill-outline{gap:12px}}
+.mf-pill-outline:hover{background:#fff;color:#000}
+.mf-pill-outline .u{text-decoration:underline;text-underline-offset:1px}
+
+/* ---- 功能面板外壳（三个功能沿用原工作台） ---- */
+#toolHost{
+  position:fixed!important;inset:0!important;z-index:60!important;
+  width:auto!important;max-width:none!important;max-height:none!important;height:auto!important;
+  margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:rgba(10,10,12,.94)!important;
+  -webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important;
+  padding:64px clamp(16px,4vw,40px) 32px!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  display:none;
+}
+body.ws-open #toolHost{display:block!important}
+#toolHost .mf-panel-input{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.18);
+  border-radius:14px;color:#fff;font-family:var(--mf-body);font-size:15px;
+  padding:14px 16px;min-height:56px;max-height:none;resize:vertical;outline:none;
+}
+#toolHost .mf-panel-input:focus{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.08)}
+#toolHost .mf-panel-input::placeholder{color:rgba(255,255,255,.42)}
+#toolHost .ws-close{position:fixed!important;top:16px!important;left:24px!important;right:auto!important;z-index:70!important}
+/* 旧的整屏 hero 规则已无对应元素，主动失效避免干扰 */
+.ev-hero,.ev-topbar,.ev-inner,.ev-stats,.ev-quick,.ev-headline,.ev-subhead,.ev-bg{display:none!important}
