@@ -4940,9 +4940,16 @@
     var id = MAP[window.__toolSid];
     var el = id ? document.getElementById(id) : null;
     if (!el) return;
-    if (fromHero || !el.value.trim()) el.value = src.value;
+    /* 顶部框有内容才覆盖，避免用空值把工具里已有的文字清掉 */
+    if (fromHero && src.value.trim()) el.value = src.value;
     el.dispatchEvent(new Event('input', { bubbles: true }));
   };
+  /* 反向同步：工具里改动（如「填入示例」/生成结果）也回写到顶部框 */
+  Object.keys(MAP).forEach(function(k){
+    var el = document.getElementById(MAP[k]);
+    if (!el) return;
+    el.addEventListener('input', function(){ if (src.value !== el.value) src.value = el.value; });
+  });
   src.addEventListener('input', function(){ if (window.__toolSid) window.__syncPInput(true); });
 })();
 </script>

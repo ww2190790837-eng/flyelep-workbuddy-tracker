@@ -275,14 +275,12 @@ body.ws-open .pcard{width:min(820px,94%);max-height:calc(100svh - 186px)}
 body.ws-open .pcard #pInput{min-height:88px}
 body.ws-open .pcard-foot{margin-top:8px}
 
-/* 只藏掉工具自带的那一行"标签+输入框"（首屏输入框是唯一输入框，值已同步过去）；
-   上传区 / 引擎栏等仍保留，跟着同一个盒子往下排 */
-.ws #pgIdea,.ws #vrIdea,.ws #agvPrompt{display:none!important}
-.ws .pg-label:has(+ #pgIdea),
-.ws .pg-label:has(+ #vrIdea),
-.ws .agv-label:has(+ #agvPrompt),
-.ws .pg-idea-wrap > .pg-label:first-child{display:none!important}
-.ws .pg-idea-wrap{padding-top:0!important}
+/* 【已撤销】曾把工具自带的输入框藏掉、只留顶部公共输入框 ——
+   结果「填入示例」把文字写进被隐藏的 #pgIdea，用户完全看不到，功能等于消失。
+   现在恢复工具自己的输入框（它才有正常的标签/占位/联动），顶部那个公共输入框反而收掉。 */
+
+/* 顶部那个公共输入框不再需要（每个工具都有自己的输入框） */
+#toolSheet > #pInput{display:none!important}
 
 /* 上传区压成一行细条 */
 .ws .pg-upload{margin-top:10px!important}
