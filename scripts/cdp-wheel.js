@@ -35,8 +35,17 @@ async function main() {
   await evalJs(`document.querySelector('.mf-pill[data-open="capabilities"]').click(); true`);
   await sleep(1200);
 
+  // 真正的滚动区在卡片内部：可见的那个（#readerBody 优先，其次 #workspace）
+  const SCROLLER = `(function(){
+    var rb=document.getElementById('readerBody');
+    if(rb && !rb.hidden && rb.clientHeight) return rb;
+    var ws=document.getElementById('workspace');
+    if(ws && !ws.hidden && ws.clientHeight) return ws;
+    return document.getElementById('toolHost');
+  })()`;
+
   const probe = async (label) => {
-    const before = await evalJs(`document.getElementById('toolHost').scrollTop`);
+    const before = await evalJs(`(${SCROLLER}).scrollTop`);
     // 真实鼠标：先移动到位，再滚
     await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 700, y: 500, button: 'none' });
     for (let i = 0; i < 8; i++) {
@@ -44,8 +53,8 @@ async function main() {
       await sleep(50);
     }
     await sleep(700);
-    const after = await evalJs(`document.getElementById('toolHost').scrollTop`);
-    const m = await evalJs(`JSON.stringify({sH:document.getElementById('toolHost').scrollHeight,cH:document.getElementById('toolHost').clientHeight,bodyOverflow:getComputedStyle(document.body).overflow,htmlOverflow:getComputedStyle(document.documentElement).overflow,hostOverflow:getComputedStyle(document.getElementById('toolHost')).overflowY})`);
+    const after = await evalJs(`(${SCROLLER}).scrollTop`);
+    const m = await evalJs(`(function(){var s=(${SCROLLER});return JSON.stringify({which:(s.id||s.className),sH:s.scrollHeight,cH:s.clientHeight,oy:getComputedStyle(s).overflowY})})()`);
     console.log(label, '| scrollTop', before, '->', after, '| 变化', (after - before), '|', m);
   };
 

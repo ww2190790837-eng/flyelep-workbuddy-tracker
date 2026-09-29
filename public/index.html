@@ -1629,7 +1629,12 @@
 </section>
 
 <!-- 功能面板：三个功能沿用原有工作台，换新的外观壳（JS 通过 .pcard 挂载内容） -->
-<div class="pcard mf-panel" id="toolHost" data-lenis-prevent>
+<div class="mf-panel" id="toolHost" data-lenis-prevent>
+  <div class="pcard mf-sheet" id="toolSheet">
+    <div class="mf-sheet-top">
+      <span class="mf-sheet-title" id="mfSheetTitle">创作工具</span>
+      <span class="mf-sheet-hint">滚轮可上下浏览 · Esc 关闭</span>
+    </div>
   <textarea id="pInput" class="mf-panel-input" rows="2" placeholder="描述你想要的视频，或贴一段素材链接&#8230;"></textarea>
   <div id="pModes" hidden></div>
   <div class="pcard-foot" style="display:none">
@@ -1640,7 +1645,8 @@
     <input type="file" id="pUploadInput" accept="image/*" hidden />
     <button class="pcard-send" type="button" data-open="prompt" aria-label="开始">&#8593;</button>
   </div>
-  <button class="ev-btn ev-btn-ghost" type="button" id="quickInvite" style="display:none">免费积分邀请码 <span class="ev-stock" id="evStock"></span></button>
+    <button class="ev-btn ev-btn-ghost" type="button" id="quickInvite" style="display:none">免费积分邀请码 <span class="ev-stock" id="evStock"></span></button>
+  </div>
 </div>
 
 <!-- 公告 + 留言板 -->
@@ -4615,9 +4621,14 @@
       t.classList.toggle('active', !!key && t.getAttribute('data-open') === key);
     });
     /* 顶部「功能分类」模式栏：选中的那个高亮 */
+    var activeLabel = '';
     Array.prototype.forEach.call(document.querySelectorAll('#pModes [data-open], .mf-pill[data-open]'), function(c){
-      c.classList.toggle('active', !!key && c.getAttribute('data-open') === key);
+      var on = !!key && c.getAttribute('data-open') === key;
+      c.classList.toggle('active', on);
+      if (on) activeLabel = String(c.textContent || '').trim();
     });
+    var st = document.getElementById('mfSheetTitle');
+    if (st) st.textContent = activeLabel || '创作工具';
   }
   function scrollWsTo(id){
     if (!id){ ws.scrollTop = 0; return; }
@@ -5023,8 +5034,16 @@
   (function(){
     var host = document.getElementById('toolHost');
     if (!host) return;
-    function innerCanScroll(el, dy){
-      while (el && el !== host){
+    /* 现在的滚动区在卡片内部（#readerBody 或 #workspace），不是背板 #toolHost */
+    function currentScroller(){
+      var rb = document.getElementById('readerBody');
+      if (rb && !rb.hidden) return rb;
+      var ws = document.getElementById('workspace');
+      if (ws && !ws.hidden) return ws;
+      return null;
+    }
+    function innerCanScroll(el, stop, dy){
+      while (el && el !== stop){
         var cs = getComputedStyle(el);
         if (/(auto|scroll|overlay)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1){
           if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
@@ -5036,10 +5055,12 @@
     }
     host.addEventListener('wheel', function(e){
       if (e.ctrlKey || !e.deltaY) return;                 /* 交给浏览器缩放等默认行为 */
-      if (innerCanScroll(e.target, e.deltaY)) return;     /* 内层真的能滚，不抢 */
-      var before = host.scrollTop;
-      host.scrollTop = before + e.deltaY;
-      if (host.scrollTop !== before) e.preventDefault();  /* 只有确实滚动了才吞掉 */
+      var sc = currentScroller();
+      if (!sc) return;
+      if (innerCanScroll(e.target, sc, e.deltaY)) return; /* 内层真的能滚，不抢 */
+      var before = sc.scrollTop;
+      sc.scrollTop = before + e.deltaY;
+      if (sc.scrollTop !== before) e.preventDefault();    /* 只有确实滚动了才吞掉 */
     }, { passive: false });
   })();
   var cp = document.getElementById('mfCopyContact');
