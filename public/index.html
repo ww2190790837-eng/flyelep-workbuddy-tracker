@@ -2038,6 +2038,13 @@
         <span class="agv-status" id="agvStatus"></span>
       </div>
 
+      <!-- 当前任务：完整 video_id 常驻显示，可一键复制（之前界面上看不到 id） -->
+      <div id="agvTaskLine" style="margin-top:12px;font-size:12.5px;color:#6b6b73;align-items:center;gap:8px;flex-wrap:wrap;display:none">
+        <span style="white-space:nowrap">当前任务 video_id：</span>
+        <code id="agvTaskId" style="user-select:all;-webkit-user-select:all;background:#f4f4f6;border:1px solid #e6e6ea;padding:3px 8px;border-radius:6px;font-size:12px;word-break:break-all"></code>
+        <button type="button" id="agvTaskCopy" style="background:#fff;border:1px solid #e6e6ea;border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer;color:#3c3c43;font-family:inherit">复制</button>
+      </div>
+
       <div class="agv-result" id="agvResult"></div>
     </div>
 
@@ -2060,6 +2067,33 @@
   for (var s=4; s<=12; s++){ var o=document.createElement("option"); o.value=String(s); o.textContent=s+" 秒"; if(s===5) o.selected=true; secSel.appendChild(o); }
 
   function setStatus(html){ $("agvStatus").innerHTML = html; }
+
+  /* 当前任务行：完整 video_id 常驻可见 + 可复制 */
+  function agvShowTaskLine(id){
+    var l = $("agvTaskLine"), c = $("agvTaskId");
+    if (!l || !c) return;
+    c.textContent = String(id || "");
+    l.style.display = "flex";
+  }
+  (function(){
+    var tc = $("agvTaskCopy");
+    if (!tc) return;
+    tc.addEventListener("click", function(){
+      var c = $("agvTaskId"); if (!c) return;
+      try { if (navigator.clipboard) navigator.clipboard.writeText(c.textContent); } catch(e){}
+      var old = tc.textContent; tc.textContent = "已复制 ✓";
+      setTimeout(function(){ tc.textContent = old; }, 1400);
+    });
+  })();
+  /* 打开页面就把上次未完成的任务 id 显示出来（不必等到续查） */
+  (function(){
+    try {
+      var raw = localStorage.getItem("agvPending");
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      if (o && o.vid && (Date.now() - o.t) < 30*60*1000) agvShowTaskLine(o.vid);
+    } catch(e){}
+  })();
 
   function uploadFile(file){
     return new Promise(function(resolve,reject){
@@ -2185,7 +2219,8 @@
       if (Date.now() - o.t > 30*60*1000){ agvClearPending(); return; }
       if (window.__agvResuming) return;
       window.__agvResuming = true;
-      setStatus('<span class="pill run">继续查询上次提交的任务 '+String(o.vid).slice(0,20)+'…</span>');
+      agvShowTaskLine(o.vid);
+      setStatus('<span class="pill run">继续查询上次提交的任务…</span>');
       pollStatus(o.vid);
     }catch(e){}
   }
@@ -2287,6 +2322,7 @@
         if (!o.ok || !o.j.ok){ btn.disabled=false; setStatus('<span class="pill fail">创建失败：'+(o.j.error||"未知错误")+'</span>'); return; }
         var vid = o.j.video_id;
         agvSavePending(vid);
+        agvShowTaskLine(vid);
         setStatus('<span class="pill run">任务已创建，排队生成中…</span> video_id='+vid);
         pollStatus(vid);
       })
