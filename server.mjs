@@ -736,6 +736,17 @@ app.use(express.static(path.join(__dirname, "public"), { index: "index.html", ex
 app.get(["/agnes-video", "/agnes-video.html"], (req, res) => {
   res.redirect("/#agnes-video");
 });
+/* 上游鉴权失败时给出「可操作」的提示。
+   上游只会回 "Invalid token"，用户看到完全不知道怎么办 —— 这属于运维问题，不该让用户猜。 */
+function agnesErrText(status, upstreamMsg) {
+  const raw = String(upstreamMsg || "");
+  if (status === 401 || /invalid token|token not provided|unauthorized/i.test(raw)) {
+    return "服务端 Agnes 密钥已失效（上游返回 401 Invalid token）。请管理员到 apihub.agnes-ai.com 重新获取密钥，"
+         + "在 Render 的 Environment 里更新 AGNES_API_KEY 后重新部署即可恢复（无需改代码）。";
+  }
+  return raw || ("Agnes 请求失败 (" + status + ")");
+}
+
 app.post("/api/agnes-video/create", requireAuth, express.json({ limit: "2mb" }), async (req, res) => {
   const { mode, prompt, seconds, aspect_ratio, seed, first_frame, last_frame, images, audios } = req.body || {};
   if (!prompt || !String(prompt).trim()) return res.status(400).json({ ok: false, error: "请填写视频描述" });
@@ -764,7 +775,7 @@ app.post("/api/agnes-video/create", requireAuth, express.json({ limit: "2mb" }),
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || (j && j.error))
-      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: (j && j.error && j.error.message) || ("Agnes 创建失败 (" + r.status + ")") });
+      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: agnesErrText(r.status, j && j.error && j.error.message) });
     res.json({ ok: true, video_id: (j && (j.video_id || j.id)) || null, raw: j });
   } catch (e) {
     res.status(502).json({ ok: false, error: e.message });
@@ -778,7 +789,7 @@ app.get("/api/agnes-video/status", requireAuth, async (req, res) => {
     const r = await fetch(url, { headers: { Authorization: "Bearer " + AGNES_API_KEY } });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || (j && j.error))
-      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: (j && j.error && j.error.message) || ("Agnes 查询失败 (" + r.status + ")") });
+      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: agnesErrText(r.status, j && j.error && j.error.message) });
     res.json({
       ok: true,
       status: (j && j.status) || "unknown",
