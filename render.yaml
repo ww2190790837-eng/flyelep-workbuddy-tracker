@@ -36,4 +36,12 @@
         value: qwen-vl-max
       - key: AI_BASE_URL
         value: https://dashscope.aliyuncs.com/compatible-mode/v1
+      # ---- Agnes 视频（仅这一个功能用）----
+      # 密钥：留空即用 server.mjs 里的兜底值；换新 key 只需在 Render 面板改这一项，无需改代码
+      - key: AGNES_API_KEY
+        sync: false
+      - key: AGNES_BASE_URL
+        value: https://apihub.agnes-ai.com/v1
+      - key: AGNES_VIDEO_MODEL
+        value: agnes-3.0-flash
     healthCheckPath: /healthz
