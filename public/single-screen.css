@@ -676,3 +676,15 @@ body.ws-open #toolHost{display:flex!important}
 #toolSheet #bulletin [style*="color:var(--text-3)"]{color:#8c8c94!important}
 #toolSheet #bulletin [style*="color:var(--text)"]{color:#111!important}
 #toolSheet #bulletin h3,[toolSheet #bulletin] [style*="font-weight:700"]{color:#111!important}
+
+/* ---- 门禁遮罩：白卡片里不该是一大块深色，改成浅色磨砂 ---- */
+#toolSheet .gate{background:rgba(255,255,255,.86)!important;
+  -webkit-backdrop-filter:blur(8px)!important;backdrop-filter:blur(8px)!important}
+#toolSheet .gate-tag{color:#8c8c94!important}
+#toolSheet .gate-title{color:#111!important}
+#toolSheet .gate-sub{color:#5c5c64!important}
+#toolSheet .gate-sub b{color:#111!important}
+#toolSheet .gate-btn{background:#111!important;color:#fff!important;border-radius:12px!important;
+  box-shadow:0 10px 24px -12px rgba(0,0,0,.6)!important}
+#toolSheet .gate-btn:hover{background:#000!important;transform:translateY(-1px)}
+#toolSheet .gate-note{color:#9c9ca4!important}
