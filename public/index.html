@@ -1588,7 +1588,7 @@
 </div>
 
 <!-- ===== 全新首屏：按 Mainframe 规范重建（鼠标横滑控制背景视频） ===== -->
-<video id="mfVideo" class="mf-video" muted playsinline preload="auto" aria-hidden="true">
+<video id="mfVideo" class="mf-video" muted playsinline preload="auto" aria-hidden="true" poster="/assets/hero-scrub-poster.jpg">
   <!-- 本地全关键帧(每帧 keyframe)版本：鼠标滑动 seek 只需解一帧，帧率远高于远端 4K 原片 -->
   <source src="/assets/hero-scrub.mp4" type="video/mp4" />
   <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260530_042513_df96a13b-6155-4f6e-8b93-c9dee66fba08.mp4" type="video/mp4" />
@@ -4416,7 +4416,6 @@
 <script src="/vendor/gsap.min.js"></script>
 <script src="/vendor/ScrollTrigger.min.js"></script>
 <script src="/vendor/SplitText.min.js"></script>
-<script src="/vendor/lenis.min.js"></script>
 <script src="/bgfx.js"></script>
 <script src="/motion.js"></script>
 
@@ -4631,6 +4630,7 @@
     if (!ws) return;
     var wasOpen = ws.isOpen;
     if (window.__closeReaderPane) window.__closeReaderPane();   /* 切到工具时先收起阅读屏 */
+    document.body.classList.remove('reader-open');
     ws.hidden = false;
     ws.isOpen = true;
     document.body.classList.add('ws-open');
@@ -4890,6 +4890,7 @@
 
   function openReader(id){
     if (!TITLE[id]) return;
+    document.body.classList.add('reader-open');   /* 内容面板：隐藏顶部工具输入框 */
     if (wsEl){ wsEl.hidden = true; wsEl.isOpen = false; wsEl.scrollTop = 0; }
     Object.keys(PANELS).forEach(function(k){
       var el = PANELS[k]();
@@ -4906,6 +4907,7 @@
     rb.hidden = true;
     window.__readerOpen = false;
     document.body.classList.remove('ws-open');
+    document.body.classList.remove('reader-open');
     if (window.syncFletaModes) window.syncFletaModes(null);
   }
   window.__closeReaderPane = closeReaderPane;
@@ -4943,7 +4945,17 @@
     var prevX = null, targetTime = 0, pending = false, ready = false;
     var SENS = 0.8;
     var EPS = 1 / 48;                     /* 约半帧，过滤无意义的微小 seek */
-    v.addEventListener('loadeddata', function(){ ready = true; v.style.opacity = '1'; });
+    /* 显示视频：不能只等 loadeddata —— 缓存命中时它可能在脚本执行前就过去了，
+       那样 opacity 永远停在 0，人物就"经常不自己出来"。三重兜底： */
+    function showVideo(){ ready = true; v.style.opacity = '1'; }
+    if (v.readyState >= 2) showVideo();                       /* 1) 已经就绪，直接显示 */
+    ['loadeddata','canplay','playing'].forEach(function(ev){  /* 2) 后续任一事件 */
+      v.addEventListener(ev, showVideo, { once: true });
+    });
+    v.addEventListener('loadedmetadata', function(){          /* 强制解出第一帧，否则可能不绘制 */
+      try { v.currentTime = 0.001; } catch (e) {}
+    }, { once: true });
+    setTimeout(showVideo, 3000);                              /* 3) 3 秒保险 */
     function flush(){
       pending = false;
       if (!ready || v.seeking) return;    /* 正在 seek 就等 seeked 补，绝不叠加 */
