@@ -1614,6 +1614,15 @@
   <div class="mf-hero-inner">
     <p class="mf-blur">Hey there, meet A.R.I.A,<br />Fleta&#39;s Adaptive Response Interface Agent</p>
     <p class="mf-type"><span id="mfTypeText"></span><span class="mf-caret" id="mfCaret"></span></p>
+    <div class="mf-feature mf-pills-wrap" id="mfFeature">
+      <span class="mf-badge">NEW</span>
+      <span>Agnes 视频 2.5 Flash 已上线</span>
+      <span class="mf-sep">·</span><span>一句话出片</span>
+      <span class="mf-sep">·</span><span>12 秒 / 720P</span>
+      <span class="mf-sep">·</span><span>文生视频 · 首尾帧 · 图片参考</span>
+      <span class="mf-sep">·</span><span>限时免费</span>
+    </div>
+
     <div class="mf-pills mf-pills-wrap" id="mfPills">
       <button class="mf-pill" type="button" data-open="prompt">提示词生成 <i>Prompt</i></button>
       <button class="mf-pill" type="button" data-open="reverse">视频反推 <i>Reverse</i></button>
@@ -1666,12 +1675,15 @@
     <div style="max-width:760px;margin:0 auto">
 
       <!-- 公告栏 -->
-      <div id="announcementBar" class="reveal" style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-left:2px solid var(--accent);border-radius:var(--r);padding:14px 18px;display:flex;align-items:flex-start;gap:12px">
+      <div id="announcementBar" class="reveal" style="background:#fafafb;border:1px solid #dcdce4;border-left:3px solid #111;border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
         <div style="flex:1;min-width:0">
-          <strong style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--accent);display:block;margin-bottom:5px">VERSION · v1.4.0</strong>
-          <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0">全站改版为 HUD 单色风，并重做性能：移除逐帧重绘的动态背景、砍掉全部背景模糊，解决此前首屏与滚动卡顿。</p>
+          <strong style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:#111;display:block;margin-bottom:5px">UPDATE · v1.5.0</strong>
+          <p style="font-size:13px;color:#3c3c43;line-height:1.7;margin:0">
+            <b style="color:#111">新上线：Agnes 视频生成</b>。一句话直接出片——最长 12 秒、720P，支持<b style="color:#111">文生视频</b>、<b style="color:#111">首尾帧控制</b>、<b style="color:#111">图片参考</b>三种模式，当前限时免费。<br>
+            同步升级：提示词生成与视频反推、全站单色深色探索。
+          </p>
         </div>
-        <button onclick="this.parentElement.style.display='none'" style="flex-shrink:0;background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="关闭公告">×</button>
+        <button onclick="this.parentElement.style.display='none'" style="flex-shrink:0;background:none;border:none;color:#9c9ca4;font-size:16px;cursor:pointer;padding:2px 4px;line-height:1" title="关闭公告">×</button>
       </div>
 
       <!-- 留言板 -->
@@ -5141,7 +5153,7 @@
 
   /* ===== 打字机 ===== */
   var ty = document.getElementById('mfTypeText'), caret = document.getElementById('mfCaret');
-  var TEXT = 'Glad you stopped in. Good taste tends to find us. Now, what are we building?';
+  var TEXT = '\u597d\u6d88\u606f\uff1aAgnes Video 2.5 Flash \u89c6\u9891\u751f\u6210\u5df2\u4e0a\u7ebf \u2014\u2014 \u4e00\u53e5\u8bdd\u76f4\u63a5\u51fa\u7247\uff0c\u6700\u957f 12 \u79d2\u3001720P\uff0c\u652f\u6301\u6587\u751f\u89c6\u9891 / \u9996\u5c3e\u5e27 / \u56fe\u7247\u53c2\u8003\u3002\u73b0\u5728\uff0c\u6211\u4eec\u505a\u70b9\u4ec0\u4e48\uff1f';
   if (ty){
     var i = 0;
     setTimeout(function(){
