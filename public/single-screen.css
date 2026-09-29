@@ -405,18 +405,23 @@ body{font-family:var(--mf-body)}
 /* ---- 药丸按钮 ---- */
 .mf-pills-wrap{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease}
 .mf-pills-wrap.show{opacity:1;transform:translateY(0)}
-.mf-pills{display:flex;flex-wrap:wrap}
-.mf-pill{display:inline-flex;align-items:center;gap:6px;justify-content:center;
-  background:#fff;color:#000;border:1px solid rgba(0,0,0,.1);border-radius:999px;
-  font-size:13px;line-height:1.2;padding:.3em 16px;margin:0 .2em .4em;white-space:nowrap;
-  cursor:pointer;font-family:inherit;transition:background-color .2s,color .2s}
-@media(min-width:640px){.mf-pill{font-size:15px;padding:.3em 20px}}
-.mf-pill i{font-style:normal;opacity:.5;font-size:.85em}
+.mf-pills{display:flex;flex-wrap:wrap;align-items:center}
+.mf-pill{display:inline-flex;align-items:center;gap:7px;justify-content:center;
+  background:#fff;color:#000;border:1px solid rgba(0,0,0,.09);border-radius:999px;
+  font-size:15px;line-height:1.2;padding:.44em 22px;margin:0 .25em .55em;white-space:nowrap;
+  cursor:pointer;font-family:inherit;
+  box-shadow:0 2px 12px rgba(0,0,0,.10);
+  transition:background-color .2s,color .2s,box-shadow .2s,transform .2s}
+.mf-pill:hover{transform:translateY(-1px)}
+@media(min-width:640px){.mf-pill{font-size:17px;padding:.44em 28px}}
+.mf-pill i{font-style:normal;opacity:.45;font-size:.8em;letter-spacing:.02em}
 .mf-pill:hover,.mf-pill.active{background:#000;color:#fff;border-color:#000}
 .mf-pill:hover i,.mf-pill.active i{opacity:.7}
-.mf-pill-outline{background:transparent;color:#fff;border-color:#fff;gap:8px}
-@media(min-width:640px){.mf-pill-outline{gap:12px}}
-.mf-pill-outline:hover{background:#fff;color:#000}
+.mf-pill-outline{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.9);gap:10px;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 2px 14px rgba(0,0,0,.18)}
+@media(min-width:640px){.mf-pill-outline{gap:14px}}
+.mf-pill-outline:hover{background:#fff;color:#000;border-color:#fff}
+.mf-pill-outline svg{width:15px;height:15px}
 .mf-pill-outline .u{text-decoration:underline;text-underline-offset:1px}
 
 /* ---- 功能面板外壳（三个功能沿用原工作台） ---- */

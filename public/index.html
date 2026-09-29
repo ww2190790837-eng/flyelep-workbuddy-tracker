@@ -1598,9 +1598,6 @@
     <span class="mf-logo-text">Fleta<sup class="mf-reg">&#174;</sup></span>
     <span class="mf-asterisk" aria-hidden="true">&#10035;&#65038;</span>
   </a>
-  <div class="mf-links">
-    <a href="#" data-open="capabilities">Labs</a><span>,&nbsp;</span><a href="#" data-open="fleta-about">Studio</a><span>,&nbsp;</span><a href="#" data-open="bulletin">Openings</a><span>,&nbsp;</span><a href="#" data-open="prompt">Shop</a>
-  </div>
   <div class="mf-nav-right">
     <a class="mf-cta js-open-auth" id="quickAuth" href="/login.html">Get in touch</a>
     <button class="mf-ghostbtn" type="button" id="quickLogout" style="display:none">退出登录</button>
@@ -1609,10 +1606,6 @@
 </nav>
 
 <div class="mf-overlay" id="mfOverlay">
-  <a href="#" data-open="capabilities">Labs</a>
-  <a href="#" data-open="fleta-about">Studio</a>
-  <a href="#" data-open="bulletin">Openings</a>
-  <a href="#" data-open="prompt">Shop</a>
   <a href="#" class="mf-u js-open-auth">Get in touch</a>
 </div>
 
@@ -1631,7 +1624,7 @@
 </section>
 
 <!-- 功能面板：三个功能沿用原有工作台，换新的外观壳（JS 通过 .pcard 挂载内容） -->
-<div class="pcard mf-panel" id="toolHost">
+<div class="pcard mf-panel" id="toolHost" data-lenis-prevent>
   <textarea id="pInput" class="mf-panel-input" rows="2" placeholder="描述你想要的视频，或贴一段素材链接&#8230;"></textarea>
   <div id="pModes" hidden></div>
   <div class="pcard-foot" style="display:none">
