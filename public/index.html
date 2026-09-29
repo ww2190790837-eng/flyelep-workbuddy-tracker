@@ -1590,6 +1590,8 @@
 
 <!-- ===== 全新首屏：按 Mainframe 规范重建（鼠标横滑控制背景视频） ===== -->
 <video id="mfVideo" class="mf-video" muted playsinline preload="auto" aria-hidden="true">
+  <!-- 本地全关键帧(每帧 keyframe)版本：鼠标滑动 seek 只需解一帧，帧率远高于远端 4K 原片 -->
+  <source src="/assets/hero-scrub.mp4" type="video/mp4" />
   <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260530_042513_df96a13b-6155-4f6e-8b93-c9dee66fba08.mp4" type="video/mp4" />
 </video>
 
@@ -1618,6 +1620,10 @@
       <button class="mf-pill" type="button" data-open="reverse">视频反推 <i>Reverse</i></button>
       <button class="mf-pill" type="button" data-open="agnes">Agnes 视频</button>
       <button class="mf-pill" type="button" data-open="capabilities">核心能力</button>
+    </div>
+    <div class="mf-pills mf-pills-sub mf-pills-wrap" id="mfPillsSub">
+      <button class="mf-pill mf-pill-sub" type="button" data-open="bulletin">公告 · 留言板 <i>Updates</i></button>
+      <button class="mf-pill mf-pill-sub" type="button" data-open="fleta-about">关于 Fleta</button>
       <button class="mf-pill mf-pill-outline" type="button" id="mfCopyContact"><span class="u">Reach us: 微信 cc44cc5</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><rect x="3" y="3" width="12" height="12" rx="2"/></svg></button>
     </div>
   </div>
@@ -4954,25 +4960,29 @@
   /* ===== 背景视频：鼠标横向滑动控制进度（不自动播放） ===== */
   var v = document.getElementById('mfVideo');
   if (v){
-    var prevX = null, targetTime = 0, seeking = false, SENS = 0.8;
-    v.addEventListener('loadeddata', function(){ v.style.opacity = '1'; });
+    var prevX = null, targetTime = 0, pending = false, ready = false;
+    var SENS = 0.8;
+    var EPS = 1 / 48;                     /* 约半帧，过滤无意义的微小 seek */
+    v.addEventListener('loadeddata', function(){ ready = true; v.style.opacity = '1'; });
+    function flush(){
+      pending = false;
+      if (!ready || v.seeking) return;    /* 正在 seek 就等 seeked 补，绝不叠加 */
+      if (Math.abs(v.currentTime - targetTime) < EPS) return;
+      try { v.currentTime = targetTime; } catch (err) {}
+    }
     window.addEventListener('mousemove', function(e){
       var d = v.duration;
-      if (!d || isNaN(d) || !isFinite(d)) return;
+      if (!ready || !d || isNaN(d) || !isFinite(d)) return;
       if (prevX === null){ prevX = e.clientX; return; }
       var delta = e.clientX - prevX;
       prevX = e.clientX;
       targetTime += (delta / window.innerWidth) * SENS * d;
       targetTime = Math.max(0, Math.min(d, targetTime));
-      if (!seeking){
-        seeking = true;
-        try { v.currentTime = targetTime; } catch (err) { seeking = false; }
-      }
-    });
+      /* 每帧最多一次 seek（rAF 合并高频 mousemove） */
+      if (!pending){ pending = true; requestAnimationFrame(flush); }
+    }, { passive: true });
     v.addEventListener('seeked', function(){
-      if (Math.abs(v.currentTime - targetTime) > 0.01){
-        try { v.currentTime = targetTime; } catch (e) { seeking = false; }
-      } else { seeking = false; }
+      if (Math.abs(v.currentTime - targetTime) >= EPS){ pending = true; requestAnimationFrame(flush); }
     });
   }
 
@@ -4991,8 +5001,10 @@
   }
 
   /* ===== 药丸按钮：400ms 后淡入上滑（不等打字动画结束） ===== */
-  var pills = document.getElementById('mfPills');
-  if (pills) setTimeout(function(){ pills.classList.add('show'); }, 400);
+  var pillRows = document.querySelectorAll('.mf-pills-wrap');
+  if (pillRows.length) setTimeout(function(){
+    Array.prototype.forEach.call(pillRows, function(p){ p.classList.add('show'); });
+  }, 400);
 
   /* ===== 移动端菜单 ===== */
   var burger = document.getElementById('mfBurger'), ov = document.getElementById('mfOverlay');
