@@ -2030,8 +2030,6 @@
             <option value="1:1">1:1（方形）</option>
             <option value="3:4">3:4</option>
             <option value="4:3">4:3</option>
-            <option value="2:3">2:3</option>
-            <option value="3:2">3:2</option>
             <option value="21:9">21:9（超宽）</option>
           </select>
         </div>
@@ -2383,6 +2381,13 @@
       body.audios = (auds||[]).map(function(x){return (x||"").trim();}).filter(Boolean);
     }
     if (!body.prompt){ setStatus('<span class="pill fail">请填写视频描述</span>'); return; }
+    /* 模式必需素材先在前端拦下：Agnes 对缺素材的请求回 400，白跑一趟还费额度 */
+    if (MODE === "keyframe" && !kf.first_frame && !kf.last_frame){
+      setStatus('<span class="pill fail">首尾帧模式：请至少上传「首帧」或「尾帧」其中一张图片</span>'); return;
+    }
+    if (MODE === "reference" && !(body.images && body.images.length) && !(body.audios && body.audios.length)){
+      setStatus('<span class="pill fail">图片参考模式：请至少上传 1 张参考图片或 1 段参考音频</span>'); return;
+    }
     var btn = $("agvGen"); btn.disabled = true;
     setStatus('<span class="pill run">提交中…</span>');
     fetch("/api/agnes-video/create", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) })
