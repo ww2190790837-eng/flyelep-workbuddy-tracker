@@ -736,3 +736,43 @@ body.ws-open #toolHost{display:flex!important}
 #toolSheet #announcementBar p{color:#3c3c43!important}
 #toolSheet #announcementBar b{color:#111!important}
 #toolSheet #announcementBar button{color:#9c9ca4!important}
+
+/* ============================================================================
+ * 核心能力 / 关于 等阅读面板的显示修复
+ *   1) 底部巨型跑马灯(km-track 40px 巨字)在卡片里会被切、像坏掉 → 直接隐藏
+ *   2) 宣言文字被居中、与左侧 eyebrow 不齐 → 统一左对齐
+ *   3) 「还有更多能力」里的 .btn-ghost 是 color:#fff → 白字白底看不见 → 改深色
+ * ========================================================================== */
+#toolSheet .km-wrap{display:none!important}
+
+#toolSheet .manifesto,
+#toolSheet .manifesto-text{text-align:left!important}
+#toolSheet .manifesto-eyebrow{text-align:left!important}
+#toolSheet .manifesto-text{margin-top:10px!important}
+
+/* 浅色卡片里的幽灵按钮：原为白字半透明底，白底上完全看不见 */
+#toolSheet .btn-ghost{
+  background:#fff!important;color:#111!important;
+  border:1px solid #d8d8e0!important;
+  border-radius:12px!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.05)!important;
+  padding:12px 20px!important;font-size:14px!important;
+}
+#toolSheet .btn-ghost:hover{background:#111!important;color:#fff!important;border-color:#111!important;transform:none!important}
+
+/* 「还有更多能力」空卡片：让内容居中且可读 */
+#toolSheet .cap-card.cap-end{
+  background:#fafafb!important;border:1px solid #ececef!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  justify-content:center!important;gap:12px!important;text-align:center!important;
+}
+#toolSheet .cap-card.cap-end h3{color:#111!important;font-size:18px!important}
+#toolSheet .cap-card.cap-end p{color:#8c8c94!important;font-size:12.5px!important;line-height:1.6!important}
+
+/* 宣言文字被 motion.js 的"逐行遮罩"动画改写：内层 <div class="ml-mask" style="text-align:center">
+   —— 行内样式，所以在 .manifesto-text 上改 text-align 够不着它。
+   这里直接对内部 div 覆盖（样式表 !important > 行内样式）。 */
+#toolSheet .manifesto-text div,
+#toolSheet .manifesto-text [class^="ml-"],
+#toolSheet .manifesto-text [class*=" ml-"]{text-align:left!important}
