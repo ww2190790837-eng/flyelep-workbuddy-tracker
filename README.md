@@ -2,7 +2,7 @@
 
 集成了 UTM 跟踪后台、邮箱验证码用户系统，以及若干 AI 创作工具（提示词生成、视频反推、Agnes 视频生成）。
 
-线上地址：<https://fleta.com>
+线上地址：<https://flyelep-wb-tracker.onrender.com>
 
 ## 首页功能
 
