@@ -748,6 +748,19 @@ function agnesErrText(status, upstreamMsg) {
 }
 
 /* Agnes 密钥自检：打开 /api/agnes-video/health 就能看到上游对当前密钥的真实判定（中文说明） */
+/* 未配置密钥时直接给出明确提示，不必白跑一趟上游 */
+app.get("/api/agnes-video/config", (req, res) => {
+  res.json({
+    configured: !!AGNES_API_KEY,
+    keyHead: AGNES_API_KEY.slice(0, 8),
+    keyTail: AGNES_API_KEY.slice(-6),
+    base: AGNES_BASE_URL,
+    retrieve: AGNES_RETRIEVE_URL,
+    model: AGNES_VIDEO_MODEL,
+    note: AGNES_API_KEY ? "已从 Render 环境变量读到密钥" : "AGNES_API_KEY 未配置：请在 Render → Environment 里设置"
+  });
+});
+
 app.get("/api/agnes-video/health", async (req, res) => {
   const out = {
     model: AGNES_VIDEO_MODEL,
@@ -1674,10 +1687,10 @@ const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https:
 
 // ===== Agnes Video 2.5 Flash (OpenAI Videos 兼容, 异步任务) =====
 // Render Blueprint 不注入自定义环境变量, 故写死兜底; key 优先用 env
-const AGNES_API_KEY = process.env.AGNES_API_KEY || "sk-TCGmv3tVN26nxDKTiVgPrxHMFztSfNtXoWhiN5jEaAHzVaFH";
-const AGNES_BASE_URL = process.env.AGNES_BASE_URL || "https://apihub.agnes-ai.com/v1";
+const AGNES_API_KEY = process.env.AGNES_API_KEY || "";  // ⚠️ 只从 Render 环境变量读取。本仓库是公开的，绝不能把密钥写进代码（旧 key 就是因为被提交到公开仓库而失效）
+const AGNES_BASE_URL = process.env.AGNES_BASE_URL || "https://api.agnes-ai.cn/v1";  // 国内站；国际站是 https://apihub.agnes-ai.com/v1（两站 key 不通用）
 const AGNES_VIDEO_MODEL = process.env.AGNES_VIDEO_MODEL || "agnes-video-2.5-flash";  // 官方文档(agnes-ai.com/zh-Hans/docs/agnes-video-25-flash)接入清单:模型 ID 用 agnes-video-2.5-flash;size 固定 "720P";reference 模式 images≤5 / audios≤3 / 不支持 videos;seconds "4"-"12";n=1;查询 /agnesapi?video_id=&model_name=agnes-video-2.5-flash
-const AGNES_RETRIEVE_URL = "https://apihub.agnes-ai.com/agnesapi";
+const AGNES_RETRIEVE_URL = process.env.AGNES_RETRIEVE_URL || "https://api.agnes-ai.cn/agnesapi";
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
 
 // OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)

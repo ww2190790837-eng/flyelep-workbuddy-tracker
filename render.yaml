@@ -39,9 +39,11 @@
       # ---- Agnes 视频（仅这一个功能用）----
       # 密钥：留空即用 server.mjs 里的兜底值；换新 key 只需在 Render 面板改这一项，无需改代码
       - key: AGNES_API_KEY
-        sync: false
+        sync: false          # 密钥只放面板（本仓库公开，绝不能写进代码）
       - key: AGNES_BASE_URL
-        value: https://apihub.agnes-ai.com/v1
+        value: https://api.agnes-ai.cn/v1     # 国内站（国际站是 apihub.agnes-ai.com，两站 key 不通用）
+      - key: AGNES_RETRIEVE_URL
+        value: https://api.agnes-ai.cn/agnesapi
       - key: AGNES_VIDEO_MODEL
         value: agnes-video-2.5-flash
     healthCheckPath: /healthz
