@@ -266,7 +266,7 @@ async function init(){
   var app=document.getElementById("app");
   var r=await fetch("/api/auth/me",{credentials:"include"});
   var d=await r.json();
-  if(!d.user){ location.href="/login.html"; return; }
+  if(!d.user){ location.href="/"; return; }
   var u=d.user;
   var plan=PLAN[u.plan]||PLAN.trial;
   var first=(u.name||u.email||"U")[0].toUpperCase();

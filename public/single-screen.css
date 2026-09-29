@@ -417,8 +417,8 @@ body{font-family:var(--mf-body)}
 .mf-pill i{font-style:normal;opacity:.45;font-size:.8em;letter-spacing:.02em}
 .mf-pill:hover,.mf-pill.active{background:#000;color:#fff;border-color:#000}
 .mf-pill:hover i,.mf-pill.active i{opacity:.7}
-.mf-pill-outline{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.9);gap:10px;
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.mf-pill-outline{background:rgba(0,0,0,.45);color:#fff;border-color:rgba(255,255,255,.92);gap:10px;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 2px 14px rgba(0,0,0,.22)}
 @media(min-width:640px){.mf-pill-outline{gap:14px}}
 .mf-pill-outline:hover{background:#fff;color:#000;border-color:#fff}
 .mf-pill-outline svg{width:15px;height:15px}
@@ -446,3 +446,16 @@ body.ws-open #toolHost{display:block!important}
 #toolHost .ws-close{position:fixed!important;top:16px!important;left:24px!important;right:auto!important;z-index:70!important}
 /* 旧的整屏 hero 规则已无对应元素，主动失效避免干扰 */
 .ev-hero,.ev-topbar,.ev-inner,.ev-stats,.ev-quick,.ev-headline,.ev-subhead,.ev-bg{display:none!important}
+
+/* ============================================================================
+ * 下线旧版整屏背景层
+ *   .bg-stage 里挂着 P3 时代的「暗时满月」大底图 .bg-page ->
+ *      url("/assets/p3/web/art-page-bg.webp")
+ *   新版首屏自带背景视频，视频未就绪时(opacity:0)会把它漏出来 -> 全部关掉
+ * ========================================================================== */
+.bg-stage,.bg-stage .bg-base,.bg-stage .bg-page,.bg-stage .bg-deep,.bg-stage .bg-slant,
+.bg-stage .bg-grid,.bg-stage .bg-scrim,.bg-stage .bg-vig,.bg-stage .bg-noise,
+.bg-stage .bg-glow,.bg-glow,.bg-glow.g1,.bg-glow.g2{display:none!important}
+/* 视频未就绪时的兜底底色：干净的浅灰，绝不露出旧素材 */
+html,body{background:#eceae6!important}
+.bg-stage{background:transparent!important}

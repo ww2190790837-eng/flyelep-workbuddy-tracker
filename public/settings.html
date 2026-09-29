@@ -184,7 +184,7 @@ var app=document.getElementById("app");
 async function init(){
   var r=await fetch("/api/auth/me",{credentials:"include"});
   var d=await r.json();
-  if(!d.user){ location.href="/login.html"; return; }
+  if(!d.user){ location.href="/"; return; }
   state.u=d.user;
   render();
 }
