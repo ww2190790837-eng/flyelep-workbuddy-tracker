@@ -752,7 +752,8 @@ app.get("/api/agnes-video/health", async (req, res) => {
   const out = {
     model: AGNES_VIDEO_MODEL,
     base: AGNES_BASE_URL,
-    keyTail: String(AGNES_API_KEY || "").slice(-6),   // 只回落款尾 6 位，不泄露完整密钥
+    keyHead: String(AGNES_API_KEY || "").slice(0, 8),  // 与控制台列表显示的"开头"一致，便于对照
+    keyTail: String(AGNES_API_KEY || "").slice(-6),    // 与控制台列表显示的"结尾"一致
     keyLength: String(AGNES_API_KEY || "").length
   };
   const started = Date.now();
