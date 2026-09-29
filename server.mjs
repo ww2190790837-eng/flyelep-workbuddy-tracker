@@ -740,7 +740,11 @@ app.get(["/agnes-video", "/agnes-video.html"], (req, res) => {
    上游只会回 "Invalid token"，用户看到完全不知道怎么办 —— 这属于运维问题，不该让用户猜。 */
 function agnesErrText(status, upstreamMsg) {
   const raw = String(upstreamMsg || "");
-  if (status === 401 || /invalid token|token not provided|unauthorized/i.test(raw)) {
+  if (status === 429 || /rate_limit_exceeded|过于频繁|频率超过限制|rate.?limit/i.test(raw)) {
+    return "请求过于频繁：Agnes 免费套餐有每分钟请求数（RPM）限制。等约 1 分钟再点一次即可；如需更高并发，可在 Agnes 控制台升级 Token Plan。"
+         + "（本条不是密钥或配置问题）";
+  }
+  if (status === 401 || /invalid token|no valid token|token not provided|unauthorized|无效的令牌/i.test(raw)) {
     return "服务端 Agnes 密钥已失效（上游返回 401 Invalid token）。请管理员到 apihub.agnes-ai.com 重新获取密钥，"
          + "在 Render 的 Environment 里更新 AGNES_API_KEY 后重新部署即可恢复（无需改代码）。";
   }

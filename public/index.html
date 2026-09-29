@@ -2172,34 +2172,53 @@
     renderModeFields();
   });
 
+  /* 轮询：渐增间隔（1.8s→6s）+ 最长 8 分钟 + 被限流自动降速 + 面板关闭即停
+     —— 免费套餐有 RPM 限制，固定 1.8s 硬刷会把额度耗光，导致"创建失败：查询过于频繁" */
+  var POLL_MAX_MS = 8 * 60 * 1000;
   function pollStatus(vid){
     var btn = $("agvGen");
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(function(){
+    if (pollTimer){ clearTimeout(pollTimer); pollTimer = null; }
+    var startedAt = Date.now(), delay = 1800;
+    function stop(){ if (pollTimer){ clearTimeout(pollTimer); pollTimer = null; } if (btn) btn.disabled = false; }
+    window.__stopAgnesPoll = stop;
+    function tick(){
+      pollTimer = null;
+      if (Date.now() - startedAt > POLL_MAX_MS){
+        stop();
+        setStatus('<span class="pill run">仍在生成中（已等 8 分钟），可稍后回到本页再用相同 video_id 查看</span>');
+        return;
+      }
       fetch("/api/agnes-video/status?video_id="+encodeURIComponent(vid))
-        .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+        .then(function(r){ return r.json().then(function(j){ return {code:r.status, ok:r.ok, j:j}; }); })
         .then(function(o){
           var j = o.j || {};
+          if (o.code === 429 || /过于频繁|rate.?limit/i.test(String(j.error||""))){
+            delay = Math.min(delay * 3, 20000);
+            setStatus('<span class="pill run">触发频率限制，已自动降速重试（'+Math.round(delay/1000)+'s）…</span>');
+            pollTimer = setTimeout(tick, delay); return;
+          }
           var st = (j.status||"").toLowerCase();
           var prog = (j.progress!=null) ? Math.round(j.progress*100)+"%" : "";
-          if (!o.ok || !j.ok){
-            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
-            setStatus('<span class="pill fail">查询失败：'+(j.error||"未知")+'</span>'); return;
-          }
+          if (!o.ok || !j.ok){ stop(); setStatus('<span class="pill fail">查询失败：'+(j.error||"未知")+'</span>'); return; }
           if (st === "completed" || st === "success" || st === "done"){
-            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
+            stop();
             var url = j.video_url || (j.raw && j.raw.metadata && j.raw.metadata.url) || null;
             if (url){ showResult(url, vid); setStatus('<span class="pill done">生成完成 ✓</span>'); }
             else setStatus('<span class="pill done">生成完成，但未返回视频地址</span>');
-          } else if (st === "failed" || st === "error" || st === "cancelled"){
-            clearInterval(pollTimer); pollTimer=null; btn.disabled=false;
-            setStatus('<span class="pill fail">生成失败：'+(j.error || (j.raw && j.raw.error && j.raw.error.message) || st)+'</span>');
-          } else {
-            setStatus('<span class="pill run">状态：'+st+' '+prog+'</span>');
+            return;
           }
+          if (st === "failed" || st === "error" || st === "cancelled"){
+            stop();
+            setStatus('<span class="pill fail">生成失败：'+(j.error || (j.raw && j.raw.error && j.raw.error.message) || st)+'</span>');
+            return;
+          }
+          setStatus('<span class="pill run">状态：'+st+' '+prog+'</span>');
+          delay = Math.min(Math.round(delay * 1.25), 6000);   /* 渐增间隔，省额度 */
+          pollTimer = setTimeout(tick, delay);
         })
-        .catch(function(){ /* 网络抖动忽略，下一轮继续 */ });
-    }, 1800);
+        .catch(function(){ delay = Math.min(delay * 2, 15000); pollTimer = setTimeout(tick, delay); });
+    }
+    pollTimer = setTimeout(tick, delay);
   }
 
   function showResult(url, vid){
@@ -5083,6 +5102,13 @@
       if (sc.scrollTop !== before) e.preventDefault();     /* 只有确实滚动了才吞掉 */
     }, { passive: false });
   })();
+  /* 面板关闭（body 去掉 ws-open）时停掉 Agnes 轮询，避免后台一直刷接口耗光额度 */
+  if (window.MutationObserver){
+    new MutationObserver(function(){
+      if (!document.body.classList.contains('ws-open') && window.__stopAgnesPoll) window.__stopAgnesPoll();
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+
   var cp = document.getElementById('mfCopyContact');
   if (cp) cp.addEventListener('click', function(){
     var val = 'cc44cc5';

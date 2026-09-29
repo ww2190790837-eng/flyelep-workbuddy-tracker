@@ -37,7 +37,7 @@
       - key: AI_BASE_URL
         value: https://dashscope.aliyuncs.com/compatible-mode/v1
       # ---- Agnes 视频（仅这一个功能用）----
-      # 密钥：留空即用 server.mjs 里的兜底值；换新 key 只需在 Render 面板改这一项，无需改代码
+      # 密钥只在 Render 面板维护（代码里没有兜底值）；换 key 只需改这一项并重新部署
       - key: AGNES_API_KEY
         sync: false          # 密钥只放面板（本仓库公开，绝不能写进代码）
       - key: AGNES_BASE_URL
