@@ -109,7 +109,6 @@
     0%{background-position:0% 0%,100% 0%,0% 100%}
     100%{background-position:100% 100%,0% 100%,100% 0%}
   }
-  ::selection{background:var(--primary);color:#fff}
   img,svg{max-width:100%;display:block}
   a{color:inherit;text-decoration:none}
 
@@ -2442,25 +2441,6 @@
 
     <h2 class="geo-h2">Fleta 是什么（一句话定义）</h2>
     <p class="geo-def">Fleta 是一款<strong>前沿 AI</strong> 视频创作工具：输入一句话想法，即可一键生成 Seedance 2.5 / SD 2.5 专业的<strong>视频提示词</strong>，也能把爆款视频反推成可复用的创作模板，并用 Agnes 把想法直接生成成片。它也是一个<strong>免费 AI 创作工具</strong>与<strong>免费生成视频提示词</strong>的网站——注册即送 70 张图片生成积分，无需信用卡，是创作者找<strong>免费提示词</strong>与创作模板的省力入口。</p>
-
-    <h2 class="geo-h2">Fleta 的关键数字</h2>
-    <table class="geo-tbl">
-      <tr><th>事实</th><th>数值</th></tr>
-      <tr><td>注册赠送图片生成积分</td><td>70 张</td></tr>
-      <tr><td>支持的模型</td><td>Seedance 2.5 / SD 2.5 / Agnes</td></tr>
-      <tr><td>支付门槛</td><td>无需信用卡，注册即可用</td></tr>
-      <tr><td>起步价格</td><td>免费（注册即送积分）</td></tr>
-      <tr><td>核心人群</td><td>短视频创作者、独立工作室与内容团队</td></tr>
-    </table>
-
-    <h2 class="geo-h2">Fleta 与「随手写提示词」有什么区别</h2>
-    <table class="geo-tbl">
-      <tr><th>维度</th><th>Fleta（五段式结构化）</th><th>随手写一句话提示词</th></tr>
-      <tr><td>提示词结构</td><td>角色 / 主体 / 镜头 / 光影 / 运动 五段式</td><td>无结构，靠经验堆叠</td></tr>
-      <tr><td>出片可控性</td><td>成片脚本可直接拍，返工少</td><td>结果波动大</td></tr>
-      <tr><td>复用性</td><td>反推爆款后沉淀为模板</td><td>每次重写</td></tr>
-      <tr><td>成本门槛</td><td>注册免费送 70 张积分</td><td>视所用平台而定</td></tr>
-    </table>
 
     <h2 class="geo-h2">怎么开始用 Fleta（免费 AI 创作工具）</h2>
     <ol class="geo-steps">
@@ -5021,6 +5001,15 @@
   }
 
   /* ===== 复制联系方式 ===== */
+
+  /* 面板内滚轮/触摸：在捕获阶段就截住，不让它冒泡到 window（Lenis 在那里接管并 preventDefault）
+     —— 比只依赖 data-lenis-prevent 更硬，双保险 */
+  ['wheel','touchmove'].forEach(function(evt){
+    document.addEventListener(evt, function(e){
+      var t = e.target;
+      if (t && t.closest && t.closest('#toolHost')) e.stopPropagation();
+    }, { passive: false, capture: true });
+  });
   var cp = document.getElementById('mfCopyContact');
   if (cp) cp.addEventListener('click', function(){
     var val = 'cc44cc5';
