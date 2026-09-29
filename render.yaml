@@ -43,5 +43,5 @@
       - key: AGNES_BASE_URL
         value: https://apihub.agnes-ai.com/v1
       - key: AGNES_VIDEO_MODEL
-        value: agnes-3.0-flash
+        value: agnes-video-2.5-flash
     healthCheckPath: /healthz

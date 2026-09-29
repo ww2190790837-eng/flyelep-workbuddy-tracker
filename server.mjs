@@ -1637,7 +1637,7 @@ const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https:
 // Render Blueprint 不注入自定义环境变量, 故写死兜底; key 优先用 env
 const AGNES_API_KEY = process.env.AGNES_API_KEY || "sk-TCGmv3tVN26nxDKTiVgPrxHMFztSfNtXoWhiN5jEaAHzVaFH";
 const AGNES_BASE_URL = process.env.AGNES_BASE_URL || "https://apihub.agnes-ai.com/v1";
-const AGNES_VIDEO_MODEL = process.env.AGNES_VIDEO_MODEL || "agnes-3.0-flash";  // 按用户要求改为 agnes-3.0-flash（可用 AGNES_VIDEO_MODEL 覆盖；其它视频模型：agnes-video-2.5-flash / agnes-video-2.5 / agnes-video-v2.0）
+const AGNES_VIDEO_MODEL = process.env.AGNES_VIDEO_MODEL || "agnes-video-2.5-flash";  // 官方文档(agnes-ai.com/zh-Hans/docs/agnes-video-25-flash)接入清单:模型 ID 用 agnes-video-2.5-flash;size 固定 "720P";reference 模式 images≤5 / audios≤3 / 不支持 videos;seconds "4"-"12";n=1;查询 /agnesapi?video_id=&model_name=agnes-video-2.5-flash
 const AGNES_RETRIEVE_URL = "https://apihub.agnes-ai.com/agnesapi";
 const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
 
