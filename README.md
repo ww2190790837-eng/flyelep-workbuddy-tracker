@@ -2,16 +2,18 @@
 
 集成了 UTM 跟踪后台、邮箱验证码用户系统，以及若干 AI 创作工具（提示词生成、视频反推、Agnes 视频生成）。
 
-线上地址：<https://flyelep-wb-tracker.onrender.com>
+线上地址：<https://fleta.com>
 
 ## 首页功能
 
 顶部导航（均为**页内锚点滚动**，不跳独立页）：`提示词` / `视频反推` / `Agnes 视频` / `联系我`
 
-- **AI 视频提示词生成器**：五段式结构（主体 + 风格 + 时间线 + BGM + 限制），支持「一句话描述 + 上传参考图」，    
+- **AI 视频提示词生成器**：五段式结构（主体 + 风格 + 时间线 + BGM + 限制），支持「一句话描述 + 上传参考图」，
+    
   由 LLM 生成专业提示词（默认 `glm-4-air`，LLM 不可用时回退本地模板）。生成记录匿名入库用于持续训练。
 - **视频反推**：上传视频 → 自动抽帧 → AI 反推完整五段式提示词。
-- **Agnes 视频生成**（Agnes Video 2.5 Flash）：三模式 —— 文生视频 / 首尾帧控制 / 图片参考生成。    
+- **Agnes 视频生成**（Agnes Video 2.5 Flash）：三模式 —— 文生视频 / 首尾帧控制 / 图片参考生成。
+    
   首帧、尾帧、参考图片、参考音频均为**本地上传**（服务端托管为公开 URL 后交给 Agnes）。
 - **留言板**、**免费积分邀请码**、**用户系统**（邮箱验证码注册/登录，支持自定义头像与昵称）。
 
@@ -81,7 +83,8 @@ git add -A && git commit -m "说明"
 node scripts/ghpush.mjs "说明"
 ```
 
-`ghpush.mjs` 通过 GitHub Git Data API（`api.github.com`）推送并自动触发 Render 部署。  
+`ghpush.mjs` 通过 GitHub Git Data API（`api.github.com`）推送并自动触发 Render 部署。
+  
 ⚠️ 不要用 `git push` / `publish.ps1`——本机到 `github.com:443` 不通，会超时失败。
 
 ## 环境变量
@@ -96,7 +99,8 @@ node scripts/ghpush.mjs "说明"
 | `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL`                | 否  | —           | 提示词生成所用 LLM                             |
 | `AGNES_API_KEY` / `AGNES_BASE_URL` / `AGNES_VIDEO_MODEL` | 否  | —           | Agnes 视频生成（默认 `agnes-video-2.5-flash`）  |
 
-> ⚠️ 该服务由 `render.yaml`（Blueprint）托管，**自定义环境变量不会自动注入**；>   
+> ⚠️ 该服务由 `render.yaml`（Blueprint）托管，**自定义环境变量不会自动注入**；
+>   
 > 因此需要的配置都在 `server.mjs` 里写了硬编码兜底，可用环境变量覆盖。
 
 ## 数据存储
@@ -108,7 +112,8 @@ node scripts/ghpush.mjs "说明"
 
 ## 后台
 
-`/admin/?token=<ADMIN_PASSWORD>`：查看 PV/点击、UTM 来源分布、用户列表、邀请码库存、  
+`/admin/?token=<ADMIN_PASSWORD>`：查看 PV/点击、UTM 来源分布、用户列表、邀请码库存、
+  
 提示词语料，支持导出 CSV 与重置。
 
 ## UTM 参数
@@ -129,6 +134,7 @@ https://你的域名/?utm_source=douyin&utm_medium=video&utm_campaign=fleta_ai&u
 
 ## 历史 / 已删除的功能
 
-- 文稿工作室 `/studio`、智能体技能库 `/skills`（含旧 `/ecopulse`）、Slidev 演示文稿 `/slides` 三个功能已**完整删除**（页面、路由、数据、脚本，含仓库外的 Slidev 源码）。    
+- 文稿工作室 `/studio`、智能体技能库 `/skills`（含旧 `/ecopulse`）、Slidev 演示文稿 `/slides` 三个功能已**完整删除**（页面、路由、数据、脚本，含仓库外的 Slidev 源码）。
+    
   旧链接 `/agnes-video` 仍保留 302 跳转到 `/#agnes-video` 作兼容。
 - 早期文档提到的「电商脉搏 / ecopulse」页面已不存在。

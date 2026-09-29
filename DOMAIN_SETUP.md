@@ -1,6 +1,6 @@
 ﻿# 🌐 域名绑定到 flyelep.com 配置指南
 
-> 当前部署在 `flyelep-wb-tracker.onrender.com`,如果你**拥有 `flyelep.com` 域名**,可以按本指南绑定自定义域名。
+> 当前部署在 `fleta.com`,如果你**拥有 `flyelep.com` 域名**,可以按本指南绑定自定义域名。
 
 ## ⚠️ 先说前提
 
@@ -28,7 +28,7 @@
 | 主机记录 | 记录类型 | 记录值 |
 |---|---|---|
 | @ | A | Render 提供的 IP(一般是 `216.24.57.*`) |
-| www | CNAME | `flyelep-wb-tracker.onrender.com` |
+| www | CNAME | `fleta.com` |
 
 具体值以 Render 页面显示的为准。
 
@@ -42,7 +42,7 @@
 
 DNS 生效后,在 Render **Settings → Custom Domains** 把 `flyelep.com` 设为 Primary,这样:
 - `flyelep.com` 是主域名
-- `flyelep-wb-tracker.onrender.com` 自动 301 跳转到 `flyelep.com`
+- `fleta.com` 自动 301 跳转到 `flyelep.com`
 
 ### 步骤 5 · 设置重定向(可选)
 
@@ -61,7 +61,7 @@ app.use((req, res, next) => {
 如果你**不拥有 flyelep.com** 域名,可以:
 
 1. **品牌文字层面**:页面里所有显示都已经是 `flyelep.com`,看起来像官方
-2. **真实访问**:用 `flyelep-wb-tracker.onrender.com` 当作实际链接
+2. **真实访问**:用 `fleta.com` 当作实际链接
 3. **加个提示**:在落地页底部加一行"官方网址 flyelep.com(备案中)",让人理解
 
 或者买个**类似域名**(几百块/年):
