@@ -2174,7 +2174,7 @@
 
   /* 轮询：渐增间隔（1.8s→6s）+ 最长 8 分钟 + 被限流自动降速 + 面板关闭即停
      —— 免费套餐有 RPM 限制，固定 1.8s 硬刷会把额度耗光，导致"创建失败：查询过于频繁" */
-  var POLL_MAX_MS = 8 * 60 * 1000;
+  var POLL_MAX_MS = 15 * 60 * 1000;
   /* 刷新或关掉面板后不丢任务：把最近一次 video_id 存起来，重开面板时自动续查 */
   function agvSavePending(id){ try{ localStorage.setItem('agvPending', JSON.stringify({vid:id, t:Date.now()})); }catch(e){} }
   function agvClearPending(){ try{ localStorage.removeItem('agvPending'); }catch(e){} }
@@ -2185,10 +2185,12 @@
       if (Date.now() - o.t > 30*60*1000){ agvClearPending(); return; }
       if (window.__agvResuming) return;
       window.__agvResuming = true;
-      setStatus('<span class="pill run">继续查询上次提交的任务…</span>');
+      setStatus('<span class="pill run">继续查询上次提交的任务 '+String(o.vid).slice(0,20)+'…</span>');
       pollStatus(o.vid);
     }catch(e){}
   }
+  window.__agvResumeNow = function(){ window.__agvResuming = false; agvResumePending(); };
+
   /* 面板可见时才续查（不白耗额度） */
   (function(){
     var pane = document.getElementById('agnes-video');
@@ -2207,7 +2209,11 @@
       pollTimer = null;
       if (Date.now() - startedAt > POLL_MAX_MS){
         stop();
-        setStatus('<span class="pill run">仍在生成中（已等 8 分钟），可稍后回到本页再用相同 video_id 查看</span>');
+        var _pv = null; try { _pv = JSON.parse(localStorage.getItem('agvPending')||'null'); } catch(e){}
+        setStatus('<span class="pill run">仍在生成中（已等 15 分钟）· '+String(vid).slice(0,20)+'… · '
+          + '<a href="javascript:void(0)" onclick="__agvResumeNow()" style="color:inherit;text-decoration:underline">点这里继续查询</a></span>');
+        if (btn) btn.disabled = false;
+        if (_pv && _pv.vid) agvSavePending(_pv.vid);
         return;
       }
       fetch("/api/agnes-video/status?video_id="+encodeURIComponent(vid))
@@ -2238,7 +2244,7 @@
           }
           var wait = Math.round((Date.now()-startedAt)/1000);
           setStatus('<span class="pill run">生成中 '+(prog||'')+' · 已等待 '+wait+'s · '+String(vid).slice(0,18)+'…</span>');
-          delay = Math.min(Math.round(delay * 1.25), 6000);   /* 渐增间隔，省额度 */
+          delay = Math.min(Math.round(delay * 1.25), 10000);  /* 渐增间隔，省额度 */
           pollTimer = setTimeout(tick, delay);
         })
         .catch(function(){ delay = Math.min(delay * 2, 15000); pollTimer = setTimeout(tick, delay); });
