@@ -1630,10 +1630,9 @@
 
 <!-- 功能面板：三个功能沿用原有工作台，换新的外观壳（JS 通过 .pcard 挂载内容） -->
 <div class="mf-panel" id="toolHost" data-lenis-prevent>
-  <div class="pcard mf-sheet" id="toolSheet">
+  <div class="pcard mf-sheet" id="toolSheet" data-theme="light">
     <div class="mf-sheet-top">
       <span class="mf-sheet-title" id="mfSheetTitle">创作工具</span>
-      <span class="mf-sheet-hint">滚轮可上下浏览 · Esc 关闭</span>
     </div>
   <textarea id="pInput" class="mf-panel-input" rows="2" placeholder="描述你想要的视频，或贴一段素材链接&#8230;"></textarea>
   <div id="pModes" hidden></div>
@@ -5053,14 +5052,28 @@
       }
       return false;
     }
+    /* 关键：把 delta 统一换算成"像素"。
+       deltaMode: 0=像素 1=行(~16px/行) 2=页。
+       真实鼠标/不同浏览器可能是"行"模式，此时 deltaY 只有 3 上下，
+       直接加会慢到看起来"完全滚不动"—— 这就是真机上失效的原因之一。 */
+    function deltaPx(e){
+      var d = e.deltaY;
+      if (!d) return 0;
+      if (e.deltaMode === 1) return d * 16;
+      if (e.deltaMode === 2) return d * (host.clientHeight || 800) * 0.9;
+      /* 像素模式但值过小（部分鼠标/驱动）时兜底放大 */
+      return Math.abs(d) < 4 ? d * 16 : d;
+    }
     host.addEventListener('wheel', function(e){
-      if (e.ctrlKey || !e.deltaY) return;                 /* 交给浏览器缩放等默认行为 */
+      if (e.ctrlKey) return;                              /* 交给浏览器缩放 */
+      var dy = deltaPx(e);
+      if (!dy) return;
       var sc = currentScroller();
       if (!sc) return;
-      if (innerCanScroll(e.target, sc, e.deltaY)) return; /* 内层真的能滚，不抢 */
+      if (innerCanScroll(e.target, sc, dy)) return;        /* 内层真的能滚，不抢 */
       var before = sc.scrollTop;
-      sc.scrollTop = before + e.deltaY;
-      if (sc.scrollTop !== before) e.preventDefault();    /* 只有确实滚动了才吞掉 */
+      sc.scrollTop = before + dy;
+      if (sc.scrollTop !== before) e.preventDefault();     /* 只有确实滚动了才吞掉 */
     }, { passive: false });
   })();
   var cp = document.getElementById('mfCopyContact');

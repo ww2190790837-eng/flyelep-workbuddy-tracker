@@ -645,3 +645,36 @@ body.ws-open #toolHost{display:flex!important}
   #toolSheet{width:100%;max-height:92svh;border-radius:18px 18px 0 0}
   .mf-sheet-hint{display:none}
 }
+
+/* ---- 留言板 / 公告：卡片是浅色，这里补掉内联写死的深色 ---- */
+#toolSheet #messageBoard > div{
+  background:#fafafb!important;border:1px solid #ececef!important;border-left:2px solid #e2e2e8!important;
+  border-radius:16px!important;padding:18px!important;
+}
+#toolSheet #msgSendBtn{
+  background:#111!important;color:#fff!important;border:0!important;border-radius:10px!important;
+  padding:10px 18px!important;font-family:var(--mf-body)!important;font-size:13px!important;
+  font-weight:600!important;cursor:pointer!important;
+}
+#toolSheet #msgSendBtn:hover{background:#000!important}
+#toolSheet #msgList{gap:8px!important}
+#toolSheet .msg-item{background:#fff!important;border:1px solid #ececef!important;
+  border-radius:12px!important;color:#111!important;padding:12px 14px!important}
+#toolSheet .msg-item *{color:inherit!important}
+#toolSheet #msgCount,#toolSheet #msgLoading,#toolSheet #msgEmpty{color:#8c8c94!important}
+#toolSheet #msgComposer input,#toolSheet #msgNameInput,#toolSheet #msgContentInput{
+  background:#fff!important;border:1px solid #e6e6ea!important;color:#111!important;border-radius:10px!important;
+}
+#toolSheet .msg-page-btn,#toolSheet .msg-page-num{
+  background:#fff!important;color:#4a4a52!important;border:1px solid #e6e6ea!important;
+  border-radius:10px!important;padding:7px 12px!important;font-family:var(--mf-body)!important;
+}
+#toolSheet .msg-page-btn:hover:not(:disabled),#toolSheet .msg-page-num:hover{border-color:#111!important;color:#111!important}
+#toolSheet .msg-page-num.active{background:#111!important;color:#fff!important;border-color:#111!important}
+#toolSheet .msg-page-btn:disabled{opacity:.4!important}
+#toolSheet #msgPageInfo,#toolSheet .msg-page-ellipsis{color:#a0a0a8!important}
+/* 公告栏（内联 --card / --text-3 的深色底） */
+#toolSheet #bulletin [style*="var(--card)"]{background:#fafafb!important;border-color:#ececef!important}
+#toolSheet #bulletin [style*="color:var(--text-3)"]{color:#8c8c94!important}
+#toolSheet #bulletin [style*="color:var(--text)"]{color:#111!important}
+#toolSheet #bulletin h3,[toolSheet #bulletin] [style*="font-weight:700"]{color:#111!important}
