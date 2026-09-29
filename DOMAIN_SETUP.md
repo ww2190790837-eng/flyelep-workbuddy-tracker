@@ -1,78 +1,84 @@
-﻿# 🌐 域名绑定到 flyelep.com 配置指南
+﻿# 🌐 域名绑定配置指南
 
-> 当前部署在 `fleta.cn`,如果你**拥有 `flyelep.com` 域名**,可以按本指南绑定自定义域名。
+> **当前状态**：站点运行在 Render 服务 `fleta-ai`（`srv-d9k5uvnavr4c73a97rrg`）。
+> 默认地址 `flyelep-wb-tracker.onrender.com`；已登记自定义域名 **`fleta.abrdns.com`**，状态 `unverified`（等待 DNS 生效）。
+> 站点内所有 SEO 字段（`canonical` / `og:url` / schema `url` / `logo` / 页脚官网链接）与 `PUBLIC_URL` 均已指向 `https://fleta.abrdns.com`。
 
-## ⚠️ 先说前提
+## ⚠️ 换域名前必做：先核实域名归属
 
-- **flyelep.com** 是已经注册的域名(2026-07 公开 Whois 显示已注册)。如果你**不是这个域名的所有者**,那只能展示品牌文字,不能真正让 `flyelep.com` 解析到这个网站。
-- 建议你先去 https://who.is/whois/flyelep.com 查一下所有者,或者直接联系你的域名注册商问。
-- 如果域名是**别人**的(比如真实的飞象团队),**别去做 DNS 指向**,会有法律风险。
+**不要**直接把 `canonical` / `og:url` / 页脚官网链接指向一个你尚未核实的域名 —— 如果那域名属于别人，等于把访客导去对方站点、并把自身 SEO 权重送给对方。
 
-## ✅ 如果你确实拥有 flyelep.com
+```bash
+# 1) 看解析到哪、返回什么
+nslookup 你的域名
+curl -s -o /dev/null -w "%{http_code}\n" https://你的域名/
+curl -sI https://你的域名/ | grep -i -E 'HTTP/|location|server'
 
-### 步骤 1 · 在 Render 添加自定义域名
+# 2) 看是否已注册（.cn 用 whois 接口；RDAP 对 .cn 无服务）
+curl -s "https://api.whois.vu/?q=你的域名"
+```
+
+真实案例：
+- `fleta.com` → 属第三方（西班牙 Plásticos Fleta 在跑 WordPress，解析 `178.211.133.54`）→ **不能指**
+- `fleta.cn` → whois 显示 `available: yes`，DNS 无解析 → **未被占用**
+- `fleta.abrdns.com` → 已在 abrdns 的 DNS 面板建好区域，可解析（指向 abrdns 默认 IP）→ **可用**
+
+## ✅ 绑定步骤
+
+### 步骤 1 · 在 Render 登记自定义域名
 
 1. 打开 https://dashboard.render.com/web/srv-d9k5uvnavr4c73a97rrg/settings
-2. 左边菜单 **Custom Domains** → 点 **+ Add Custom Domain**
-3. 输入 `flyelep.com` → 点 **Save**
-4. Render 会显示要添加的 DNS 记录(类似下面):
-   - 类型:`A` 或 `CNAME`
-   - 主机:`@`(根域)
-   - 值:`xxx.onrender.com` 或 IP 地址
-5. 同样方法再添加 `www.flyelep.com`
+2. 左侧 **Custom Domains** → **+ Add Custom Domain**
+3. 输入域名 → **Save**
+   - 遇到 `This domain is in use on your service "xxx"` → 说明该域名还绑在**另一个** Render 服务上，需先去那边删掉（注意核对服务实质，别删错）
+4. 登记后状态为 `unverified`，此时**不影响现有站点访问**
 
-### 步骤 2 · 去域名注册商加 DNS 记录
+### 步骤 2 · 去 DNS 服务商加记录（按域名类型二选一）
 
-以阿里云(万网)/腾讯云为例:
+**A. 子域名**（如 `fleta.abrdns.com`、`www.example.com`）
 
 | 主机记录 | 记录类型 | 记录值 |
 |---|---|---|
-| @ | A | Render 提供的 IP(一般是 `216.24.57.*`) |
-| www | CNAME | `fleta.cn` |
+| `fleta` | **CNAME** | `flyelep-wb-tracker.onrender.com` |
 
-具体值以 Render 页面显示的为准。
+**B. 根域 / apex**（如 `example.com`）
 
-### 步骤 3 · 等 DNS 生效
+| 主机记录 | 记录类型 | 记录值 |
+|---|---|---|
+| `@` | **A** | **`216.24.57.1`** |
 
-- 一般 5-30 分钟
-- Render 页面会自动签发 **Let's Encrypt** 免费 SSL 证书
-- 状态变成 ✅ 之后,`https://flyelep.com` 就活了
+> - 根域若 DNS 商支持 **ANAME / ALIAS**，也可指向 `flyelep-wb-tracker.onrender.com`
+> - **Cloudflare**：根域**必须用 CNAME**（不能 A）
+> - 🔴 **务必删掉已有的 AAAA 记录**（Render 只用 IPv4，留着会出怪问题）
 
-### 步骤 4 · 改默认域名(可选)
+### 步骤 3 · 等生效并点 Verify
 
-DNS 生效后,在 Render **Settings → Custom Domains** 把 `flyelep.com` 设为 Primary,这样:
-- `flyelep.com` 是主域名
-- `fleta.cn` 自动 301 跳转到 `flyelep.com`
+- DNS 一般 5–30 分钟生效
+- 回 Render → **Settings → Custom Domains** → 点该域名旁的 **Verify**
+- 通过后 Render 自动签发 **Let's Encrypt** 免费证书，`https://你的域名` 即可访问
 
-### 步骤 5 · 设置重定向(可选)
+### 步骤 4 · 设为 Primary（可选）
 
-如果想 `flyelep.com/admin` 也指向后台,直接在 server.mjs 里加:
-```js
-app.use((req, res, next) => {
-  if (req.headers.host && req.headers.host.startsWith('www.')) {
-    return res.redirect(301, 'https://' + req.headers.host.slice(4) + req.url);
-  }
-  next();
-});
-```
+DNS 生效后可在 **Custom Domains** 把新域名设为 Primary，其余绑定域名会自动 301 跳转到它。
 
-## 💡 不改 DNS 也能用的折中方案
+`.cn` 域名注意：注册后**必须完成域名实名认证**，否则会被暂停解析。
 
-如果你**不拥有 flyelep.com** 域名,可以:
+## 🔧 换域名的代码改动清单
 
-1. **品牌文字层面**:页面里所有显示都已经是 `flyelep.com`,看起来像官方
-2. **真实访问**:用 `fleta.cn` 当作实际链接
-3. **加个提示**:在落地页底部加一行"官方网址 flyelep.com(备案中)",让人理解
+站点内共 **13 处**引用域名，换域名时全部替换（旧域名 → 新域名）：
 
-或者买个**类似域名**(几百块/年):
-- `flyelep.ai`
-- `flyelep.net`  
-- `flyelep.io`
-- `flyelep-app.com`
-- `flyelep.cn`(看是否已注册)
+| 文件 | 处数 | 内容 |
+|---|---|---|
+| `public/index.html` | 7 | `canonical`、`og:url`、schema `url` ×2、Organization `url`、`logo`、页脚「官网」链接 |
+| `render.yaml` | 1 | `PUBLIC_URL` |
+| `README.md` | 1 | 文档 |
+| `DOMAIN_SETUP.md` | 4 | 本文件 |
+| **Render 环境变量** | 1 | `PUBLIC_URL`（API `PUT /v1/services/<sid>/env-vars/PUBLIC_URL`） |
+
+> `PUBLIC_URL` 只用于后台一个统计字段，**不影响图片上传** —— 上传链接是按请求头 `x-forwarded-proto` + host 动态拼的，会自动跟随真实域名。
 
 ## 📞 帮助
 
-- 不知道域名注册商:https://www.whois.com/whois/flyelep.com
-- Render 自定义域名文档:https://docs.render.com/custom-domains
-- 改完需要我帮你重新发布:跑 `.\publish.ps1 -Message "绑定 flyelep.com"`
+- Render 自定义域名文档：https://docs.render.com/custom-domains
+- 通用 DNS 配置：https://docs.render.com/configure-other-dns
+- 改完发布：`.\publish.ps1 -Message "绑定 xxx"`（或 `node scripts/ghpush.mjs "..."`）

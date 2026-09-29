@@ -35,3 +35,6 @@ _*.png
 
 # 本地验证截图（不提交）
 .shots/
+
+# 无头 Chrome 临时 profile / 截图目录（每次验证生成，勿提交）
+.chrome-*/
