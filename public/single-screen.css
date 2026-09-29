@@ -470,3 +470,7 @@ html,body{background:#eceae6!important}
 
 /* 内容型面板（公告·留言板 / 核心能力 / 关于 Fleta）不需要工具的输入框 */
 body.reader-open #pInput{display:none!important}
+
+/* 面板/阅读层内的 overflow:hidden 会"吃"滚轮，改成 clip（不生成滚动容器） */
+#toolHost .cap-card,#toolHost .cap-sec,#toolHost .cap-pin,#toolHost .cap-track,
+#toolHost .btn,#toolHost .pg-card,#toolHost .agv-card,#toolHost .vr-card{overflow:clip!important}

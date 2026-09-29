@@ -5014,14 +5014,34 @@
 
   /* ===== 复制联系方式 ===== */
 
-  /* 面板内滚轮/触摸：在捕获阶段就截住，不让它冒泡到 window（Lenis 在那里接管并 preventDefault）
-     —— 比只依赖 data-lenis-prevent 更硬，双保险 */
-  ['wheel','touchmove'].forEach(function(evt){
-    document.addEventListener(evt, function(e){
-      var t = e.target;
-      if (t && t.closest && t.closest('#toolHost')) e.stopPropagation();
-    }, { passive: false, capture: true });
-  });
+  /* ===== 面板滚轮：手动接管 =====
+     真凶：面板内部大量元素是 overflow:hidden（.cap-card / .btn 等），
+     Chrome 会把它们当作滚动容器"吃"掉滚轮、且不向上链到 #toolHost，
+     所以滚轮失效（而 #toolHost 本身是可滚的，程序化 scrollTop 正常）。
+     做法：自己把 deltaY 加到 #toolHost.scrollTop；
+     但若光标下方确实存在"能朝该方向滚"的内层可滚元素，就让给它。 */
+  (function(){
+    var host = document.getElementById('toolHost');
+    if (!host) return;
+    function innerCanScroll(el, dy){
+      while (el && el !== host){
+        var cs = getComputedStyle(el);
+        if (/(auto|scroll|overlay)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 1){
+          if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+          if (dy < 0 && el.scrollTop > 0) return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    }
+    host.addEventListener('wheel', function(e){
+      if (e.ctrlKey || !e.deltaY) return;                 /* 交给浏览器缩放等默认行为 */
+      if (innerCanScroll(e.target, e.deltaY)) return;     /* 内层真的能滚，不抢 */
+      var before = host.scrollTop;
+      host.scrollTop = before + e.deltaY;
+      if (host.scrollTop !== before) e.preventDefault();  /* 只有确实滚动了才吞掉 */
+    }, { passive: false });
+  })();
   var cp = document.getElementById('mfCopyContact');
   if (cp) cp.addEventListener('click', function(){
     var val = 'cc44cc5';
