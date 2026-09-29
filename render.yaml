@@ -15,7 +15,7 @@
       - key: SESSION_SECRET
         generateValue: true
       - key: PUBLIC_URL
-        value: https://flyelep-wb-tracker.onrender.com
+        value: https://fleta.cn
       - key: SMTP_HOST
         value: smtp-relay.brevo.com
       - key: SMTP_PORT
