@@ -2175,6 +2175,28 @@
   /* 轮询：渐增间隔（1.8s→6s）+ 最长 8 分钟 + 被限流自动降速 + 面板关闭即停
      —— 免费套餐有 RPM 限制，固定 1.8s 硬刷会把额度耗光，导致"创建失败：查询过于频繁" */
   var POLL_MAX_MS = 8 * 60 * 1000;
+  /* 刷新或关掉面板后不丢任务：把最近一次 video_id 存起来，重开面板时自动续查 */
+  function agvSavePending(id){ try{ localStorage.setItem('agvPending', JSON.stringify({vid:id, t:Date.now()})); }catch(e){} }
+  function agvClearPending(){ try{ localStorage.removeItem('agvPending'); }catch(e){} }
+  function agvResumePending(){
+    try{
+      var raw = localStorage.getItem('agvPending'); if(!raw) return;
+      var o = JSON.parse(raw); if(!o || !o.vid) return;
+      if (Date.now() - o.t > 30*60*1000){ agvClearPending(); return; }
+      if (window.__agvResuming) return;
+      window.__agvResuming = true;
+      setStatus('<span class="pill run">继续查询上次提交的任务…</span>');
+      pollStatus(o.vid);
+    }catch(e){}
+  }
+  /* 面板可见时才续查（不白耗额度） */
+  (function(){
+    var pane = document.getElementById('agnes-video');
+    if (!pane || !window.IntersectionObserver) return;
+    new IntersectionObserver(function(es){
+      es.forEach(function(en){ if (en.isIntersecting) agvResumePending(); });
+    }, { threshold: 0.2 }).observe(pane);
+  })();
   function pollStatus(vid){
     var btn = $("agvGen");
     if (pollTimer){ clearTimeout(pollTimer); pollTimer = null; }
@@ -2198,21 +2220,24 @@
             pollTimer = setTimeout(tick, delay); return;
           }
           var st = (j.status||"").toLowerCase();
-          var prog = (j.progress!=null) ? Math.round(j.progress*100)+"%" : "";
+          var pv = (j.progress!=null) ? Number(j.progress) : null;
+          var prog = (pv==null) ? "" : (pv<=1 && pv>0 ? Math.round(pv*100) : Math.round(pv)) + "%";
           if (!o.ok || !j.ok){ stop(); setStatus('<span class="pill fail">查询失败：'+(j.error||"未知")+'</span>'); return; }
           if (st === "completed" || st === "success" || st === "done"){
             stop();
             var url = j.video_url || (j.raw && j.raw.metadata && j.raw.metadata.url) || null;
+            agvClearPending();
             if (url){ showResult(url, vid); setStatus('<span class="pill done">生成完成 ✓</span>'); }
             else setStatus('<span class="pill done">生成完成，但未返回视频地址</span>');
             return;
           }
           if (st === "failed" || st === "error" || st === "cancelled"){
-            stop();
+            agvClearPending(); stop();
             setStatus('<span class="pill fail">生成失败：'+(j.error || (j.raw && j.raw.error && j.raw.error.message) || st)+'</span>');
             return;
           }
-          setStatus('<span class="pill run">状态：'+st+' '+prog+'</span>');
+          var wait = Math.round((Date.now()-startedAt)/1000);
+          setStatus('<span class="pill run">生成中 '+(prog||'')+' · 已等待 '+wait+'s · '+String(vid).slice(0,18)+'…</span>');
           delay = Math.min(Math.round(delay * 1.25), 6000);   /* 渐增间隔，省额度 */
           pollTimer = setTimeout(tick, delay);
         })
@@ -2255,6 +2280,7 @@
       .then(function(o){
         if (!o.ok || !o.j.ok){ btn.disabled=false; setStatus('<span class="pill fail">创建失败：'+(o.j.error||"未知错误")+'</span>'); return; }
         var vid = o.j.video_id;
+        agvSavePending(vid);
         setStatus('<span class="pill run">任务已创建，排队生成中…</span> video_id='+vid);
         pollStatus(vid);
       })
