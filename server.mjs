@@ -747,6 +747,44 @@ function agnesErrText(status, upstreamMsg) {
   return raw || ("Agnes 请求失败 (" + status + ")");
 }
 
+/* Agnes 密钥自检：打开 /api/agnes-video/health 就能看到上游对当前密钥的真实判定（中文说明） */
+app.get("/api/agnes-video/health", async (req, res) => {
+  const out = {
+    model: AGNES_VIDEO_MODEL,
+    base: AGNES_BASE_URL,
+    keyTail: String(AGNES_API_KEY || "").slice(-6),   // 只回落款尾 6 位，不泄露完整密钥
+    keyLength: String(AGNES_API_KEY || "").length
+  };
+  const started = Date.now();
+  try {
+    const r = await fetch(AGNES_BASE_URL + "/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + AGNES_API_KEY },
+      body: JSON.stringify({ model: "agnes-2.5-flash", messages: [{ role: "user", content: "ping" }], max_tokens: 1 })
+    });
+    const j = await r.json().catch(function () { return {}; });
+    out.httpStatus = r.status;
+    out.ms = Date.now() - started;
+    const msg = (j && j.error && j.error.message) || "";
+    if (r.status === 401 || /invalid token|无效的令牌|token not provided/i.test(msg)) {
+      out.ok = false;
+      out.upstreamMessage = msg;
+      out.diagnosis = "密钥无效或已被删除（上游返回 401）。请登录 platform.agnes-ai.com 的控制台 → API Key 页面重新创建一个（完整密钥只在创建时显示一次，请当场复制），再把新值更新到 Render 的 AGNES_API_KEY 环境变量并重新部署。";
+    } else if (!r.ok) {
+      out.ok = false;
+      out.upstreamMessage = msg;
+      out.diagnosis = "上游返回 " + r.status + "，非鉴权问题，请查看 upstreamMessage。";
+    } else {
+      out.ok = true;
+      out.diagnosis = "密钥可用，Agnes 上游连通正常。";
+    }
+  } catch (e) {
+    out.ok = false;
+    out.diagnosis = "连接上游失败：" + e.message;
+  }
+  res.json(out);
+});
+
 app.post("/api/agnes-video/create", requireAuth, express.json({ limit: "2mb" }), async (req, res) => {
   const { mode, prompt, seconds, aspect_ratio, seed, first_frame, last_frame, images, audios } = req.body || {};
   if (!prompt || !String(prompt).trim()) return res.status(400).json({ ok: false, error: "请填写视频描述" });
