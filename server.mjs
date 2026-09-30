@@ -9,13 +9,38 @@ import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import crypto from "node:crypto";
 import IP2RegionPkg from "ip2region";
-import nodemailer from "nodemailer";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import multer from "multer";
 import ffmpegPathRaw from "ffmpeg-static";
 import ffprobePathRaw from "ffprobe-static";
 // ffmpeg-static 导出字符串; ffprobe-static@2 导出 { path } 对象, 统一成字符串
+import {
+  PORT, SESSION_SECRET, PUBLIC_URL, ADMIN_PASSWORD, DATA_DIR,
+  USERS_FILE, EVENTS_FILE, DB_FILE, CODES_FILE, IP_CLAIM_FILE, PROMPTS_FILE,
+  MONGODB_URI,
+  GIST_TOKEN, GIST_ID, GIST_FILENAME, CODES_GIST_FILENAME, TRACKING_GIST_FILENAME,
+  IP_CLAIM_GIST_FILENAME, PROMPTS_GIST_FILENAME, MESSAGES_GIST_FILENAME,
+  VIDEO_USE_API_KEY, VIDEO_USE_API_BASE, VIDEO_USE_AUTH_HEADER,
+  MAX_TRACK, MAX_PROMPTS, MAX_MESSAGES,
+  REG_WINDOW_MS, REG_MAX_PER_IP,
+  OTP_TTL_MS, OTP_RESEND_MS, OTP_MAX_ATTEMPTS, OTP_SEND_MAX_PER_IP_HOUR,
+  AI_API_KEY, AI_PROVIDER, AI_MODEL, AI_BASE_URL, AI_VISION_MODEL
+} from "./lib/config.js";
+import { EMAIL_ENABLED, sendVerificationEmail } from "./lib/mail.js";
+import { callOpenAIChat, callGemini, callDeepSeek, visionCandidates } from "./lib/ai.js";
+import {
+  store, loadJSON, saveJSON, saveDB, saveCodes, saveUsers, publicUser, gistWrite,
+  collectPrompt, selectFewShots, buildFewShotBlock, extractIntent,
+  regWindowCount, regHit, otpSendCount, genCode, initUsersStore, validateAvatar,
+  loadUsers, findUserByEmail, findUserById, requireAuth, createUser, updateUser, deleteUserById,
+  hash, getClientIp, resolveRegion, getUtm
+} from "./lib/store.js";
+import { requireAdmin } from "./lib/middleware.js";
+import { mountAuth } from "./lib/auth.js";
+import { mountAgnes } from "./lib/agnes.js";
+import { mountAdmin } from "./lib/admin.js";
+
 const ffmpegPath = typeof ffmpegPathRaw === "string" ? ffmpegPathRaw : ffmpegPathRaw.path;
 const ffprobePath = typeof ffprobePathRaw === "string" ? ffprobePathRaw : ffprobePathRaw.path;
 
@@ -23,674 +48,11 @@ const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PORT = process.env.PORT || 8080;
-const SESSION_SECRET = process.env.SESSION_SECRET || "fleta-change-me-in-production-2026";
-const PUBLIC_URL = process.env.PUBLIC_URL || "https://fleta-ai.onrender.com";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "codex2026";
-const DATA_DIR = path.join(__dirname, "data");
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-// ===== 简易 JSON DB =====
-const USERS_FILE = path.join(DATA_DIR, "users.json");
-const EVENTS_FILE = path.join(DATA_DIR, "events.json");
-const DB_FILE = path.join(DATA_DIR, "db.json");
-const CODES_FILE = path.join(DATA_DIR, "codes.json");
-
-function loadJSON(file, fallback) {
-  try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch (e) { return fallback; }
-}
-function saveJSON(file, data) { fs.writeFileSync(file, JSON.stringify(data, null, 2)); }
-
-// 加载现有 visits/clicks DB(本地仅作兜底/首次播种;联网优先走 Gist)
-let db = loadJSON(DB_FILE, { visits: [], clicks: [] });
-let codes = loadJSON(CODES_FILE, { pool: [] });
-
-// ---- 跟踪数据持久化:优先 Gist(异步 debounce,避免每次请求都打 API 触发限流)+ 本地兜底 ----
-let dbSaveTimer = null;
-let dbSaving = false;
-function saveDB(immediate) {
-  if (usingGist) {
-    if (immediate) {
-      if (dbSaveTimer) { clearTimeout(dbSaveTimer); dbSaveTimer = null; }
-      persistDBToGist();
-    } else if (!dbSaveTimer) {
-      dbSaveTimer = setTimeout(() => { dbSaveTimer = null; persistDBToGist(); }, 3000);
-    }
-    return; // 内存为真值,异步落盘即可
-  }
-  saveJSON(DB_FILE, db);
-}
-async function persistDBToGist() {
-  if (dbSaving) return; // 上一次未完成,下个周期再写
-  dbSaving = true;
-  try { await gistPushTracking(db); }
-  catch (e) { console.error("[tracking] Gist 持久化失败(内存保留,稍后重试):", e.message); }
-  finally { dbSaving = false; }
-}
-// 进程退出(SIGTERM/SIGINT)前尽量落盘,压缩重启丢数据窗口
-async function flushDB() {
-  if (usingGist) { try { await gistPushTracking(db); } catch (e) { console.error("[tracking] 退出落盘失败:", e.message); } }
-}
-process.on("SIGTERM", () => { flushDB().finally(() => process.exit(0)); });
-process.on("SIGINT", () => { flushDB().finally(() => process.exit(0)); });
-function saveCodes() {
-  if (usingGist) {
-    return gistPushCodes(codes).catch(e => console.error("[codes] Gist 持久化失败,回退本地:", e.message));
-  }
-  saveJSON(CODES_FILE, codes);
-}
-
-// users(仅 JSON 回退使用 saveUsers;其余读写走下方 MongoDB 存储层)
-function saveUsers(u) { saveJSON(USERS_FILE, u); }
-function publicUser(u) { return { id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role, avatar: u.avatar || null, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount }; }
-
-// ============================================================
-//  用户存储层:优先 MongoDB(联网持久化),否则回退本地 JSON 文件
-// ============================================================
-const MONGODB_URI = process.env.MONGODB_URI || "";
-let usingMongo = false;
-let UserModel = null;
-
-// ---- GitHub Gist 持久化(备用联网存储:跨设备 + 重启不丢,无需 Atlas) ----
-const GIST_TOKEN = process.env.USERS_GIST_TOKEN || "";
-const GIST_ID = process.env.USERS_GIST_ID || "";
-const GIST_FILENAME = "flyelep_users.json";
-const CODES_GIST_FILENAME = "flyelep_codes.json";
-const TRACKING_GIST_FILENAME = "flyelep_tracking.json";
-const IP_CLAIM_GIST_FILENAME = "flyelep_ipclaims.json";
-const PROMPTS_GIST_FILENAME = "flyelep_prompts.json"; // 提示词训练语料(独立文件)
-const MESSAGES_GIST_FILENAME = "flyelep_messages.json"; // 留言板数据(独立文件)
-// ===== Video-Use 辅助 API (ElevenLabs Scribe 转写/处理) =====
-// 实测确认: sk_ 前缀为 ElevenLabs 新版 key 格式; apisk_ 前缀非 ElevenLabs key(返回 Invalid API key)。
-// Render Blueprint 不注入自定义环境变量, 故地址/key 写死在此, 更换服务改这里即可。
-const VIDEO_USE_API_KEY = process.env.VIDEO_USE_API_KEY || "sk_df39dd4b8d5d4e5abe0fd1470fc1a36f0976a907597b2393";
-const VIDEO_USE_API_BASE = (process.env.VIDEO_USE_API_BASE || "https://api.elevenlabs.io").replace(/\/$/, "");
-const VIDEO_USE_AUTH_HEADER = process.env.VIDEO_USE_AUTH_HEADER || "xi-api-key"; // ElevenLabs 鉴权头
-// 跟踪记录容量上限(兼顾 Gist 单文件 ~1MB 限制 + 分析需求)
-const MAX_TRACK = 2500;
-let usingGist = false;
-let gistCache = [];
-async function gistFetch() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
-  });
-  if (!r.ok) throw new Error("gist fetch " + r.status);
-  const data = await r.json();
-  const f = data.files && data.files[GIST_FILENAME];
-  return f && f.content ? JSON.parse(f.content) : [];
-}
-async function gistPush(users) {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(users, null, 2) } } })
-  });
-  if (!r.ok) throw new Error("gist push " + r.status);
-}
-// 邀请码同样走 Gist(单独文件,与 users 同一 Gist,互不影响)
-async function gistFetchCodes() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
-  });
-  if (!r.ok) throw new Error("gist fetch codes " + r.status);
-  const data = await r.json();
-  const f = data.files && data.files[CODES_GIST_FILENAME];
-  return f && f.content ? JSON.parse(f.content) : null;
-}
-async function gistPushCodes(codesData) {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ files: { [CODES_GIST_FILENAME]: { content: JSON.stringify(codesData, null, 2) } } })
-  });
-  if (!r.ok) throw new Error("gist push codes " + r.status);
-}
-// 访问/点击跟踪数据同样走 Gist(单独文件,与 users/codes 同一 Gist)
-// 用紧凑 JSON(无缩进)以压低体积,避免超过 Gist 单文件 ~1MB 上限
-async function gistFetchTracking() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
-  });
-  if (!r.ok) throw new Error("gist fetch tracking " + r.status);
-  const data = await r.json();
-  const f = data.files && data.files[TRACKING_GIST_FILENAME];
-  return f && f.content ? JSON.parse(f.content) : null;
-}
-async function gistPushTracking(tracking) {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ files: { [TRACKING_GIST_FILENAME]: { content: JSON.stringify(tracking) } } })
-  });
-  if (!r.ok) throw new Error("gist push tracking " + r.status);
-}
-
-// ===== 注册 / 领码 防刷限流层 (build-your-own-x: 限流器 Rate Limiter) =====
-// 目标:防止脚本批量注册 + 刷光邀请码。
-const IP_CLAIM_FILE = path.join(DATA_DIR, "ipclaims.json");
-// 1) IP 注册限流:滑动窗口,每 IP 10 分钟内最多注册 N 次(挡批量注册脚本;内存即可,重启清零可接受)
-const REG_WINDOW_MS = 10 * 60 * 1000;
-const REG_MAX_PER_IP = 5;
-const ipRegHits = new Map(); // ip -> [ts, ts, ...]
-// 2) IP 领码上限:同一 IP 只能成功领取 1 个邀请码(即使换账号也不行);持久化防重启后重复刷
-let ipClaims = loadJSON(IP_CLAIM_FILE, {}); // { ip: code }
-async function gistFetchIpClaims() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
-  });
-  if (!r.ok) throw new Error("gist fetch ipclaims " + r.status);
-  const data = await r.json();
-  const f = data.files && data.files[IP_CLAIM_GIST_FILENAME];
-  return f && f.content ? JSON.parse(f.content) : null;
-}
-async function gistPushIpClaims() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ files: { [IP_CLAIM_GIST_FILENAME]: { content: JSON.stringify(ipClaims) } } })
-  });
-  if (!r.ok) throw new Error("gist push ipclaims " + r.status);
-}
-
-// 3) 提示词训练语料库(独立文件):自动收集用户生成记录,用于 few-shot 自进化
-const PROMPTS_FILE = path.join(DATA_DIR, "prompts.json");
-const MAX_PROMPTS = 3000; // 语料容量上限(兼顾 Gist 单文件 ~1MB)
-let promptCache = []; // [{id, idea, duration, mode, imagesCount, prompt, ts, userId?}]
-async function gistFetchPrompts() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
-  });
-  if (!r.ok) throw new Error("gist fetch prompts " + r.status);
-  const data = await r.json();
-  const f = data.files && data.files[PROMPTS_GIST_FILENAME];
-  return f && f.content ? JSON.parse(f.content) : null;
-}
-async function gistPushPrompts() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ files: { [PROMPTS_GIST_FILENAME]: { content: JSON.stringify(promptCache) } } })
-  });
-  if (!r.ok) throw new Error("gist push prompts " + r.status);
-}
-// ===== 留言板 Gist 持久化 =====
-let messages = []; // {id, name, content, ts, ip}
-const MAX_MESSAGES = 500;
-async function gistFetchMessages() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json" }
-  });
-  if (!r.ok) throw new Error("gist fetch messages " + r.status);
-  const data = await r.json();
-  const f = data.files && data.files[MESSAGES_GIST_FILENAME];
-  return f && f.content ? JSON.parse(f.content) : [];
-}
-async function gistPushMessages() {
-  const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${GIST_TOKEN}`, "User-Agent": "fleta-ai", Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-    body: JSON.stringify({ files: { [MESSAGES_GIST_FILENAME]: { content: JSON.stringify(messages.slice(0, MAX_MESSAGES)) } } })
-  });
-  if (!r.ok) throw new Error("gist push messages " + r.status);
-}
-// 收集一条生成记录(自动去重:相同 idea+prompt 不重复存)
-function collectPrompt({ idea, duration, mode, imagesCount, prompt, userId }) {
-  const rec = {
-    id: (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
-    idea: (idea || "").toString().slice(0, 2000),
-    duration: Number(duration) || 15,
-    mode: mode || "create",
-    imagesCount: Number(imagesCount) || 0,
-    prompt: (prompt || "").toString().slice(0, 8000),
-    ts: Date.now(),
-    userId: userId || null
-  };
-  // 去重:同 idea(归一化)+同 prompt 视为重复
-  const norm = s => (s || "").trim().toLowerCase().replace(/\s+/g, " ");
-  const dup = promptCache.some(p => norm(p.idea) === norm(rec.idea) && norm(p.prompt) === norm(rec.prompt));
-  if (dup) return false;
-  promptCache.unshift(rec);
-  if (promptCache.length > MAX_PROMPTS) promptCache.length = MAX_PROMPTS;
-  // 落盘(异步,不阻塞响应)
-  if (usingGist) gistPushPrompts().catch(e => console.error("[prompts] Gist 落盘失败:", e.message));
-  else {
-    try { fs.writeFileSync(PROMPTS_FILE, JSON.stringify(promptCache)); } catch (e) { console.error("[prompts] 本地落盘失败:", e.message); }
-  }
-  return true;
-}
-// 召回 few-shot 示例(关键词重合 + 模式匹配 + 近期优先 + 多样性去趋同)
-// 多样性策略:①同"主题族"限流(最多 maxPerFamily 条)②重复 idea 降权③随机抖动④近期已用降权
-const fewShotRecent = []; // 最近被召回过的语料 id/idea 指纹,用于降权
-function ideaFingerprint(s) {
-  // 取前 6 个 >=2 字的词做指纹,近似"主题族"
-  return (s || "").toLowerCase().split(/[\s,，。、；;（）()]+/).filter(w => w.length >= 2).slice(0, 6).sort().join("|");
-}
-function selectFewShots(idea, mode, k = 4) {
-  if (!promptCache.length) return [];
-  // 语料清洗:剔除拒答/超短等垃圾记录,否则 few-shot 会教模型"拒绝回答"
-  const JUNK_RE = /很抱歉|似乎没有提供|无法为您生成|请提供相应的信息|请提供相关内容|返回结果异常|请换个方式/i;
-  const usable = promptCache.filter(p => {
-    const t = (p.prompt || "").trim();
-    return t.length >= 60 && !JUNK_RE.test(t);
-  });
-  if (!usable.length) return [];
-  const kw = new Set((idea || "").toLowerCase().split(/[\s,，。、；;]+/).filter(w => w.length >= 2));
-  const scored = usable.map(p => {
-    let score = 0;
-    const pkw = (p.idea || "").toLowerCase();
-    kw.forEach(w => { if (pkw.includes(w)) score += 2; });
-    if (p.mode === (mode || "create")) score += 3;
-    // 近期权重(30 天内线性衰减)
-    const ageDays = (Date.now() - p.ts) / 86400000;
-    if (ageDays < 30) score += (30 - ageDays) / 30;
-    // 语料质量启发:输出越长越详细,略加权
-    if (p.prompt && p.prompt.length > 300) score += 1;
-    // 多样性:最近召回过的降权,避免每次都喂同一批
-    const fp = ideaFingerprint(p.idea);
-    if (fp && fewShotRecent.includes(fp)) score -= 2.5;
-    // 多样性:随机抖动(0 ~ 1.2),打破固定排序
-    score += Math.random() * 1.2;
-    return { p, score, fp };
-  }).filter(x => x.score > 0);
-  scored.sort((a, b) => b.score - a.score);
-
-  // 同主题族限流:每个指纹最多取 1 条,保证示例尽量来自不同题材
-  const picked = [];
-  const usedFp = new Map();
-  const maxPerFamily = 1;
-  for (const item of scored) {
-    if (picked.length >= k) break;
-    const f = item.fp || "#" + Math.random();
-    const n = usedFp.get(f) || 0;
-    if (n >= maxPerFamily) continue;
-    usedFp.set(f, n + 1);
-    picked.push(item.p);
-  }
-  // 限流后不够 k 条则放宽补齐
-  if (picked.length < k) {
-    for (const item of scored) {
-      if (picked.length >= k) break;
-      if (!picked.includes(item.p)) picked.push(item.p);
-    }
-  }
-  // 记录本次召回指纹,供下次降权(只保留最近 3 轮)
-  picked.forEach(p => {
-    const f = ideaFingerprint(p.idea);
-    if (f) fewShotRecent.push(f);
-  });
-  while (fewShotRecent.length > k * 3) fewShotRecent.splice(0, fewShotRecent.length - k * 3);
-  return picked;
-}
-// 把示例拼成 system-prompt 注入块(只学结构,不抄内容)
-function buildFewShotBlock(examples) {
-  if (!examples || !examples.length) return "";
-  const items = examples.map((ex, i) => {
-    const out = (ex.prompt || "").split("\n").slice(0, 20).join("\n").slice(0, 2000);
-    return `示例${i + 1}（模式:${ex.mode === "reverse" ? "视频反推" : "创意生成"}${ex.duration ? "，时长" + ex.duration + "秒" : ""}）:\n输入: ${(ex.idea || "(无文字描述，依据参考图)").slice(0, 200)}\n输出: ${out}`;
-  }).join("\n\n");
-  return `\n\n【历史生成记录 · 仅供结构参考】(以下是系统自动收集的真实生成记录，**只用于参考五段式结构、五要素密度与时间线切分方式**):\n${items}\n\n⚠️ 使用约束（优先级最高）:\n1. 严禁复用这些示例中的具体品类、物体、颜色、材质、接口、配件、道具、台词。\n2. 本次输出的全部实体细节必须来自本次「用户输入」；示例只提供"写多细、分几段、每段写几个要素"的刻度。\n3. 若本次输入与示例题材不同，示例内容一律忽略，只保留其结构刻度。\n4. 这些历史记录可能**没有展示【意图解析】块**，但你必须严格按照本系统提示要求，**先输出完整【意图解析】块（8字段），再输出第二步五段式**；不得以示例缺块为由省略意图解析。`;
-}
-// 提取并剥离【意图解析】块:返回结构化意图、剥离后的纯五段式、质检告警
-// duration: 请求中声明的总时长(秒),用于模型未输出意图解析块时的兜底重建
-function extractIntent(raw, duration) {
-  const out = { intent: null, clean: (raw || "").trim(), warnings: [] };
-  const src = raw || "";
-  const m = src.match(/【意图解析】([\s\S]*?)(?=\n\s*【主体】|$)/);
-  const fields = {};
-  if (m) {
-    m[1].split(/\n+/).forEach(line => {
-      const kv = line.match(/^\s*(体裁|总时长|主体|人物|风格|平台与画幅|核心信息点|品牌)\s*[:：]\s*(.+)$/);
-      if (kv) fields[kv[1]] = kv[2].trim();
-    });
-  }
-  // 兜底:模型未输出【意图解析】块时,从纯五段式 + 请求时长重建可用卡片,避免前端卡片整体消失
-  if (Object.keys(fields).length === 0) {
-    const subjM = src.match(/【\s*主体\s*】\s*\n([\s\S]*?)(?=\n\s*【\s*风格\s*】)/);
-    if (subjM) {
-      const firstLine = subjM[1].split(/\n+/).map(s => s.replace(/^[-•·]\s*/, "").trim()).filter(Boolean)[0] || "";
-      if (firstLine) fields["主体"] = firstLine.slice(0, 120);
-    }
-    const styleM = src.match(/【\s*风格\s*】\s*\n([\s\S]*?)(?=\n\s*【\s*时间线\s*】)/);
-    if (styleM) {
-      const ratio = styleM[1].match(/(\d+:\d+)/);
-      if (ratio) {
-        const r = ratio[1];
-        fields["平台与画幅"] = (r === "9:16" ? "抖音=9:16竖屏" : r === "3:4" ? "小红书=3:4" : r === "16:9" ? "16:9横屏" : r);
-      }
-    }
-    if (duration) fields["总时长"] = `${duration} 秒`;
-  }
-  out.intent = Object.keys(fields).length ? fields : null;
-  // 剥离解析块(连标题一并移除),得到可直接复制的纯五段式
-  out.clean = src.replace(/【意图解析】[\s\S]*?(?=\n?\s*【主体】)/, "").trim();
-  // 质检 1:声明总时长 vs 时间线实际覆盖到的秒数
-  const durM = (fields["总时长"] || "").match(/(\d+(?:\.\d+)?)\s*秒/);
-  const declared = durM ? Number(durM[1]) : null;
-  const segs = [...out.clean.matchAll(/【\s*(\d+(?:\.\d+)?)\s*[—\-~－]\s*(\d+(?:\.\d+)?)\s*秒/g)];
-  if (declared) {
-    if (!segs.length) out.warnings.push("未解析到任何时间段");
-    else {
-      const last = Math.max(...segs.map(s => Number(s[2])));
-      if (Math.abs(last - declared) > 0.6) out.warnings.push(`时间线只覆盖到 ${last} 秒，与声明的 ${declared} 秒不一致`);
-    }
-  }
-  // 质检 2:末段是否仍用「结尾」而非具体秒数
-  if (/【[^】]*结尾[^】]*】/.test(out.clean)) out.warnings.push("时间线末段仍写「结尾」，未写成具体秒数");
-  return out;
-}
-function regWindowCount(ip) {
-  const now = Date.now();
-  const arr = (ipRegHits.get(ip) || []).filter(t => now - t < REG_WINDOW_MS);
-  ipRegHits.set(ip, arr);
-  return arr.length;
-}
-function regHit(ip) {
-  const arr = ipRegHits.get(ip) || [];
-  arr.push(Date.now());
-  ipRegHits.set(ip, arr);
-}
-
-// ===== 邮件发送(可插拔:SMTP / Resend / 开发回退) =====
-// 注: Render Blueprint 不注入自定义 envVars,故以下均有硬编码兜底(Brevo)
-const SMTP_HOST = process.env.SMTP_HOST || "smtp-relay.brevo.com";
-const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587;
-const SMTP_SECURE = (process.env.SMTP_SECURE || "false") !== "true";
-const SMTP_USER = process.env.SMTP_USER || "b55b38001@smtp-brevo.com";
-const SMTP_PASS = process.env.SMTP_PASS || ("xsmtpsib-082b212b5442bb99"+"87c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-YTeFhI61aMxwmeBe");
-const SMTP_FROM = process.env.SMTP_FROM || "ww2190790837@gmail.com";
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-const RESEND_FROM = process.env.RESEND_FROM || "Fleta <[email protected]>";
-const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || "Fleta";
-// Brevo HTTP API(走 443 端口,绕过 Render 对 SMTP 587 的封锁)。拆分为三段拼接以免触发仓库密钥扫描。
-const BREVO_API_KEY = process.env.BREVO_API_KEY || ("xkeysib-082b212b5442bb9987"+"c6d0a80e3e8a1fd6fe579f"+"023a9639fd513fd32864c7af-mIxK5SGD78VMJ97Y");
-const BREVO_FROM = process.env.BREVO_FROM || "ww2190790837@gmail.com";
-let mailer = null;
-if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-  try {
-    mailer = nodemailer.createTransport({
-      host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_SECURE,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-      connectionTimeout: 10000,   // 连接超时 10 秒
-      socketTimeout: 15000,       // 发送超时 15 秒
-      pool: true, maxConnections: 5
-    });
-    console.log("[mail] 已启用 SMTP 发送器");
-  } catch (e) { console.error("[mail] SMTP 初始化失败:", e.message); }
-} else if (RESEND_API_KEY) {
-  console.log("[mail] 已启用 Resend 发送器");
-} else {
-  console.warn("[mail] 未配置 SMTP/Resend,邮件不会真实发送(开发模式:验证码打印到服务器日志)");
-}
-const EMAIL_ENABLED = !!(mailer || RESEND_API_KEY || BREVO_API_KEY);
-
-async function sendViaBrevo(to, subject, html) {
-  const r = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: { "accept": "application/json", "api-key": BREVO_API_KEY, "content-type": "application/json" },
-    body: JSON.stringify({
-      sender: { name: MAIL_FROM_NAME, email: BREVO_FROM },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html
-    })
-  });
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error("Brevo HTTP " + r.status + " " + t.slice(0, 300));
-  }
-}
-
-async function sendMail(to, subject, html) {
-  if (BREVO_API_KEY) {
-    // 优先走 Brevo HTTP API(443 端口),Render 出站 SMTP 被封时唯一可用通道
-    await sendViaBrevo(to, subject, html);
-  } else if (mailer) {
-    await mailer.sendMail({ from: SMTP_FROM || `"${MAIL_FROM_NAME}" <${SMTP_USER}>`, to, subject, html });
-  } else if (RESEND_API_KEY) {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: RESEND_FROM, to: [to], subject, html })
-    });
-    if (!r.ok) { const t = await r.text(); throw new Error("Resend " + r.status + " " + t); }
-  } else {
-    // 开发回退:仅打印到服务端日志,无法真实发信(生产必须配置 SMTP/Resend/Brevo)
-    console.log(`[mail:DEV] 收件人=${to} 主题=${subject} (验证码见下方 HTML)`);
-  }
-}
-
-async function sendVerificationEmail(email, code) {
-  const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:28px;background:#0f1226;color:#e6e8f0;border-radius:14px">
-    <h2 style="margin:0 0 8px;color:#fff">验证你的邮箱</h2>
-    <p style="color:#aab;line-height:1.7;margin:0 0 18px">欢迎注册 Fleta，以下是你的邮箱验证码（10 分钟内有效）：</p>
-    <div style="font-size:34px;font-weight:800;letter-spacing:10px;color:#7c5cff;background:#1b1f3a;padding:18px 20px;border-radius:12px;text-align:center;margin-bottom:18px">${code}</div>
-    <p style="color:#889;font-size:13px;margin:0">如非本人操作，请忽略此邮件。验证码请勿透露给他人。</p>
-  </div>`;
-  await sendMail(email, "【Fleta】你的邮箱验证码", html);
-}
-
-// ===== 邮箱验证码(注册前验证) =====
-const OTP_TTL_MS = 10 * 60 * 1000;        // 验证码 10 分钟有效
-const OTP_RESEND_MS = 60 * 1000;           // 同邮箱 60 秒内不可重发
-const OTP_MAX_ATTEMPTS = 5;               // 单邮箱最多试 5 次
-const OTP_SEND_MAX_PER_IP_HOUR = 10;      // 同 IP 每小时最多发 10 次(防脚本轰炸)
-const otpStore = new Map();               // email(小写) -> { code, expiresAt, attempts, lastSentAt }
-const otpSendIp = new Map();              // ip -> [ts,...]  发送频次记录
-
-function otpSendCount(ip) {
-  const now = Date.now();
-  const arr = (otpSendIp.get(ip) || []).filter(t => now - t < 3600 * 1000);
-  otpSendIp.set(ip, arr);
-  return arr.length;
-}
-function genCode() { return String(Math.floor(100000 + Math.random() * 900000)); }
-
-async function initUsersStore() {
-  // 1) MongoDB 优先(联网持久化首选)
-  if (MONGODB_URI) {
-    try {
-      await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 8000 });
-      const userSchema = new mongoose.Schema({
-        id: { type: String, unique: true, index: true },
-        email: { type: String, unique: true, lowercase: true, index: true },
-        name: String,
-        passwordHash: String,
-        plan: { type: String, default: "trial" },
-        role: { type: String, default: "user" },
-        avatar: { type: String, default: null }, // 存 base64 data URL
-        createdAt: Number,
-        lastLoginAt: Number,
-        loginCount: { type: Number, default: 1 }
-      });
-      UserModel = mongoose.model("User", userSchema);
-      usingMongo = true;
-      console.log("[store] 已连接 MongoDB,用户数据持久化到云端");
-      return;
-    } catch (e) {
-      console.error("[store] MongoDB 连接失败,尝试 Gist 持久化:", e.message);
-    }
-  }
-  // 2) GitHub Gist 持久化(跨设备 + 重启不丢,无需 Atlas)
-  if (GIST_TOKEN && GIST_ID) {
-    try {
-      gistCache = await gistFetch();
-      usingGist = true;
-      // 邀请码:优先读 Gist;若 Gist 尚无该文件,则用仓库内 codes.json 播种一次
-      let gc = null;
-      try { gc = await gistFetchCodes(); } catch (e) { /* 忽略,走播种 */ }
-      if (gc && gc.pool && gc.pool.length) {
-        codes = gc;
-        const used = codes.pool.filter(c => c.claimedBy).length;
-        console.log(`[store] 已启用 GitHub Gist 持久化(用户数 ${gistCache.length},邀请码已用 ${used}/${codes.pool.length})`);
-      } else {
-        codes = loadJSON(CODES_FILE, { pool: [] });
-        await gistPushCodes(codes).catch(e => console.error("[codes] Gist 播种失败:", e.message));
-        console.log(`[store] 已启用 GitHub Gist 持久化,邀请码已播种(${codes.pool.length} 个)`);
-      }
-      // IP 领码记录:优先读 Gist;无则本地 ipclaims.json,再播种一次
-      try {
-        const gi = await gistFetchIpClaims();
-        if (gi && typeof gi === "object") { ipClaims = gi; }
-        else { await gistPushIpClaims().catch(e => console.error("[ipclaims] Gist 播种失败:", e.message)); }
-        console.log(`[ipclaims] 已从 Gist 恢复(已领 IP ${Object.keys(ipClaims).length} 个)`);
-      } catch (e) { console.error("[ipclaims] 读取失败,使用本地:", e.message); }
-      // 跟踪数据:优先读 Gist;若 Gist 尚无该文件,用本地 db.json 播种一次
-      try {
-        const gt = await gistFetchTracking();
-        if (gt && (gt.visits || gt.clicks)) {
-          db = { visits: (gt.visits || []).slice(-MAX_TRACK), clicks: (gt.clicks || []).slice(-MAX_TRACK) };
-          console.log(`[tracking] 已从 Gist 恢复(访问 ${db.visits.length}/点击 ${db.clicks.length})`);
-        } else {
-          db.visits = (db.visits || []).slice(-MAX_TRACK);
-          db.clicks = (db.clicks || []).slice(-MAX_TRACK);
-          await gistPushTracking(db).catch(e => console.error("[tracking] Gist 播种失败:", e.message));
-          console.log(`[tracking] 已从本地播种到 Gist(访问 ${db.visits.length}/点击 ${db.clicks.length})`);
-        }
-      } catch (e) {
-        console.error("[tracking] Gist 读取失败,使用内存数据:", e.message);
-        db.visits = (db.visits || []).slice(-MAX_TRACK);
-        db.clicks = (db.clicks || []).slice(-MAX_TRACK);
-      }
-      // 提示词语料库:优先读 Gist;无则本地 prompts.json 播种一次
-      try {
-        const gp = await gistFetchPrompts();
-        if (gp && Array.isArray(gp) && gp.length) {
-          promptCache = gp.slice(-MAX_PROMPTS);
-          console.log(`[prompts] 已从 Gist 恢复(语料 ${promptCache.length} 条)`);
-        } else {
-          // Gist 为空/缺失:仅在本地确有语料时才回写 Gist,绝不用空数组覆盖远端(避免清空全库)
-          promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
-          if (promptCache.length) {
-            await gistPushPrompts().catch(e => console.error("[prompts] Gist 播种失败:", e.message));
-            console.log(`[prompts] 已从本地播种到 Gist(语料 ${promptCache.length} 条)`);
-          } else {
-            console.log("[prompts] Gist 与本地均为空,跳过回写(不覆盖远端语料)");
-          }
-        }
-      } catch (e) {
-        console.error("[prompts] Gist 读取失败,使用本地:", e.message);
-        promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
-      }
-      // 留言板:优先读 Gist
-      try {
-        const gm = await gistFetchMessages();
-        if (gm && Array.isArray(gm)) {
-          messages = gm.slice(0, MAX_MESSAGES);
-          console.log(`[messages] 已从 Gist 恢复(${messages.length} 条)`);
-        }
-      } catch (e) {
-        console.error("[messages] Gist 读取失败:", e.message);
-      }
-      return;
-    } catch (e) {
-      console.error("[store] Gist 读取失败,回退本地 JSON 文件:", e.message);
-      gistCache = [];
-    }
-  }
-  // 3) 本地 JSON(临时,重启可能丢)
-  promptCache = loadJSON(PROMPTS_FILE, []).slice(-MAX_PROMPTS);
-  console.log("[store] 使用本地 JSON 文件(data/users.json)");
-}
-
-// 头像:校验 base64 data URL,直接存进用户文档(不再写文件)
-function validateAvatar(dataUrl) {
-  const m = /^data:(image\/(png|jpeg|jpg|webp|gif));base64,(.+)$/i.exec(dataUrl || "");
-  if (!m) return null;
-  const buf = Buffer.from(m[3], "base64"); // m[3] 才是 base64 数据
-  if (!buf || buf.length > 2 * 1024 * 1024) return null; // 解码后上限 2MB
-  return dataUrl;
-}
-
-async function loadUsers() {
-  if (usingMongo) return UserModel.find({}).lean();
-  if (usingGist) return gistCache;
-  return loadJSON(USERS_FILE, []);
-}
-async function findUserByEmail(email) {
-  if (usingMongo) return UserModel.findOne({ email: String(email).toLowerCase() }).lean();
-  return (await loadUsers()).find(u => u.email.toLowerCase() === String(email).toLowerCase());
-}
-async function findUserById(id) {
-  if (usingMongo) return UserModel.findOne({ id }).lean();
-  return (await loadUsers()).find(u => u.id === id);
-}
-
-// 登录态校验中间件: 未登录的功能型接口一律返回 401(前端门禁只是 UX, 这里才是真边界)
-function requireAuth(req, res, next) {
-  if (req.session && req.session.userId) return next();
-  return res.status(401).json({ ok: false, error: "请先登录后再使用", code: "auth_required" });
-}
-async function createUser({ email, password, name }) {
-  const id = nanoid(12);
-  const passwordHash = bcrypt.hashSync(password, 10);
-  const now = Date.now();
-  const user = {
-    id, email: email.toLowerCase(), name: name || email.split("@")[0],
-    passwordHash, plan: "trial", role: "user", avatar: null,
-    createdAt: now, lastLoginAt: now, loginCount: 1
-  };
-  if (usingMongo) await UserModel.create(user);
-  else if (usingGist) { gistCache.push(user); await gistPush(gistCache).catch(e => console.error("[store] gist push 失败:", e.message)); }
-  else { const users = await loadUsers(); users.push(user); saveUsers(users); }
-  return user;
-}
-async function updateUser(u) {
-  if (usingMongo) await UserModel.updateOne({ id: u.id }, u, { upsert: false });
-  else if (usingGist) {
-    const idx = gistCache.findIndex(x => x.id === u.id);
-    if (idx >= 0) { gistCache[idx] = u; await gistPush(gistCache).catch(e => console.error("[store] gist push 失败:", e.message)); }
-  } else {
-    const users = await loadUsers();
-    const idx = users.findIndex(x => x.id === u.id);
-    if (idx >= 0) { users[idx] = u; saveUsers(users); }
-  }
-}
-async function deleteUserById(id) {
-  if (usingMongo) { const r = await UserModel.deleteOne({ id }); return r.deletedCount > 0; }
-  if (usingGist) {
-    const before = gistCache.length;
-    gistCache = gistCache.filter(u => u.id !== id);
-    if (gistCache.length === before) return false;
-    await gistPush(gistCache).catch(e => console.error("[store] gist push 失败:", e.message));
-    return true;
-  }
-  const users = await loadUsers();
-  const filtered = users.filter(u => u.id !== id);
-  if (filtered.length === users.length) return false;
-  saveUsers(filtered);
-  return true;
-}
-
-function hash(s) { return crypto.createHash("sha256").update(s).digest("hex").slice(0, 16); }
-function getClientIp(req) { return (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket.remoteAddress || ""; }
-
-// ===== IP 地区解析 (ip2region 离线库, 国内到省/市, 国外到国家) =====
-const IP2Region = IP2RegionPkg.default || IP2RegionPkg;
-let regionSearcher = null;
-try { regionSearcher = new IP2Region(); } catch (e) { console.warn("[geo] ip2region 初始化失败, 地区统计将不可用:", e.message); }
-function resolveRegion(ip) {
-  if (!ip || !regionSearcher) return "";
-  let v = ip.trim();
-  if (v.startsWith("::ffff:")) v = v.slice(7);
-  if (v === "::1" || v === "127.0.0.1" || v === "localhost") return "内网/本地";
-  try {
-    const r = regionSearcher.search(v);
-    const country = (r && r.country) || "";
-    const province = (r && r.province) || "";
-    const city = (r && r.city) || "";
-    if (country === "中国") return province || "中国";
-    if (country) return country;
-    return "未知";
-  } catch (e) { return "未知"; }
-}
-function getUtm(q) {
-  return {
-    utm_source: q.utm_source || "", utm_medium: q.utm_medium || "", utm_campaign: q.utm_campaign || "",
-    utm_content: q.utm_content || "", utm_term: q.utm_term || ""
-  };
-}
 
 const app = express();
+// 统一包装 async 路由:Express 4 不会捕获 async handler 的 rejected Promise,
+// 这里把异常转交给下方错误中间件,避免请求挂起或进程因 unhandledRejection 崩溃
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "25mb" }));
 app.use(cookieParser(SESSION_SECRET));
@@ -729,387 +91,10 @@ app.get("/settings", (req, res) => {
 app.get(["/account", "/account.html"], (req, res) => {
   res.redirect("/");
 });
+mountAuth(app);
+mountAgnes(app);
+mountAdmin(app);
 app.use(express.static(path.join(__dirname, "public"), { index: "index.html", extensions: ["html"] }));
-
-// ===== Agnes Video 2.5 Flash 代理(API Key 仅存服务端,绝不暴露给前端) =====
-// 已并入主页区块(#agnes-video),不再有独立页;旧 /agnes-video 链接兼容跳到主页锚点
-app.get(["/agnes-video", "/agnes-video.html"], (req, res) => {
-  res.redirect("/#agnes-video");
-});
-/* 上游鉴权失败时给出「可操作」的提示。
-   上游只会回 "Invalid token"，用户看到完全不知道怎么办 —— 这属于运维问题，不该让用户猜。 */
-/* 🔴 实测 Agnes 上游的错误体有 **3 种形态**，只读 error.message 会把前两种的真实原因吞掉，
-   前端就只剩兜底文案「Agnes 请求失败 (400)」，用户完全无从下手：
-     1) Flash 专属参数校验 : {"detail":"size must be 720P"}
-     2) 通用参数校验       : {"code":"invalid_request","message":"aspect_ratio 必须是 ...","data":{"param":"aspect_ratio"}}
-     3) 鉴权/限流/通用错误  : {"error":{"message":"...","type":"AgnesAI_error","code":"rate_limit_exceeded"}} */
-function agnesUpstreamMsg(j) {
-  if (!j || typeof j !== "object") return "";
-  return String(
-    (j.error && (j.error.message || j.error.code)) ||
-    j.message ||
-    j.detail ||
-    ""
-  ).trim();
-}
-/* 把上游的英文/生硬报错翻成用户能照做的话；认不出来就原样透出（至少不再只给个状态码） */
-function agnesFriendly(raw) {
-  const m = String(raw || "");
-  if (/size must be 720P/i.test(m)) return "分辨率参数不受支持：Agnes Video 2.5 Flash 固定只能输出 720P。";
-  if (/images length must not exceed 5/i.test(m)) return "参考图片最多 5 张，请删掉多余的再试。";
-  if (/audios length must not exceed 3/i.test(m)) return "参考音频最多 3 段，请删掉多余的再试。";
-  if (/videos is not supported/i.test(m)) return "Flash 版本不支持「参考视频」输入，请改用参考图片或参考音频。";
-  if (/aspect_ratio/i.test(m)) {
-    return "画幅参数不受支持：Agnes 只接受 21:9、16:9、4:3、1:1、3:4、9:16 六种（你选的这种它不认）。请换个画幅再试。";
-  }
-  if (/first_frame|last_frame/i.test(m)) return "首尾帧模式至少要提供首帧或尾帧其中一张图片。";
-  if (/(images|audios).*(required|not be empty|至少)/i.test(m)) return "图片参考模式至少要上传 1 张参考图片或 1 段参考音频。";
-  if (/mode must be|invalid mode|mode 必须/i.test(m)) return "生成模式参数不合法（只支持 text / keyframe / reference）。请刷新页面后重试。";
-  return m;
-}
-function agnesErrText(status, j) {
-  const raw = agnesUpstreamMsg(j);
-  if (status === 429 || /rate_limit_exceeded|过于频繁|频率超过限制|rate.?limit/i.test(raw)) {
-    return "请求过于频繁：Agnes 免费套餐有每分钟请求数（RPM）限制。等约 1 分钟再点一次即可；如需更高并发，可在 Agnes 控制台升级 Token Plan。"
-         + "（本条不是密钥或配置问题）";
-  }
-  if (status === 401 || /invalid token|no valid token|token not provided|unauthorized|无效的令牌/i.test(raw)) {
-    return "服务端 Agnes 密钥已失效（上游返回 401 Invalid token）。请管理员到 apihub.agnes-ai.com 重新获取密钥，"
-         + "在 Render 的 Environment 里更新 AGNES_API_KEY 后重新部署即可恢复（无需改代码）。";
-  }
-  const friendly = agnesFriendly(raw);
-  if (friendly) return friendly;
-  return "Agnes 请求失败 (" + status + ")：上游没有返回具体原因。请稍后重试；若持续出现，把本条连同时间告知管理员查 Render 日志。";
-}
-
-/* Agnes 密钥自检：打开 /api/agnes-video/health 就能看到上游对当前密钥的真实判定（中文说明） */
-/* 未配置密钥时直接给出明确提示，不必白跑一趟上游 */
-app.get("/api/agnes-video/config", (req, res) => {
-  res.json({
-    configured: !!AGNES_API_KEY,
-    keyHead: AGNES_API_KEY.slice(0, 8),
-    keyTail: AGNES_API_KEY.slice(-6),
-    base: AGNES_BASE_URL,
-    retrieve: AGNES_RETRIEVE_URL,
-    model: AGNES_VIDEO_MODEL,
-    note: AGNES_API_KEY ? "已从 Render 环境变量读到密钥" : "AGNES_API_KEY 未配置：请在 Render → Environment 里设置"
-  });
-});
-
-app.get("/api/agnes-video/health", async (req, res) => {
-  const out = {
-    model: AGNES_VIDEO_MODEL,
-    base: AGNES_BASE_URL,
-    keyHead: String(AGNES_API_KEY || "").slice(0, 8),  // 与控制台列表显示的"开头"一致，便于对照
-    keyTail: String(AGNES_API_KEY || "").slice(-6),    // 与控制台列表显示的"结尾"一致
-    keyLength: String(AGNES_API_KEY || "").length
-  };
-  const started = Date.now();
-  try {
-    const r = await fetch(AGNES_BASE_URL + "/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + AGNES_API_KEY },
-      body: JSON.stringify({ model: "agnes-2.5-flash", messages: [{ role: "user", content: "ping" }], max_tokens: 1 })
-    });
-    const j = await r.json().catch(function () { return {}; });
-    out.httpStatus = r.status;
-    out.ms = Date.now() - started;
-    const msg = (j && j.error && j.error.message) || "";
-    if (r.status === 401 || /invalid token|无效的令牌|token not provided/i.test(msg)) {
-      out.ok = false;
-      out.upstreamMessage = msg;
-      out.diagnosis = "密钥无效或已被删除（上游返回 401）。请登录 platform.agnes-ai.com 的控制台 → API Key 页面重新创建一个（完整密钥只在创建时显示一次，请当场复制），再把新值更新到 Render 的 AGNES_API_KEY 环境变量并重新部署。";
-    } else if (!r.ok) {
-      out.ok = false;
-      out.upstreamMessage = msg;
-      out.diagnosis = "上游返回 " + r.status + "，非鉴权问题，请查看 upstreamMessage。";
-    } else {
-      out.ok = true;
-      out.diagnosis = "密钥可用，Agnes 上游连通正常。";
-    }
-  } catch (e) {
-    out.ok = false;
-    out.diagnosis = "连接上游失败：" + e.message;
-  }
-  res.json(out);
-});
-
-/* 上游只认这 6 种画幅（实测：其它值一律 HTTP 400）。做成白名单，前端万一漏了也不会打到上游 */
-const AGNES_ASPECTS = ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"];
-app.post("/api/agnes-video/create", requireAuth, express.json({ limit: "2mb" }), async (req, res) => {
-  const { mode, prompt, seconds, aspect_ratio, seed, first_frame, last_frame, images, audios } = req.body || {};
-  if (!prompt || !String(prompt).trim()) return res.status(400).json({ ok: false, error: "请填写视频描述" });
-  const md = ["text", "keyframe", "reference"].indexOf(String(mode)) >= 0 ? String(mode) : "text";
-  const ar = AGNES_ASPECTS.indexOf(String(aspect_ratio || "")) >= 0 ? String(aspect_ratio) : "16:9"; // 非法值兜回 16:9，不再喂给上游挨 400
-  const sec = /^(?:4|5|6|7|8|9|1[0-2])$/.test(String(seconds || "")) ? String(seconds) : "5";
-  const ff = typeof first_frame === "string" ? first_frame.trim() : "";
-  const lf = typeof last_frame === "string" ? last_frame.trim() : "";
-  const imgs = (Array.isArray(images) ? images : []).filter(Boolean).slice(0, 5);
-  const auds = (Array.isArray(audios) ? audios : []).filter(Boolean).slice(0, 3);
-  /* 模式必需素材：本地先拦（省一次上游往返，也省免费额度） */
-  if (md === "keyframe" && !ff && !lf)
-    return res.status(400).json({ ok: false, error: "首尾帧模式至少要上传一张图（首帧或尾帧）再生成。" });
-  if (md === "reference" && !imgs.length && !auds.length)
-    return res.status(400).json({ ok: false, error: "图片参考模式至少要上传 1 张参考图片或 1 段参考音频再生成。" });
-  const body = {
-    model: AGNES_VIDEO_MODEL,
-    mode: md,
-    prompt: String(prompt).trim(),
-    seconds: sec, // Flash 仅支持 4–12 秒
-    size: "720P", // Flash 固定 720P,其它值会被 400 拒绝
-    aspect_ratio: ar,
-    n: 1
-  };
-  if (seed !== undefined && seed !== null && seed !== "" && Number.isFinite(Number(seed))) body.seed = Number(seed);
-  if (md === "keyframe") {
-    if (ff) body.first_frame = ff;
-    if (lf) body.last_frame = lf;
-  } else if (md === "reference") {
-    /* 空数组同样会被上游判非法（要求 images/audios 至少一类非空），所以只在非空时才带上 */
-    if (imgs.length) body.images = imgs;
-    if (auds.length) body.audios = auds;
-  }
-  try {
-    const r = await fetch(AGNES_BASE_URL + "/videos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + AGNES_API_KEY },
-      body: JSON.stringify(body)
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || (j && j.error)) {
-      /* 把上游原始错误体落进 Render 日志（不含密钥），以后排查不必再靠猜 */
-      console.error("[agnes create] upstream=" + r.status + " body=" + JSON.stringify(j).slice(0, 800) + " req=" + JSON.stringify(body).slice(0, 300));
-      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: agnesErrText(r.status, j) });
-    }
-    res.json({ ok: true, video_id: (j && (j.video_id || j.id)) || null, raw: j });
-  } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
-  }
-});
-app.get("/api/agnes-video/status", requireAuth, async (req, res) => {
-  const { video_id } = req.query || {};
-  if (!video_id) return res.status(400).json({ ok: false, error: "缺少 video_id" });
-  try {
-    const url = AGNES_RETRIEVE_URL + "?video_id=" + encodeURIComponent(video_id) + "&model_name=" + encodeURIComponent(AGNES_VIDEO_MODEL);
-    const r = await fetch(url, { headers: { Authorization: "Bearer " + AGNES_API_KEY } });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok || (j && j.error)) {
-      /* 轮询接口被高频调用，只在「非限流/非鉴权」这类异常时留日志 */
-      if (r.status !== 429 && r.status !== 401)
-        console.error("[agnes status] upstream=" + r.status + " body=" + JSON.stringify(j).slice(0, 600));
-      return res.status(r.ok ? 502 : r.status).json({ ok: false, error: agnesErrText(r.status, j) });
-    }
-    res.json({
-      ok: true,
-      status: (j && j.status) || "unknown",
-      progress: (j && j.progress) || 0,
-      video_url: (j && j.metadata && j.metadata.url) || (j && j.url) || null,
-      raw: j
-    });
-  } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
-  }
-});
-
-// ===== Agnes 图片上传(首帧/尾帧/参考图) =====
-// Agnes 要求素材必须是其服务可公开访问的 HTTPS URL，故本站接收文件后落地 public/uploads/ 并以公网 URL 返回
-const UPLOAD_DIR = path.join(__dirname, "public", "uploads");
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-const agnesUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-    filename: (req, file, cb) => cb(null, nanoid(16) + (path.extname(file.originalname) || "").toLowerCase().slice(0, 10))
-  }),
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB(图片/音频)
-  fileFilter: (req, file, cb) => cb(null, /^(image|audio)\//.test(file.mimetype))
-}).single("file");
-app.post("/api/agnes-upload", requireAuth, (req, res) => {
-  agnesUpload(req, res, (err) => {
-    if (err) return res.status(400).json({ ok: false, error: err.message || "上传失败" });
-    if (!req.file) return res.status(400).json({ ok: false, error: "未收到文件" });
-    const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0].trim();
-    const host = req.get("host");
-    const url = proto + "://" + host + "/uploads/" + req.file.filename;
-    res.json({ ok: true, url, name: req.file.originalname });
-  });
-});
-
-// ===== Auth 路由 =====
-app.post("/api/auth/send-code", async (req, res) => {
-  const email = String((req.body || {}).email || "").trim().toLowerCase();
-  const ip = getClientIp(req);
-  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email))
-    return res.status(400).json({ ok: false, error: "请填写正确的邮箱" });
-  // 同 IP 每小时发码上限(防脚本轰炸)
-  if (otpSendCount(ip) >= OTP_SEND_MAX_PER_IP_HOUR)
-    return res.status(429).json({ ok: false, error: "获取验证码过于频繁,请稍后再试" });
-  // 同邮箱 60 秒重发冷却
-  const prev = otpStore.get(email);
-  if (prev && Date.now() - prev.lastSentAt < OTP_RESEND_MS) {
-    const wait = Math.ceil((OTP_RESEND_MS - (Date.now() - prev.lastSentAt)) / 1000);
-    return res.status(429).json({ ok: false, error: "验证码已发送,请 " + wait + " 秒后重试" });
-  }
-  const code = genCode();
-  otpStore.set(email, { code, expiresAt: Date.now() + OTP_TTL_MS, attempts: 0, lastSentAt: Date.now() });
-  const arr = otpSendIp.get(ip) || [];
-  arr.push(Date.now());
-  otpSendIp.set(ip, arr);
-  // 异步发信(带 15 秒超时保护,防止 SMTP 连接卡死导致请求挂起)
-  const MAIL_TIMEOUT_MS = 15000;
-  let mailError = null;
-  try {
-    await Promise.race([
-      sendVerificationEmail(email, code),
-      new Promise((_, rej) => setTimeout(() => rej(new Error("邮件发送超时")), MAIL_TIMEOUT_MS))
-    ]);
-  } catch (e) {
-    mailError = e.message;
-    console.error("[mail] 发送验证码失败:", e.message);
-    // 验证码已生成并存储,即使发信失败也不影响用户输入验证码(开发模式可从日志/回显获取)
-  }
-  // 过期后自动清理
-  setTimeout(() => { const o = otpStore.get(email); if (o && Date.now() > o.expiresAt) otpStore.delete(email); }, OTP_TTL_MS + 1000);
-  const resp = { ok: true, dev: !EMAIL_ENABLED, message: EMAIL_ENABLED ? "验证码已发送到你的邮箱(10 分钟内有效)" : "开发模式:验证码已打印到服务器日志" };
-  // 如实回显真实发信结果(发信失败也返回 ok:true 让流程可继续,但带 mailOk:false 让前端提示失败)
-  if (mailError) { resp.mailError = mailError; resp.mailOk = false; }
-  // 仅开发模式(未配置真实邮件发送)回显验证码,便于自测;一旦配置 SMTP/Resend,dev=false,不再返回明文码
-  if (!EMAIL_ENABLED) resp.devCode = code;
-  res.json(resp);
-});
-
-app.post("/api/auth/register", async (req, res) => {
-  let { email, password, name, code } = req.body || {};
-  email = String(email || "").trim().toLowerCase();
-  const ip = getClientIp(req);
-  if (!email || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
-  // 邮箱强校验:拒绝明显乱填(无 @、无域名、TLD 过短等)
-  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) return res.status(400).json({ ok: false, error: "邮箱格式不正确" });
-  // 密码强度:至少 8 位,且需同时含字母和数字(挡弱密码批量注册)
-  if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password)) return res.status(400).json({ ok: false, error: "密码至少 8 位,且需包含字母和数字" });
-  if (password.length > 64) return res.status(400).json({ ok: false, error: "密码太长" });
-  // 防刷:同一 IP 10 分钟内注册次数超限,直接拒绝(挡批量注册脚本)
-  if (regWindowCount(ip) >= REG_MAX_PER_IP) {
-    return res.status(429).json({ ok: false, error: "注册过于频繁,请稍后再试或联系客服" });
-  }
-  // 邮箱验证码校验(必须先验证邮箱才能建号,挡随意填邮箱注册)
-  const otp = otpStore.get(email);
-  if (!otp) return res.status(400).json({ ok: false, error: "请先获取邮箱验证码" });
-  if (Date.now() > otp.expiresAt) { otpStore.delete(email); return res.status(400).json({ ok: false, error: "验证码已过期,请重新获取" }); }
-  if (otp.attempts >= OTP_MAX_ATTEMPTS) { otpStore.delete(email); return res.status(400).json({ ok: false, error: "验证码尝试次数过多,请重新获取" }); }
-  if (String(code || "") !== otp.code) { otp.attempts++; return res.status(400).json({ ok: false, error: "验证码错误" }); }
-  otpStore.delete(email); // 验证通过,立即作废,防复用
-  const existing = await findUserByEmail(email);
-  if (existing) return res.status(409).json({ ok: false, error: "该邮箱已注册,请直接登录" });
-  regHit(ip); // 记录一次成功注册尝试(限制每 IP 账号数)
-  const user = await createUser({ email, password, name });
-  req.session.userId = user.id;
-  res.json({ ok: true, user: publicUser(user) });
-});
-
-app.post("/api/auth/login", async (req, res) => {
-  const rawEmail = String((req.body || {}).email || "").trim().toLowerCase();
-  const password = (req.body || {}).password || "";
-  if (!rawEmail || !password) return res.status(400).json({ ok: false, error: "请填写邮箱和密码" });
-  const user = await findUserByEmail(rawEmail);
-  if (!user) return res.status(401).json({ ok: false, error: "邮箱或密码错误" });
-  if (!bcrypt.compareSync(password, user.passwordHash)) return res.status(401).json({ ok: false, error: "邮箱或密码错误" });
-  user.lastLoginAt = Date.now();
-  user.loginCount = (user.loginCount || 1) + 1;
-  await updateUser(user);
-  req.session.userId = user.id;
-  res.json({ ok: true, user: publicUser(user) });
-});
-
-app.post("/api/auth/logout", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
-});
-
-app.post("/api/auth/change-password", async (req, res) => {
-  const u = req.session.userId ? await findUserById(req.session.userId) : null;
-  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
-  const { oldPassword, newPassword } = req.body || {};
-  if (!oldPassword || !newPassword) return res.status(400).json({ ok: false, error: "请填写完整" });
-  if (!bcrypt.compareSync(oldPassword, u.passwordHash)) return res.status(401).json({ ok: false, error: "当前密码不正确" });
-  if (newPassword.length < 6 || newPassword.length > 64) return res.status(400).json({ ok: false, error: "新密码需 6-64 位" });
-  u.passwordHash = bcrypt.hashSync(newPassword, 10);
-  await updateUser(u);
-  res.json({ ok: true });
-});
-
-app.get("/api/auth/me", async (req, res) => {
-  const u = req.session.userId ? await findUserById(req.session.userId) : null;
-  res.json({ user: u ? publicUser(u) : null });
-});
-
-// 更新昵称 / 头像(需登录)
-app.post("/api/auth/profile", async (req, res) => {
-  const u = req.session.userId ? await findUserById(req.session.userId) : null;
-  if (!u) return res.status(401).json({ ok: false, error: "请先登录" });
-  const { name, avatar } = req.body || {};
-  if (name !== undefined) {
-    const n = String(name).trim();
-    if (n.length === 0) return res.status(400).json({ ok: false, error: "昵称不能为空" });
-    if (n.length > 40) return res.status(400).json({ ok: false, error: "昵称过长(最多 40 字)" });
-    u.name = n;
-  }
-  if (avatar !== undefined) {
-    if (avatar === null || avatar === "") {
-      u.avatar = null;
-    } else if (typeof avatar === "string" && avatar.startsWith("data:image/")) {
-      const valid = validateAvatar(avatar);
-      if (!valid) return res.status(400).json({ ok: false, error: "头像格式不支持或文件过大(解码上限 2MB)" });
-      u.avatar = valid;
-    } else {
-      return res.status(400).json({ ok: false, error: "头像数据无效" });
-    }
-  }
-  await updateUser(u);
-  res.json({ ok: true, user: publicUser(u) });
-});
-
-// ===== 邀请码领取 API =====
-// 查询当前用户的领取状态
-app.get("/api/my-code", async (req, res) => {
-  const u = req.session.userId ? await findUserById(req.session.userId) : null;
-  if (!u) return res.json({ claimed: false, code: null });
-  // 在码池中查找该用户已领取的码
-  const entry = codes.pool.find(c => c.claimedBy === u.id);
-  if (entry) return res.json({ claimed: true, code: entry.code, claimedAt: entry.claimedAt });
-  res.json({ claimed: false, code: null });
-});
-
-// 公开库存接口:返回邀请码剩余数量(供前端展示)
-app.get("/api/code-stock", (req, res) => {
-  const total = codes.pool.length;
-  const claimed = codes.pool.filter(c => c.claimedBy).length;
-  const available = total - claimed;
-  res.json({ total, claimed, available });
-});
-
-// 领取邀请码（每个用户限领一次，每码限一人）
-app.post("/api/claim-code", async (req, res) => {
-  const u = req.session.userId ? await findUserById(req.session.userId) : null;
-  if (!u) return res.status(401).json({ ok: false, error: "请先登录后再领取" });
-  const ip = getClientIp(req);
-  // 已领取用户直接返回其码(不受 IP 限制,方便换网络回看)
-  const mine = codes.pool.find(c => c.claimedBy === u.id);
-  if (mine) return res.json({ ok: true, code: mine.code, message: "您已领取过邀请码" });
-  // 防刷:同一 IP 只能领取一个邀请码(即使换账号也不行);持久化防重启后重刷
-  if (ipClaims[ip]) {
-    return res.status(409).json({ ok: false, error: "该网络环境已领取过邀请码(每 IP 限领 1 个),请勿重复领取", code: ipClaims[ip] });
-  }
-  // 从池中分配一个未使用的码
-  const available = codes.pool.find(c => !c.claimedBy);
-  if (!available) return res.json({ ok: false, error: "邀请码已发完，请联系客服" });
-  available.claimedBy = u.id;
-  available.claimedAt = new Date().toISOString();
-  // 记录该 IP 已领(核心防刷)
-  ipClaims[ip] = available.code;
-  if (usingGist) { try { await gistPushIpClaims(); } catch (e) { console.error("[ipclaims] 落盘失败:", e.message); } }
-  else saveJSON(IP_CLAIM_FILE, ipClaims);
-  await saveCodes();
-  res.json({ ok: true, code: available.code, message: "领取成功" });
-});
 
 // ===== 跟踪 API(原有)=====
 app.get("/t.gif", (req, res) => {
@@ -1120,8 +105,8 @@ app.get("/t.gif", (req, res) => {
   const vid = (req.cookies && req.cookies.vid) || hash(ip + ua);
   const isUnique = !(req.cookies && req.cookies.vid);
   const userId = req.session.userId || null;
-  db.visits.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua: (ua || "").slice(0, 300), referer: (ref || "").slice(0, 300), path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
-  if (db.visits.length > MAX_TRACK) db.visits = db.visits.slice(-MAX_TRACK);
+  store.db.visits.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua: (ua || "").slice(0, 300), referer: (ref || "").slice(0, 300), path: req.query.p || "", ...u, vid, unique: isUnique ? 1 : 0, userId });
+  if (store.db.visits.length > MAX_TRACK) store.db.visits = store.db.visits.slice(-MAX_TRACK);
   saveDB();
   if (isUnique) { res.cookie("vid", vid, { maxAge: 30 * 24 * 3600 * 1000, sameSite: "lax" }); }
   res.set("Content-Type", "image/gif");
@@ -1134,11 +119,11 @@ app.get("/api/messages", (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const pageSize = Math.min(30, Math.max(5, parseInt(req.query.pageSize) || 20));
   const start = (page - 1) * pageSize;
-  const sorted = [...messages].sort((a, b) => b.ts - a.ts);
+  const sorted = [...store.messages].sort((a, b) => b.ts - a.ts);
   const items = sorted.slice(start, start + pageSize);
-  res.json({ total: messages.length, page, pageSize, items });
+  res.json({ total: store.messages.length, page, pageSize, items });
 });
-app.post("/api/messages", requireAuth, express.json({ limit: "2kb" }), async (req, res) => {
+app.post("/api/messages", requireAuth, async (req, res) => {
   const content = (req.body.content || "").trim().slice(0, 300);
   const name = (req.body.name || "").trim().slice(0, 30);
   if (!content) return res.status(400).json({ ok: false, error: "留言内容不能为空" });
@@ -1150,11 +135,11 @@ app.post("/api/messages", requireAuth, express.json({ limit: "2kb" }), async (re
     ts: Date.now(),
     ip: getClientIp(req),
   };
-  messages.push(msg);
+  store.messages.push(msg);
   // 超上限裁剪
-  if (messages.length > MAX_MESSAGES) messages = messages.slice(-MAX_MESSAGES);
+  if (store.messages.length > MAX_MESSAGES) store.messages = store.messages.slice(-MAX_MESSAGES);
   // 异步落 Gist(不阻塞响应)
-  gistPushMessages().catch(e => console.error("[messages] Gist 落盘失败:", e.message));
+  gistWrite(MESSAGES_GIST_FILENAME, store.messages.slice(0, MAX_MESSAGES)).catch(e => console.error("[messages] Gist 落盘失败:", e.message));
   res.json({ ok: true, msg: { id: msg.id, name: msg.name, content: msg.content, ts: msg.ts } });
 });
 
@@ -1166,8 +151,8 @@ app.post("/api/click", (req, res) => {
   const u = getUtm({ ...req.query, ...req.body });
   const { target, label } = req.body || {};
   const userId = req.session.userId || null;
-  db.clicks.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua: (ua || "").slice(0, 300), referer: (ref || "").slice(0, 300), vid, ...u, target: target || "", label: label || "", userId });
-  if (db.clicks.length > MAX_TRACK) db.clicks = db.clicks.slice(-MAX_TRACK);
+  store.db.clicks.push({ ts: Date.now(), ip, region: resolveRegion(ip), ua: (ua || "").slice(0, 300), referer: (ref || "").slice(0, 300), vid, ...u, target: target || "", label: label || "", userId });
+  if (store.db.clicks.length > MAX_TRACK) store.db.clicks = store.db.clicks.slice(-MAX_TRACK);
   saveDB();
   res.json({ ok: true });
 });
@@ -1188,7 +173,7 @@ const CHAT_SYSTEM_PROMPT = `你是 Fleta AI 写代码助手，专精于"从零�
 - 如果用户问其他领域问题，友好引导回 BYOX 方向，但也可以正常聊天
 - 保持简洁实用，不要废话`;
 
-app.post("/api/chat", requireAuth, express.json({ limit: "8kb" }), async (req, res) => {
+app.post("/api/chat", requireAuth, async (req, res) => {
   try {
     const { message, history = [] } = req.body;
     if (!message || typeof message !== "string" || message.trim().length === 0) {
@@ -1199,18 +184,18 @@ app.post("/api/chat", requireAuth, express.json({ limit: "8kb" }), async (req, r
     }
 
     // 构建对话历史
-    const messages = [{ role: "system", content: CHAT_SYSTEM_PROMPT }];
+    const chatMessages = [{ role: "system", content: CHAT_SYSTEM_PROMPT }];
     history.forEach(h => {
-      if (h.role === "user") messages.push({ role: "user", content: h.content });
-      else if (h.role === "assistant") messages.push({ role: "assistant", content: h.content });
+      if (h.role === "user") chatMessages.push({ role: "user", content: h.content });
+      else if (h.role === "assistant") chatMessages.push({ role: "assistant", content: h.content });
     });
-    messages.push({ role: "user", content: message.trim() });
+    chatMessages.push({ role: "user", content: message.trim() });
 
     let reply = "";
     if (AI_PROVIDER === "gemini") {
       // Gemini: 把 system + history 合并为 context
       const parts = [];
-      messages.slice(1).forEach(m => {
+      chatMessages.slice(1).forEach(m => {
         parts.push({ text: (m.role === "user" ? "用户: " : "助手: ") + m.content });
       });
       reply = await callGemini(parts, CHAT_SYSTEM_PROMPT, 2048);
@@ -1223,7 +208,7 @@ app.post("/api/chat", requireAuth, express.json({ limit: "8kb" }), async (req, r
       const r = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
-        body: JSON.stringify({ model: AI_MODEL || model, messages, temperature: 0.7, max_tokens: 2048 })
+        body: JSON.stringify({ model: AI_MODEL || model, messages: chatMessages, temperature: 0.7, max_tokens: 2048 })
       });
       if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Chat API ${r.status}`); }
       const data = await r.json();
@@ -1542,281 +527,7 @@ app.get("/api/video-use/download/:jobId", (req, res) => {
   res.download(finalFile, "fleta_edit.mp4");
 });
 
-// ===== Admin(原有)=====
-function requireAdmin(req, res, next) {
-  if (req.signedCookies && req.signedCookies.admin === "ok") return next();
-  if (req.query.token === ADMIN_PASSWORD) {
-    res.cookie("admin", "ok", { signed: true, maxAge: 7 * 24 * 3600 * 1000 });
-    // 仅后台页面需要重定向到干净 URL;API 路由直接放行
-    if (req.method === "GET" && req.path === "/admin") return res.redirect("/admin");
-    return next();
-  }
-  // 未授权:转到干净的登录页;若带了 token 但错误,带 e=1 提示
-  return res.redirect("/admin-login" + (req.query.token ? "?e=1" : ""));
-}
-app.get("/admin/api/stats", requireAdmin, async (req, res) => {
-  const users = await loadUsers();
-  res.json({
-    total: db.visits.length,
-    unique: db.visits.filter(x => x.unique).length,
-    clicks: db.clicks.length,
-    cvr: db.visits.length ? (db.clicks.length / db.visits.length * 100).toFixed(2) : "0",
-    userCount: users.length,
-    bySource: groupBy(db.visits, "utm_source", "(direct)"),
-    byMedium: groupBy(db.visits, "utm_medium", "(none)"),
-    byCampaign: groupBy(db.visits, "utm_campaign", "(none)"),
-    byContent: groupBy(db.visits, "utm_content", "(none)"),
-    clicksByTarget: groupBy(db.clicks, "target", "(unknown)"),
-    byRegion: groupBy(db.visits, "region", "(未知/历史)"),
-    clicksByRegion: groupBy(db.clicks, "region", "(未知/历史)"),
-    regionCount: new Set([...db.visits, ...db.clicks].map(x => x.region).filter(x => x && x !== "未知" && x !== "内网/本地")).size,
-    recent: db.visits.slice(-50).reverse(),
-    recentClicks: db.clicks.slice(-50).reverse(),
-    byDay: groupByDay(db.visits),
-    persist: usingGist ? "gist" : "local",
-    publicUrl: PUBLIC_URL,
-    publicHost: req.get("host"),
-    promptCount: promptCache.length,
-    promptModes: groupBy(promptCache, "mode", "(未知)")
-  });
-});
-// 提示词语料库查看(后台)
-app.get("/admin/api/prompts", requireAdmin, async (req, res) => {
-  const q = (req.query.q || "").toString().toLowerCase();
-  const mode = req.query.mode || "";
-  let list = promptCache;
-  if (q) list = list.filter(p => (p.idea || "").toLowerCase().includes(q) || (p.prompt || "").toLowerCase().includes(q));
-  if (mode) list = list.filter(p => p.mode === mode);
-  const total = list.length;
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const pageSize = Math.min(50, Number(req.query.size) || 20);
-  const items = list.slice((page - 1) * pageSize, page * pageSize).map(p => ({
-    id: p.id, mode: p.mode, duration: p.duration, imagesCount: p.imagesCount, ts: p.ts,
-    idea: (p.idea || "").slice(0, 140), promptPreview: (p.prompt || "").slice(0, 240)
-  }));
-  res.json({
-    total, page, pageSize, items, all: promptCache.length,
-    createCount: promptCache.filter(p => p.mode !== "reverse").length,
-    reverseCount: promptCache.filter(p => p.mode === "reverse").length,
-    withImageCount: promptCache.filter(p => (p.imagesCount || 0) > 0).length
-  });
-});
-// 提示词语料库导出 CSV(后台)
-app.get("/admin/api/export-prompts.csv", requireAdmin, async (req, res) => {
-  const header = "ts,mode,duration,imagesCount,idea,prompt\n";
-  const rows = promptCache.map(p => [
-    new Date(p.ts).toISOString(), p.mode, p.duration, p.imagesCount,
-    `"${(p.idea || "").replace(/"/g, '""').replace(/[\n\r]+/g, " ")}"`,
-    `"${(p.prompt || "").replace(/"/g, '""').replace(/[\n\r]+/g, " ")}"`
-  ].join(",")).join("\n");
-  res.setHeader("Content-Type", "text/csv; charset=utf-8");
-  res.setHeader("Content-Disposition", "attachment; filename=fleta_prompts_" + Date.now() + ".csv");
-  res.send("﻿" + header + rows);
-});
-// 清空提示词语料库(后台,谨慎)
-app.delete("/admin/api/prompts", requireAdmin, async (req, res) => {
-  const before = promptCache.length;
-  promptCache = [];
-  if (usingGist) { try { await gistPushPrompts(); } catch (e) { console.error("[prompts] 清空落盘失败:", e.message); } }
-  else { try { fs.writeFileSync(PROMPTS_FILE, "[]"); } catch (e) {} }
-  res.json({ ok: true, cleared: before });
-});
-function groupBy(arr, key, label) {
-  const m = new Map();
-  for (const x of arr) { const k = x[key] || label; m.set(k, (m.get(k) || 0) + 1); }
-  return Array.from(m, ([k, v]) => ({ k, c: v })).sort((a, b) => b.c - a.c);
-}
-function groupByDay(arr) {
-  const m = new Map();
-  for (const x of arr) { const d = new Date(x.ts).toISOString().slice(0, 10); m.set(d, (m.get(d) || 0) + 1); }
-  return Array.from(m, ([k, v]) => ({ d: k, c: v })).sort((a, b) => a.d.localeCompare(b.d));
-}
-app.get("/admin/api/reset", requireAdmin, async (req, res) => {
-  if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
-  db = { visits: [], clicks: [] };
-  if (usingGist) {
-    // 强制立即落盘:清掉 pending 的 debounce 定时器并直接写 Gist(绕过 persistDBToGist 的 dbSaving 锁),
-    // 确保清空一定写进 Gist,否则重启时旧 tracking 会从 Gist 复活。
-    try {
-      if (dbSaveTimer) { clearTimeout(dbSaveTimer); dbSaveTimer = null; }
-      await gistPushTracking(db);
-    } catch (e) { console.error("[tracking] reset 落盘失败:", e.message); }
-  } else saveJSON(DB_FILE, db);
-  res.json({ ok: true });
-});
-// 强制用本地正确码表覆盖 Gist + 清除所有历史领取记录(码错时使用)
-app.get("/admin/api/resync-codes", requireAdmin, async (req, res) => {
-  if (req.query.confirm !== "yes") return res.status(400).send("add ?confirm=yes");
-  // 1) 从本地文件重新加载正确码表(修正 OCR 错误后)
-  const fresh = loadJSON(CODES_FILE, { pool: [] });
-  // 2) 清除所有领取记录(之前领的是错的码,不算)
-  fresh.pool.forEach(c => { c.claimedBy = null; c.claimedAt = null; });
-  codes = fresh;
-  if (usingGist) {
-    try {
-      await gistPushCodes(codes);
-      console.log(`[codes] 已强制同步 ${codes.pool.length} 个正确码到 Gist(全部未领)`);
-    } catch (e) { return res.status(500).json({ ok: false, error: "Gist 同步失败: " + e.message }); }
-  }
-  // 3) 清除所有已领用户的 claimedCode(让他们可以重新领正确的码)
-  let cleared = 0;
-  const allUsers = usingGist ? gistCache : loadJSON(USERS_FILE, []);
-  for (const u of allUsers) {
-    if (u.claimedCode) { u.claimedCode = null; cleared++; }
-  }
-  if (usingGist && cleared > 0) {
-    try { await gistPush(allUsers); } catch (e) { console.error("[users] 清除 claimedCode 失败:", e.message); }
-  } else if (!usingGist && cleared > 0) {
-    saveUsers(allUsers);
-  }
-  // 4) 清除 IP 领码记录(之前领的是错的码,且让被正确码的用户能重新领)
-  const prevIpClaims = Object.keys(ipClaims).length;
-  ipClaims = {};
-  if (usingGist) { try { await gistPushIpClaims(); } catch (e) { console.error("[ipclaims] 清除失败:", e.message); } }
-  else saveJSON(IP_CLAIM_FILE, ipClaims);
-  res.json({ ok: true, totalCodes: codes.pool.length, clearedUsers: cleared, clearedIpClaims: prevIpClaims });
-});
-app.get("/admin/api/export.csv", requireAdmin, (req, res) => {
-  const header = ["id", "time", "ip", "region", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "path", "referer", "is_unique", "user_id"];
-  const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
-  const lines = [header.join(",")];
-  v.forEach((r, i) => { lines.push([i + 1, new Date(r.ts).toISOString(), r.ip, r.region, r.utm_source, r.utm_medium, r.utm_campaign, r.utm_content, r.utm_term, r.path, r.referer, r.unique, r.userId].map(esc).join(",")); });
-  res.set("Content-Type", "text/csv;charset=utf-8");
-  res.set("Content-Disposition", "attachment; filename=visits.csv");
-  res.send("\uFEFF" + lines.join("\n"));
-});
-app.get("/admin/api/export-clicks.csv", requireAdmin, (req, res) => {
-  const c = db.clicks;
-  const header = ["id", "time", "ip", "region", "utm_source", "utm_medium", "utm_campaign", "utm_content", "target", "label", "user_id"];
-  const esc = (s) => '"' + String(s == null ? "" : s).replace(/"/g, '""') + '"';
-  const lines = [header.join(",")];
-  c.forEach((r, i) => { lines.push([i + 1, new Date(r.ts).toISOString(), r.ip, r.region, r.utm_source, r.utm_medium, r.utm_campaign, r.utm_content, r.target, r.label, r.userId].map(esc).join(",")); });
-  res.set("Content-Type", "text/csv;charset=utf-8");
-  res.set("Content-Disposition", "attachment; filename=clicks.csv");
-  res.send("\uFEFF" + lines.join("\n"));
-});
-
-app.get("/admin/api/users", requireAdmin, async (req, res) => {
-  const users = await loadUsers();
-  res.json(users.map((u) => ({
-    id: u.id, email: u.email, name: u.name, plan: u.plan, role: u.role,
-    avatar: u.avatar || null,
-    createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, loginCount: u.loginCount
-  })));
-});
-
-app.delete("/admin/api/users/:id", requireAdmin, async (req, res) => {
-  const ok = await deleteUserById(req.params.id);
-  if (!ok) return res.status(404).json({ ok: false, error: "用户不存在" });
-  res.json({ ok: true });
-});
-
 // ===== AI 提示词生成(SD 2.5 / Seedance 五段式) =====
-// Render Blueprint 不注入自定义环境变量, 故写死 OpenAI 兼容兜底(base URL + 默认模型), API key 仍从环境变量读取
-const AI_API_KEY = process.env.AI_API_KEY || ("466d246778fa4d339f78065339cc9042" + "." + "xWyk0NO8k76BdfOX"); // 拆段避免密钥扫描;优先用 env
-// 检测 provider: 优先看 base_url(最准), 其次看 key 形状(兜底), 最后看 env
-const AI_PROVIDER = (() => {
-  const envProvider = (process.env.AI_PROVIDER || "").toLowerCase();
-  const base = (process.env.AI_BASE_URL || "").toLowerCase();
-  if (base.includes("bigmodel.cn")) return "zhipu";
-  if (base.includes("dashscope")) return "qwen";
-  if (base.includes("openai.com")) return "openai";
-  if (base.includes("generativelanguage.googleapis.com") || base.includes("googleapis.com")) return "gemini";
-  if (base.includes("deepseek.com")) return "deepseek";
-  const isDashKey = /\.[A-Za-z0-9]{8,}$/.test(AI_API_KEY) && !/^sk-/.test(AI_API_KEY);
-  return (isDashKey && envProvider === "openai") ? "qwen" : (envProvider || "qwen");
-})();
-// 模型选择:未设置或设置为轻量模型时,自动落到对应 provider 的更强默认模型,避免输出过简
-const AI_MODEL = (() => {
-  const envModel = (process.env.AI_MODEL || "").trim();
-  const weak = ["glm-4-flash", "qwen-flash", "gemini-2.5-flash"]; // 轻量模型列表
-  if (!envModel || weak.includes(envModel.toLowerCase())) {
-    const map = { zhipu: "glm-4-air", qwen: "qwen-plus", openai: "gpt-4o-mini", gemini: "gemini-2.5-flash", deepseek: "deepseek-chat" };
-    const chosen = map[AI_PROVIDER] || "gpt-4o-mini";
-    if (envModel && envModel.toLowerCase() !== chosen.toLowerCase()) {
-      console.log(`[ai] AI_MODEL env 为 ${envModel}(轻量模型),已自动升级到 ${chosen} 以获得更完整的意图解析和五段式输出。如想手动控制,请在 Render Dashboard 将 AI_MODEL 设为空或指定非轻量模型。`);
-    }
-    return chosen;
-  }
-  return envModel;
-})();
-const AI_BASE_URL = process.env.AI_BASE_URL || (AI_PROVIDER === "qwen" ? "https://dashscope.aliyuncs.com/compatible-mode/v1" : AI_PROVIDER === "zhipu" ? "https://open.bigmodel.cn/api/paas/v4" : ""); // OpenAI 兼容接口的 base URL(智谱/通义/DeepSeek 等)
-
-// ===== Agnes Video 2.5 Flash (OpenAI Videos 兼容, 异步任务) =====
-// Render Blueprint 不注入自定义环境变量, 故写死兜底; key 优先用 env
-const AGNES_API_KEY = process.env.AGNES_API_KEY || "";  // ⚠️ 只从 Render 环境变量读取。本仓库是公开的，绝不能把密钥写进代码（旧 key 就是因为被提交到公开仓库而失效）
-const AGNES_BASE_URL = process.env.AGNES_BASE_URL || "https://api.agnes-ai.cn/v1";  // 国内站；国际站是 https://apihub.agnes-ai.com/v1（两站 key 不通用）
-const AGNES_VIDEO_MODEL = process.env.AGNES_VIDEO_MODEL || "agnes-video-2.5-flash";  // 官方文档(agnes-ai.com/zh-Hans/docs/agnes-video-25-flash)接入清单:模型 ID 用 agnes-video-2.5-flash;size 固定 "720P";reference 模式 images≤5 / audios≤3 / 不支持 videos;seconds "4"-"12";n=1;查询 /agnesapi?video_id=&model_name=agnes-video-2.5-flash
-const AGNES_RETRIEVE_URL = process.env.AGNES_RETRIEVE_URL || "https://api.agnes-ai.cn/agnesapi";
-const AI_VISION_MODEL = process.env.AI_VISION_MODEL || "qwen-vl-max"; // 处理图片时使用的视觉模型(留空回落 qwen-vl-max,已开通无需申请权限)
-
-// OpenAI 兼容调用(支持多图 vision + 纯文本,支持自定义 base URL 如智谱/通义/DeepSeek)
-// contentParts: [{type:"image_url",image_url:{url}}, {type:"text",text}]
-// temperature 可选:提示词创作类调用传 0.85 提多样性;帧描述/聊天保持默认 0.7 保稳定
-async function callOpenAIChat(model, systemPrompt, contentParts, maxTokens, temperature = 0.7) {
-  const url = AI_BASE_URL
-    ? `${AI_BASE_URL.replace(/\/$/, "")}/chat/completions`
-    : (AI_PROVIDER === "qwen"
-        ? "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-        : "https://api.openai.com/v1/chat/completions");
-  // 纯文本请求必须把 content 压成字符串:智谱 glm 系列收到 `[{type:"text"}]` 数组时会丢弃 user 消息,
-  // 导致模型看不到用户输入、只能拿 system/few-shot 示例编造(表现为输出与输入无关、各次结果雷同)。
-  let content = contentParts;
-  if (Array.isArray(content) && content.length && content.every(p => p && p.type === "text")) {
-    content = content.map(p => p.text).join("\n");
-  }
-  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content }], temperature, max_tokens: maxTokens };
-  // 免费模型共享算力,偶发 429 限流,自动重试
-  const maxRetry = 3;
-  let lastErr = "";
-  for (let attempt = 0; attempt < maxRetry; attempt++) {
-    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
-    if (r.ok) { const data = await r.json(); return data.choices?.[0]?.message?.content || ""; }
-    const err = await r.json().catch(() => ({}));
-    lastErr = err.error?.message || `AI API ${r.status}`;
-    if (r.status === 429 && attempt < maxRetry - 1) { await new Promise(s => setTimeout(s, 4000 * (attempt + 1))); continue; }
-    throw new Error(lastErr);
-  }
-  throw new Error(lastErr);
-}
-
-// 视觉模型候选链(主模型失效时自动回落,全部走同一 base URL / key)
-// 支持环境变量 AI_VISION_FALLBACK(逗号分隔)自定义额外候选;内置同底座有效模型兜底
-function visionCandidates() {
-  const fb = (process.env.AI_VISION_FALLBACK || "").split(",").map(s => s.trim()).filter(Boolean);
-  const isDash = AI_PROVIDER === "qwen" || /\/dashscope/.test(AI_BASE_URL || "");
-  const isZhipu = AI_PROVIDER === "zhipu" || /bigmodel\.cn/.test(AI_BASE_URL || "");
-  const primary = AI_VISION_MODEL
-    || (isDash ? "qwen3-vl-plus" : isZhipu ? "glm-4v-flash" : (AI_MODEL || "gpt-4o-mini"));
-  const builtin = isDash
-    ? ["qwen-vl-plus-latest", "qwen3-vl-plus", "qwen-vl-plus", "qwen2.5-vl-72b-instruct"]
-    : isZhipu ? ["glm-4v-flash", "glm-4.6v-flash"] : [];
-  return [...new Set([primary, ...fb, ...builtin])];
-}
-
-// Gemini API 调用(支持多图,parts 为 inlineData/text 数组)
-async function callGemini(parts, systemText, maxTokens) {
-  const model = AI_MODEL || "gemini-2.5-flash";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AI_API_KEY}`;
-  const contents = [{ role: "user", parts: [{ text: systemText }, ...parts] }];
-  const body = { contents, generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens } };
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `Gemini API ${r.status}`); }
-  const data = await r.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-}
-
-// DeepSeek API 调用(文本为主)
-async function callDeepSeek(text, systemPrompt, maxTokens) {
-  const model = AI_MODEL || "deepseek-chat";
-  const url = "https://api.deepseek.com/chat/completions";
-  const body = { model, messages: [{ role: "system", content: systemPrompt }, { role: "user", content: text }], temperature: 0.7, max_tokens: maxTokens };
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` }, body: JSON.stringify(body) });
-  if (!r.ok) { const err = await r.json().catch(() => ({})); throw new Error(err.error?.message || `DeepSeek API ${r.status}`); }
-  const data = await r.json();
-  return data.choices?.[0]?.message?.content || "";
-}
-
 // SD 2.5 五段式 System Prompt(来自 sd-2-5-prompt 技能，增强版)
 const SD25_SYSTEM_PROMPT = `你是专业的视频提示词工程师，专精于 Seedance 2.5 / SD 2.5 视频生成。你的任务是把用户的创意（文字描述或+参考图片）整理成可直接复制使用的五段式视频提示词。
 
@@ -2151,10 +862,10 @@ app.post("/api/prompt-generate", requireAuth, express.json({ limit: "25mb" }), a
     // 自动收集到训练语料库(匿名化:仅记录生成记录,用于 few-shot 自进化)
     try {
       const saved = collectPrompt({ idea, duration, mode, imagesCount: images.length, prompt, userId: req.session?.userId || null });
-      if (saved) console.log(`[prompts] 已收集 1 条语料(当前 ${promptCache.length} 条)`);
+      if (saved) console.log(`[prompts] 已收集 1 条语料(当前 ${store.promptCache.length} 条)`);
     } catch (e) { console.error("[prompts] 收集失败(不影响返回):", e.message); }
 
-    res.json({ ok: true, prompt, intent: parsed.intent, warnings: parsed.warnings, provider: AI_PROVIDER, trained: promptCache.length });
+    res.json({ ok: true, prompt, intent: parsed.intent, warnings: parsed.warnings, provider: AI_PROVIDER, trained: store.promptCache.length });
   } catch (e) {
     console.error("[ai] generate error:", e.message);
     res.status(500).json({ ok: false, error: "AI 生成失败: " + e.message });
@@ -2174,31 +885,31 @@ app.get("/api/prompt-generate/status", (req, res) => {
     visionFallback: visionCandsStatus.slice(1), // 主视觉模型失效时的自动回落候选
     supportsImage: AI_PROVIDER !== "deepseek", // deepseek 暂不支持图片输入
     supportsVideo: AI_PROVIDER !== "deepseek", // 视频抽帧后按多图处理,deepseek 暂不支持图片
-    promptCount: promptCache.length // 已收集语料数(用于前端展示训练进度)
+    promptCount: store.promptCache.length // 已收集语料数(用于前端展示训练进度)
   });
 });
 
 app.get("/healthz", (req, res) => res.json({
   ok: true,
   ts: Date.now(),
-  store: usingMongo ? "mongodb" : (usingGist ? "gist" : "json"),
+  store: store.usingMongo ? "mongodb" : (store.usingGist ? "gist" : "json"),
   mongoConfigured: !!MONGODB_URI,
   mongoConnected: mongoose.connection.readyState === 1,
   aiAvailable: !!AI_API_KEY,
   aiProvider: AI_PROVIDER
 }));
 
-// TEMP: debug SMTP env (remove after Brevo is confirmed working)
-app.get("/debug-smtp", (req, res) => res.json({
-  SMTP_HOST: !!process.env.SMTP_HOST,
-  SMTP_PORT: process.env.SMTP_PORT || "(unset)",
-  SMTP_SECURE: process.env.SMTP_SECURE || "(unset)",
-  SMTP_USER: !!process.env.SMTP_USER,
-  SMTP_PASS_len: (process.env.SMTP_PASS || "").length,
-  SMTP_FROM: process.env.SMTP_FROM || "(unset)",
-  EMAIL_ENABLED,
-  mailerExists: !!mailer
-}));
+
+// ===== 404 / 统一错误处理(必须在所有路由之后)=====
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) return res.status(404).json({ ok: false, error: "接口不存在" });
+  res.status(404).send("404 Not Found");
+});
+app.use((err, req, res, next) => {
+  console.error("[error]", (err && err.stack) || err);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({ ok: false, error: err.message || "服务器内部错误" });
+});
 
 await initUsersStore();
 app.listen(PORT, "0.0.0.0", () => console.log("listening on " + PORT));

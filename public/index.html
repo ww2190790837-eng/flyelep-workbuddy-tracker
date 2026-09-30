@@ -72,12 +72,10 @@
   ]
 }
 </script>
-<link rel="icon" href="/logo.svg" type="image/png" />
+<link rel="icon" href="/logo.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/evolve-hero.css" />
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -111,6 +109,14 @@
   }
   img,svg{max-width:100%;display:block}
   a{color:inherit;text-decoration:none}
+  /* 键盘可达性: 鼠标点击不显示, 仅键盘 Tab 导航时出现焦点环 */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  /* 深色滚动条(全站统一, 避免默认白底滚动条在暗色主题里突兀) */
+  *{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+  *::-webkit-scrollbar{width:8px;height:8px}
+  *::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:99px}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.34)}
+  *::-webkit-scrollbar-track{background:transparent}
 
   /* === 统一图标系统 (Lucide 风格线性图标) === */
   .ic{

@@ -36,6 +36,17 @@
         value: qwen-vl-max
       - key: AI_BASE_URL
         value: https://dashscope.aliyuncs.com/compatible-mode/v1
+      # ---- 密钥(只放 Render 面板,sync:false = 值不进仓库;本仓库公开,绝不能写进代码) ----
+      - key: AI_API_KEY
+        sync: false          # 通义千问(DashScope)API Key;原硬编码 key 已泄露,请轮换
+      - key: VIDEO_USE_API_KEY
+        sync: false          # ElevenLabs 转写 key;原硬编码 key 已泄露,请轮换
+      - key: BREVO_API_KEY
+        sync: false          # Brevo HTTP 发信 key(443 端口);原硬编码 key 已泄露,请轮换
+      - key: USERS_GIST_TOKEN
+        sync: false          # GitHub 私有 Gist token(用户/留言/跟踪持久化)
+      - key: USERS_GIST_ID
+        sync: false          # GitHub Gist ID(与 USERS_GIST_TOKEN 配套)
       # ---- Agnes 视频（仅这一个功能用）----
       # 密钥只在 Render 面板维护（代码里没有兜底值）；换 key 只需改这一项并重新部署
       - key: AGNES_API_KEY
