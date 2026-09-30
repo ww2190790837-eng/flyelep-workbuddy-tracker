@@ -89,6 +89,7 @@
     --success:#e6e6ea;
     --gradient:linear-gradient(135deg,#e6e6ea 0%,#e6e6ea 52%,#d8d8dc 100%);
     --glow:0 0 40px rgba(255,255,255,.45),0 0 80px rgba(255,255,255,.3);
+    --brand:#7aa2ff;--brand-2:#a5c3ff;--brand-ink:#0a1220;--brand-glow:0 0 22px rgba(122,162,255,.5),0 0 52px rgba(122,162,255,.25);
   }
   html{scroll-behavior:smooth;background:var(--bg)}
   body{
@@ -314,6 +315,13 @@
   .pg-copy{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;color:var(--primary);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);cursor:pointer;transition:all .2s}
   .pg-copy:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
   .pg-copy.copied{background:var(--success,#e6e6ea);color:#fff;border-color:var(--success,#e6e6ea)}
+  .pg-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .pg-tog{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;color:var(--brand);background:rgba(122,162,255,.12);border:1px solid rgba(122,162,255,.38);cursor:pointer;transition:all .2s;white-space:nowrap}
+  .pg-tog:hover{background:rgba(122,162,255,.22);box-shadow:var(--brand-glow)}
+  .lineup-flow{text-align:center;margin:16px 0 0;font-size:12px;letter-spacing:.06em;color:var(--text-3)}
+  .lineup-flow b{color:var(--brand);font-weight:700;margin:0 6px}
+  #agvFilledHint{position:fixed;left:50%;bottom:32px;transform:translate(-50%,20px);opacity:0;visibility:hidden;transition:all .3s cubic-bezier(.22,1,.36,1);background:rgba(122,162,255,.14);border:1px solid rgba(122,162,255,.45);color:var(--brand-2);padding:10px 18px;border-radius:99px;font-size:13px;z-index:400;pointer-events:none;white-space:nowrap}
+  #agvFilledHint.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
   #pgResult{margin:0;padding:18px 16px;font-size:13px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;font-family:"JetBrains Mono","SF Mono",Consolas,monospace;max-height:420px;overflow-y:auto}
   #pgResult::-webkit-scrollbar{width:5px}
   #pgResult::-webkit-scrollbar-track{background:transparent}
@@ -1735,6 +1743,7 @@
       <button class="lineup-btn" data-tab="1" role="tab" aria-selected="false"><i>02</i><b>Reverse</b><span>视频反推</span></button>
       <button class="lineup-btn" data-tab="2" role="tab" aria-selected="false"><i>03</i><b>Agnes</b><span>Agnes 视频</span></button>
     </div>
+    <p class="lineup-flow" aria-hidden="true"><span>① 写提示词</span><b>⇢</b><span>② 原片反推</span><b>⇢</b><span>③ Agnes 一键出片</span> · 提示词 / 反推结果可一键直送 Agnes 生成视频</p>
   </div>
 </div>
 <section id="prompt-gen" class="lineup-panel active">
@@ -1853,10 +1862,16 @@
       <div class="pg-output" id="pgOutput" style="display:none">
         <div class="pg-output-head">
           <span>生成的提示词</span>
-          <button class="pg-copy" id="pgCopy">
-            <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            复制
-          </button>
+          <div class="pg-head-actions">
+            <button class="pg-copy" id="pgCopy">
+              <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              复制
+            </button>
+            <button class="pg-tog" id="pgToAgnes" title="一键填入 Agnes 视频生成">
+              <svg viewBox="0 0 24 24" width="15" height="15"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              生成视频
+            </button>
+          </div>
         </div>
         <div class="pg-intent" id="pgIntent" style="display:none"></div>
         <pre id="pgResult"></pre>
@@ -1924,10 +1939,16 @@
       <div class="pg-output" id="vrOutput" style="display:none;margin-top:16px">
         <div class="pg-output-head">
           <span>反推出的五段式提示词</span>
-          <button class="pg-copy" id="vrCopy">
-            <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            复制
-          </button>
+          <div class="pg-head-actions">
+            <button class="pg-copy" id="vrCopy">
+              <svg viewBox="0 0 24 24" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              复制
+            </button>
+            <button class="pg-tog" id="vrToAgnes" title="一键填入 Agnes 视频生成">
+              <svg viewBox="0 0 24 24" width="15" height="15"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              生成视频
+            </button>
+          </div>
         </div>
         <pre id="vrResult"></pre>
       </div>
@@ -4667,6 +4688,45 @@
   if (id0) activateFor(id0);
   window.addEventListener('hashchange', function(){
     activateFor((location.hash || '').replace('#',''));
+  });
+})();
+</script>
+<script>
+/* 跨功能联动：提示词 / 反推结果 → 一键送入 Agnes 视频生成 */
+(function(){
+  function actAgnes(){
+    var btns=[].slice.call(document.querySelectorAll('.lineup-btn'));
+    var panels=[].slice.call(document.querySelectorAll('.lineup-panel'));
+    var i=-1; panels.forEach(function(p,k){ if(p.id==='agnes-video') i=k; });
+    if(i<0) return;
+    btns.forEach(function(b,k){ b.classList.toggle('active',k===i); b.setAttribute('aria-selected',k===i); });
+    panels.forEach(function(p,k){ p.classList.toggle('active',k===i); });
+    try{ window.dispatchEvent(new Event('scroll')); }catch(e){}
+  }
+  var hint=null;
+  function ensureHint(){
+    if(hint) return hint;
+    hint=document.createElement('div'); hint.id='agvFilledHint'; hint.textContent='已填入 Agnes 视频生成';
+    document.body.appendChild(hint); return hint;
+  }
+  window.fletaToAgnes = function(text){
+    var t=String(text||'').trim();
+    if(!t) return;
+    actAgnes();
+    var box=document.getElementById('agvPrompt');
+    if(box){
+      box.value=t;
+      box.dispatchEvent(new Event('input',{bubbles:true}));
+      setTimeout(function(){ box.scrollIntoView({behavior:'smooth',block:'center'}); box.focus(); },80);
+    }
+    var h=ensureHint(); h.classList.add('show');
+    clearTimeout(h._t); h._t=setTimeout(function(){ h.classList.remove('show'); },2400);
+  };
+  document.addEventListener('click', function(e){
+    var b=e.target && e.target.closest ? e.target.closest('#pgToAgnes,#vrToAgnes') : null;
+    if(!b) return;
+    var src=document.getElementById(b.id==='pgToAgnes' ? 'pgResult' : 'vrResult');
+    if(src) window.fletaToAgnes(src.textContent);
   });
 })();
 </script>
