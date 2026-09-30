@@ -201,7 +201,7 @@ app.post("/api/chat", requireAuth, async (req, res) => {
       reply = await callGemini(parts, CHAT_SYSTEM_PROMPT, 2048);
     } else if (AI_PROVIDER === "deepseek") {
       // DeepSeek/OpenAI兼容: 直接传 messages 数组
-      const model = AI_MODEL || "deepseek-chat";
+      const model = AI_MODEL || "deepseek-v4-flash";
       const url = AI_PROVIDER === "deepseek" && !AI_BASE_URL
         ? "https://api.deepseek.com/chat/completions"
         : `${(AI_BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "")}/chat/completions`;
@@ -769,8 +769,9 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
   switch (AI_PROVIDER) {
     case "openai":
     case "qwen":
-    case "zhipu": {
-      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-flash" : AI_PROVIDER === "zhipu" ? "glm-4-flash" : "gpt-4o-mini");
+    case "zhipu":
+    case "deepseek": {
+      const textModel = AI_MODEL || (AI_PROVIDER === "qwen" ? "qwen-flash" : AI_PROVIDER === "zhipu" ? "glm-4-flash" : AI_PROVIDER === "deepseek" ? "deepseek-v4-flash" : "gpt-4o-mini");
       const visionCands = visionCandidates();
       const visionModel = visionCands[0];
       // 视频反推: 逐帧分析(每帧独占视觉模型输出额度) → 合并描述 → 文本模型反推五段式
@@ -813,10 +814,6 @@ ${imgList.length ? "\n[注：用户已上传参考图片/视频帧，请结合�
       }
       if (!txt) throw new Error("视觉模型调用失败: " + lastErr);
       return txt;
-    }
-    case "deepseek": {
-      const note = imgList.length ? "\n[注：用户上传了视频帧图片，请结合画面内容分析]\n" : "";
-      return await callDeepSeek(note + userMsg, sys, 4096);
     }
     case "gemini":
     default: {
@@ -874,7 +871,7 @@ app.post("/api/prompt-generate", requireAuth, express.json({ limit: "25mb" }), a
 
 // AI 配置状态查询(前端用来判断是否可用)
 app.get("/api/prompt-generate/status", (req, res) => {
-  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-flash" : AI_PROVIDER === "zhipu" ? "glm-4-flash" : "deepseek-chat");
+  const model = AI_MODEL || (AI_PROVIDER === "gemini" ? "gemini-2.5-flash" : AI_PROVIDER === "openai" ? "gpt-4o-mini" : AI_PROVIDER === "qwen" ? "qwen-flash" : AI_PROVIDER === "zhipu" ? "glm-4-flash" : "deepseek-v4-flash");
   const visionCandsStatus = visionCandidates();
   const visionModel = visionCandsStatus[0];
   res.json({
@@ -883,8 +880,8 @@ app.get("/api/prompt-generate/status", (req, res) => {
     model,
     visionModel,
     visionFallback: visionCandsStatus.slice(1), // 主视觉模型失效时的自动回落候选
-    supportsImage: AI_PROVIDER !== "deepseek", // deepseek 暂不支持图片输入
-    supportsVideo: AI_PROVIDER !== "deepseek", // 视频抽帧后按多图处理,deepseek 暂不支持图片
+    supportsImage: true, // 所有 provider(含 deepseek-v4-flash-vision-exp)均支持图片输入
+    supportsVideo: true, // 视频抽帧后按多图处理,deepseek 已支持
     promptCount: store.promptCache.length // 已收集语料数(用于前端展示训练进度)
   });
 });
